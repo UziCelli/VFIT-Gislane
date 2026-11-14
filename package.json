@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:gislane": "vite --mode gislane",
-    "build": "tsc && vite build",
-    "build:gislane": "tsc && vite build --mode gislane",
+    "build": "tsc && vite build && node tools/verificar-build.mjs",
+    "build:gislane": "tsc && vite build --mode gislane && node tools/verificar-build.mjs",
     "preview": "vite preview",
     "typecheck": "tsc && tsc -p push",
     "test": "vitest run",

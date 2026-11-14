@@ -1,0 +1,37 @@
+# Ocorrências históricas exatas revisadas em 14/11/2026; não ignora arquivos inteiros.
+# Configuração pública Firebase e chave de site reCAPTCHA
+83eb0dfb44e93a8674c3efb893535b034a5c17b9:.env.gislane:generic-api-key:13
+fad0309214e553f22299b91ef680e73f449b2275:.env.gislane:gcp-api-key:1
+# Configuração pública Firebase e chave de site reCAPTCHA
+687cd89066dadeb2864ba337de1455fc9ac041e6:.env.production:generic-api-key:15
+10dedce21be99261b0568038afb42c8e0a399cfe:.env.production:generic-api-key:16
+04590bdc216ba6f520b92cf7def0bed57a10274f:.env.production:gcp-api-key:4
+# SHA-256 hex no mapa hashes do índice Graphify (26 ocorrências verificadas)
+1d3c2304846cc450393b38f77ac831440fb68ccb:graphify-out/cache/stat-index.json:generic-api-key:1
+5989e3d61840253becb4bd91bad905ca292cf95a:graphify-out/cache/stat-index.json:generic-api-key:1
+c8916fc08bc2c4a8fc656d56b7cc11796fc06c20:graphify-out/cache/stat-index.json:generic-api-key:1
+0ea3d516d70ca958d77b263f302f9d5bd7263824:graphify-out/cache/stat-index.json:generic-api-key:1
+1785114584a5cc7379d7f2f796b2121afbbd921c:graphify-out/cache/stat-index.json:generic-api-key:1
+47bbba572faa24022deacc93003b4bccd74bda3f:graphify-out/cache/stat-index.json:generic-api-key:1
+a489a6190460d5e469371cc90be0b923d66a4999:graphify-out/cache/stat-index.json:generic-api-key:1
+bc422983440241a23b738611f680ee52b3f7b65b:graphify-out/cache/stat-index.json:generic-api-key:1
+ed1f5bd8855e4cfc0b9aadc7e8423ee5ad57e0dc:graphify-out/cache/stat-index.json:generic-api-key:1
+9d14e40cd819fb091c8c9284643f842d19772473:graphify-out/cache/stat-index.json:generic-api-key:1
+e1fe686c216ecd032bba6339f3f88c0f468ad233:graphify-out/cache/stat-index.json:generic-api-key:1
+9d3d27a1db5c7aff1d476a639f94db31788ae4a4:graphify-out/cache/stat-index.json:generic-api-key:1
+27fd9e19f069333db160f074cbcdbd8cc86fc714:graphify-out/cache/stat-index.json:generic-api-key:1
+5e9e669fc794f922f6bb270148d2cd6c199d5490:graphify-out/cache/stat-index.json:generic-api-key:1
+911fed1e7b925746defdd752afa1b58fe1fb8f89:graphify-out/cache/stat-index.json:generic-api-key:1
+39d140b6a124cd38aa8a449d80e62b5afa322066:graphify-out/cache/stat-index.json:generic-api-key:1
+4d6833b81d7ae9846867cf7c0a9369744ff4c232:graphify-out/cache/stat-index.json:generic-api-key:1
+c0dc77e3d8020ec727d7511d99c362ea0977e8b9:graphify-out/cache/stat-index.json:generic-api-key:1
+f0a2d2257fc0931dac37d3e426946b45dac64dc1:graphify-out/cache/stat-index.json:generic-api-key:1
+f0063799c43e71af0dbfd3acfff5a62d2777bb6d:graphify-out/cache/stat-index.json:generic-api-key:1
+4a6b2cf03bff0f8356d8f1b02e5ceaa1a258a73c:graphify-out/cache/stat-index.json:generic-api-key:1
+5505efd8c8d10eeb473fb6f8eb81ed305fb925bf:graphify-out/cache/stat-index.json:generic-api-key:1
+f58d7ed3ff46c44b47971c98be7117d98908a452:graphify-out/cache/stat-index.json:generic-api-key:1
+ee03eaa10204b3fe87a47736ecde644bc61313f9:graphify-out/cache/stat-index.json:generic-api-key:1
+de735bc378569605b944eb43e2666c13692663c1:graphify-out/cache/stat-index.json:generic-api-key:1
+dbfff7ee55e3fd6b97aadda8a2575fd988b01f3f:graphify-out/cache/stat-index.json:generic-api-key:1
+# Vetor público do RFC 8291, Apêndice A, usado exclusivamente em teste
+5934eaafa5e546fee0ec964170066600bae3c8fd:push/src/webpush.test.ts:generic-api-key:13

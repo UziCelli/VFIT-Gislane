@@ -1,3 +1,11 @@
+## 14/11/2026 — Refino visual do treino (Codex)
+- PR #173: **Redesing para o final de 26**, branch `codex/refino-visual-treino`.
+- Ajuste pontual, separado do redesenho 2027 do PR #171: lista vertical e funções mantidas. Nome do exercício ocupa a largura do cartão; selos de método ficam em uma linha; edição, sino e descanso se alinham à direita e descem juntos quando falta espaço.
+- Refinamento adicional pedido pelo Victor: fundo e cartões clareados com 8% de um tom da própria paleta; botões com bordas/relevo discreto e campos de 44 px. CSS isolado em `features/aluno/treino.css`, nas duas marcas, sem filtros de brilho/desfoque.
+- Acabamento discreto nos cartões e no quadro de peso corporal; cabeçalho e relógio permitem quebra em telas estreitas. Checagens locais: typecheck, 1.111 unitários, builds das duas marcas e 25 e2e afetados aprovados.
+- Fluidez: diagnóstico opt-in `PERF_TREINO=1` exercita toque para cima/baixo e três saídas/entradas com CPU 4x mais lenta, dez exercícios, descanso ativo, carga e relógio preservados. Passou nas duas marcas. Comparação diagnóstica VFIT com `d08ca2f`: mediana 16,7 ms e p95 33,4 ms em ambas; maior intervalo 216,7 ms antes e 200 ms depois (CPU 4x). Sem regressão observada nesta execução; não substitui teste em celular real.
+- Teste `e2e/treino-layout.spec.ts`: reproduz Stiff Barra/Clusterset e Elevação Pélvica Máquina Tradicional/Rest-pause, aluno e presencial, 320/360/390/430 px. Revisão cruzada do Claude pendente; não juntar antes do OK.
+
 ## 13/11/2026 — Isometria (entrega B, Codex)
 - Branch `codex/isometria-entrega-b`, baseada na entrega A (`11348d2`), validada localmente; PR #166 já integrado em `a489a61`.
 - Isométricos em segundos (padrão 3×30 s), progressão até 60 s/série, cronômetro por série e tempo sob tensão separado de movimentos/volume. Sem migração nem mudança de regras.

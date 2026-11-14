@@ -74,13 +74,21 @@ export function prescreverSessao(meso: Meso, semana: number, treino: number): Se
   const inicioSemana = new Date(Date.UTC(ano, mes - 1, dia + 7 * (semana - 1))).toISOString().slice(0, 10)
   const doTreino = metodosDaSessao(meso, semana, treino).filter((m) => m.ativo)
 
-  const exercicios = slotsDaSessao(meso, semana, treino).map(({ de, ...slot }, i): ExercicioPrescrito => {
+  const exercicios = slotsDaSessao(meso, semana, treino).map(({ de: deGravado, origemSlotId, origemIsometrica, ...slot }, i): ExercicioPrescrito => {
     const pos = i + 1
-    // Exercício novo (sem `de`): progressão padrão, senão a dos auxiliares.
+    // Identidade estável nas novas sessões; legado ainda usa o slot atual ou a posição gravada.
+    const agora = (meso.divisao[treino - 1] ?? []).findIndex((s, k) => origemSlotId
+      ? s.slotId === origemSlotId
+      : s.slotId === slot.slotId || meso.trocas?.[`${semana}-${treino}-${k + 1}`]?.slotId === slot.slotId)
+    const de = deGravado != null && agora >= 0 ? agora + 1 : origemSlotId ? undefined : deGravado
     const planejado = de != null ? meso.divisao[treino - 1]?.[de - 1] : undefined
     const iso = isometrico(slot)
     const mesmaUnidade = planejado && isometrico(planejado) === iso
-    const linha = (iso ? meso.progressaoExercicio?.[slot.slotId]?.[semana - 1] : undefined) ?? (mesmaUnidade ? linhaPrescrita(meso, semana, treino, de!) : iso ? linhaIsometrica() : (meso.progressao.padrao ?? meso.progressao.auxiliares)[semana - 1] ?? [])
+    // A exclusão guarda linhas por identidade; nunca reutilizar o `de` de uma origem estável excluída.
+    const arquivada = agora < 0 && (!origemSlotId || origemIsometrica === iso)
+      ? meso.progressaoExercicio?.[origemSlotId ?? slot.slotId]?.[semana - 1]
+      : undefined
+    const linha = (iso ? meso.progressaoExercicio?.[slot.slotId]?.[semana - 1] : undefined) ?? arquivada ?? (mesmaUnidade ? linhaPrescrita(meso, semana, treino, de!) : iso ? linhaIsometrica() : (meso.progressao.padrao ?? meso.progressao.auxiliares)[semana - 1] ?? [])
     const base = (k: number) => linha[k - 1] ?? 0
     const n = linha.filter((r) => typeof r === 'number').length
     const linhas = doTreino.filter((m) => m.exercicio === pos)

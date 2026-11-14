@@ -89,6 +89,19 @@ describe('prescreverSessao — estrutura', () => {
     expect(prescreverSessao(meso, 1, 1)!.exercicios.map((e) => e.slot.slotId)).toEqual(['Z'])
   })
 
+  it('sessão editada segue o exercício pelo slotId quando a divisão foi reordenada depois', () => {
+    // A sessão foi editada com C na posição 3; depois o coach moveu C para a posição 1 (A foi para a 3).
+    const meso: Meso = {
+      ...base,
+      divisao: [[slot('C'), slot('B'), slot('A')], [slot('D')]],
+      progressaoExercicio: { C: [[6, 6]], A: [[9]] },
+      sessoes: { '1-1': { semana: 1, treino: 1, exercicios: [{ ...slot('C'), de: 3 }, { ...slot('Y'), de: 1 }], metodos: [] } },
+    }
+    const s = prescreverSessao(meso, 1, 1)!
+    expect(s.exercicios[0].reps).toEqual([6, 6]) // a linha do próprio C, não a de quem está na posição 3
+    expect(s.exercicios[1].reps).toEqual([6, 6]) // trocado na hora (slot novo): continua seguindo a posição `de`
+  })
+
   it('series = maior n entre os exercícios (não só o 1º)', () => {
     // principais s1 com 3 séries, auxiliares s1 com 5 → series = 5
     const meso = com([], {

@@ -4,6 +4,10 @@ import { criarAluno, criarCoach, criarMeso, hojeSaoPaulo, lerDoc, limparEmulador
 const COACH = { nome: 'Victor', email: 'victor.voz@teste.com', senha: 'senha123' }
 const CHAVE = 'sk-ant-api03-chave-de-teste-123456'
 
+// Voz desligada em 14/11/2026 a pedido do Victor (custo da chave da API e erros de interpretação).
+// Para religar: voltar <VozTreino> no EditorMeso e <AssistenteIA> no MinhaConta, e tirar esta linha.
+test.skip(true, 'Montagem por voz desligada por enquanto')
+
 test.beforeAll(async () => {
   await limparEmuladores()
   await criarCoach(COACH.nome, COACH.email, COACH.senha)

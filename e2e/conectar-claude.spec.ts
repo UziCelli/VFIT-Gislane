@@ -52,6 +52,9 @@ test('coach entra, vê o pedido e toca em Permitir: o app manda os tokens ao con
 
 test('coach: Cancelar avisa o conector e volta', async ({ page }) => {
   const enviados = await conectorFalso(page)
+  page.on('console', (m) => console.log('CONSOLE', m.text()))
+  page.on('requestfailed', (r) => console.log('FAILED', r.url(), r.failure()?.errorText))
+  page.on('request', (r) => console.log('REQ', r.url()))
   await entrar(page, COACH.email, COACH.senha)
   await page.getByRole('button', { name: 'Cancelar' }).click()
   await expect(page.getByRole('heading', { name: 'Voltou ao Claude' })).toBeVisible()

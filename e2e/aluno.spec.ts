@@ -251,7 +251,7 @@ test('biset entre posições não vizinhas aparece junto', async ({ page }) => {
   await page.getByRole('dialog').getByRole('button', { name: 'Entendi', exact: true }).click()
   await expect(page.getByText('A1', { exact: true }).first()).toBeVisible()
   await expect(page.getByText('A2', { exact: true }).first()).toBeVisible()
-  const nomes = await page.locator('.rounded-xl.border .min-w-0 > .font-semibold').allTextContents()
+  const nomes = await page.locator('[data-treino-nome]').allTextContents()
   expect(nomes.slice(0, 3)).toEqual(['Agachamento Livre Halter', 'Remada Curvada Barra', 'Supino Reto Barra'])
   await page.screenshot({ path: 'test-results/prints/81-biset-aluno.png' })
 })

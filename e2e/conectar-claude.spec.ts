@@ -16,7 +16,7 @@ test.beforeAll(async () => {
 // O Worker é falso: devolve o nome do pedido e guarda o que o app manda.
 async function conectorFalso(page: Page) {
   const enviados: { rota: string; corpo: Record<string, string> }[] = []
-  await page.route('http://conector.teste/**', async (route) => {
+  await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', async (route) => {
     const req = route.request()
     const rota = new URL(req.url()).pathname
     const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type' }
@@ -24,7 +24,7 @@ async function conectorFalso(page: Page) {
     if (rota === '/volta') return route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>Voltou ao Claude</h1>' })
     if (rota === '/pedido') return route.fulfill({ status: 200, headers: cors, json: { cliente: 'Claude', host: 'claude.ai' } })
     enviados.push({ rota, corpo: req.postDataJSON() })
-    return route.fulfill({ status: 200, headers: cors, json: { redirectTo: 'http://conector.teste/volta' } })
+    return route.fulfill({ status: 200, headers: cors, json: { redirectTo: 'https://vfit-conector.vfitcoach-site.workers.dev/volta' } })
   })
   return enviados
 }
@@ -53,9 +53,10 @@ test('coach entra, vê o pedido e toca em Permitir: o app manda os tokens ao con
 test('coach: Cancelar avisa o conector e volta', async ({ page }) => {
   const enviados = await conectorFalso(page)
   page.on('console', (m) => console.log('CONSOLE', m.text()))
-  page.on('requestfailed', (r) => console.log('FAILED', r.url(), r.failure()?.errorText))
-  page.on('request', (r) => console.log('REQ', r.url()))
+  page.on('pageerror', (m) => console.log('PAGEERR', m.message))
   await entrar(page, COACH.email, COACH.senha)
+  await page.waitForTimeout(4000)
+  console.log('URL', page.url(), (await page.locator('body').innerText()).slice(0,300))
   await page.getByRole('button', { name: 'Cancelar' }).click()
   await expect(page.getByRole('heading', { name: 'Voltou ao Claude' })).toBeVisible()
   expect(enviados.map((e) => e.rota)).toEqual(['/cancelar'])
@@ -63,7 +64,7 @@ test('coach: Cancelar avisa o conector e volta', async ({ page }) => {
 })
 
 test('pedido vencido: avisa em vez de mostrar os botões', async ({ page }) => {
-  await page.route('http://conector.teste/**', (route) => route.fulfill({ status: 404, headers: { 'Access-Control-Allow-Origin': '*' }, json: { erro: 'vencido' } }))
+  await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', (route) => route.fulfill({ status: 404, headers: { 'Access-Control-Allow-Origin': '*' }, json: { erro: 'vencido' } }))
   await entrar(page, COACH.email, COACH.senha)
   await expect(page.getByText('Este pedido venceu ou já foi usado.')).toBeVisible({ timeout: 15000 })
   await expect(page.getByRole('button', { name: 'Permitir' })).toHaveCount(0)

@@ -1,0 +1,6 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Hashes SHA-256 do cache gerado pelo Graphify (revisão Claude, PR 176)"
+paths = ["^graphify-out/cache/"]

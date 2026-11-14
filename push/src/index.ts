@@ -1,3 +1,4 @@
+import { lerCorpoJson } from './corpo'
 import { atenderIA, MAX_CORPO_IA, ROTAS_IA, type AcaoIA, type ResultadoIA } from './ia'
 import { DurableObject } from 'cloudflare:workers'
 import { acessoComCache, appCheckOk, ehCoach, lerPermissao, podeAvisarTreino, quemAvisaCoach, registrarAgendamento, type CacheAcesso } from './acesso'
@@ -215,7 +216,7 @@ export class Descanso extends DurableObject<Env> {
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const h = cors(req.headers.get('Origin'))
-    const json = (corpo: unknown, status = 200, extra: Record<string, string> = {}) => Response.json(corpo, { status, headers: { ...h, ...extra } })
+    const json = (corpo: unknown, status = 200, extra: Record<string, string> = {}) => Response.json(corpo, { status, headers: { ...h, 'Cache-Control': 'no-store', ...extra } })
     const { pathname } = new URL(req.url)
 
     if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: h })
@@ -229,14 +230,10 @@ export default {
     const agora = Math.floor(Date.now() / 1000)
     const appCheck = appCheckOk(req.headers.get('X-Firebase-AppCheck')) // nunca logar
     const lerJson = async (max: number): Promise<{ corpo: unknown } | Response> => {
-      const texto = await req.text()
-      if (texto.length > max) return json({ erro: 'corpo grande demais' }, 413)
-      try {
-        return { corpo: JSON.parse(texto) }
-      } catch {
-        return json({ erro: 'JSON inválido' }, 400)
-      }
+      const r = await lerCorpoJson(req, max)
+      return r.status ? json({ erro: r.status === 413 ? 'corpo grande demais' : 'JSON inválido' }, r.status) : r
     }
+
     const coaches = (projeto: Projeto) => env.DESCANSO.get(env.DESCANSO.idFromName(nomeCoaches(projeto)))
     const aluno = (projeto: Projeto, uid: string) => env.DESCANSO.get(env.DESCANSO.idFromName(nomeDO(projeto, uid)))
 
@@ -245,24 +242,9 @@ export default {
       if (!token || !id || !uidOk(id.uid)) return json({ erro: 'Entre novamente com a verificação em 2 etapas.' }, 401)
       if (!(await aluno(id.projeto, id.uid).passar('ia', 30, 60000))) return json({ erro: 'Muitos pedidos. Tente mais tarde.' }, 429)
       if (!(await ehCoach(id.projeto, id.uid, token, fetch, appCheck))) return json({ erro: 'Sem permissão para usar a IA.' }, 403)
-      // Limita o fluxo antes de armazenar o corpo inteiro (não confia em Content-Length).
-      const reader = req.body?.getReader()
-      const chunks: Uint8Array[] = []
-      let size = 0
-      if (reader) {
-        for (;;) {
-          const { value, done } = await reader.read()
-          if (done) break
-          size += value.byteLength
-          if (size > MAX_CORPO_IA) { await reader.cancel(); return json({ erro: 'Pedido grande demais.' }, 413) }
-          chunks.push(value)
-        }
-      }
-      const bytes = new Uint8Array(size)
-      let offset = 0
-      for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length }
-      let corpo: unknown
-      try { corpo = JSON.parse(new TextDecoder().decode(bytes)) } catch { return json({ erro: 'Pedido inválido.' }, 400) }
+      const j = await lerJson(MAX_CORPO_IA)
+      if (j instanceof Response) return j
+      const corpo = j.corpo
       const r: ResultadoIA = JSON.parse(await env.DESCANSO.get(env.DESCANSO.idFromName(`__ia:${id.projeto}`)).ia(pathname as AcaoIA, corpo, id.projeto, token, appCheck))
       return json(r.corpo, r.status, { 'Cache-Control': 'no-store' })
     }
@@ -313,7 +295,9 @@ export default {
       }
       if (pathname === '/desinscrever') {
         // Com `endpoint`, sai só este aparelho; o app antigo manda `{}` e tira todos.
-        const endpoint = await req.text().then((t) => (t.length <= 4096 ? (JSON.parse(t) as { endpoint?: unknown } | null)?.endpoint : undefined)).catch(() => undefined)
+        const j = await lerJson(4096)
+        if (j instanceof Response) return j
+        const endpoint = (j.corpo as { endpoint?: unknown } | null)?.endpoint
         const sobraram = await meu.desinscrever(endpointOk(endpoint) ? endpoint : undefined)
         if (sobraram === 0) await coaches(projeto).sairCoach(uid)
         return json({ ok: true })

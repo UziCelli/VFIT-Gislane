@@ -1,0 +1,10 @@
+# Ocorrências históricas exatas revisadas em 14/11/2026; não ignora arquivos inteiros.
+# Configuração pública Firebase e chave de site reCAPTCHA
+83eb0dfb44e93a8674c3efb893535b034a5c17b9:.env.gislane:generic-api-key:13
+fad0309214e553f22299b91ef680e73f449b2275:.env.gislane:gcp-api-key:1
+# Configuração pública Firebase e chave de site reCAPTCHA
+687cd89066dadeb2864ba337de1455fc9ac041e6:.env.production:generic-api-key:15
+10dedce21be99261b0568038afb42c8e0a399cfe:.env.production:generic-api-key:16
+04590bdc216ba6f520b92cf7def0bed57a10274f:.env.production:gcp-api-key:4
+# Vetor público do RFC 8291, Apêndice A, usado exclusivamente em teste
+5934eaafa5e546fee0ec964170066600bae3c8fd:push/src/webpush.test.ts:generic-api-key:13

@@ -1,3 +1,8 @@
+## 14/11/2026 — Guia mestre de segurança (Codex)
+- Branch `codex/seguranca-mestre-2026-11-14`: Worker limita JSON em streaming por bytes, respostas privadas no-store; build bloqueia artefatos internos e credenciais reconhecíveis; CSP retira acesso direto à Anthropic já movido ao Worker.
+- Auditoria, riscos offline, plano externo e inventário de licenças em `docs/security/`. Não houve deploy, migração, mudança de regras ou rotação de segredo.
+- Revisão cruzada Claude pendente antes de juntar. Estado de testes em `docs/security/VALIDATION.md`.
+
 ## 14/11/2026 — Guia Físio: hierarquia de leitura (Claude)
 - Cartão de cada método em `GuiaFisio.tsx`: título maior (código em cinza) → evidência e queixas → **liberação** como pré-requisito (caixa própria, motivo em linha separada "Quando: …") → Protocolo → observação (borda lateral âmbar) → "Parar e procurar…" em vermelho, separado por linha → fontes no rodapé.
 - Só visual; nenhum texto ou alerta escondido. Aguarda a revisão cruzada do Codex.

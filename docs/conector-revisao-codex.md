@@ -18,6 +18,6 @@ Este PR ainda é um rascunho e não deve ser integrado nem publicado.
 
 ## Validações locais
 
-- 1.146 testes unitários, typecheck e builds das duas marcas passaram.
+- 1.146 testes unitários, 395 testes das regras no emulador, typecheck e builds das duas marcas passaram.
 - Quatro testes de navegador passaram com Firebase emulado e conector simulado.
 - Wrangler local: descoberta OAuth, registro dinâmico, autorização até a tela, cancelamento e rejeição sem token passaram. A aprovação real com Firebase/MFA e chamadas autenticadas ainda não foram testadas.

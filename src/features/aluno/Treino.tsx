@@ -1,3 +1,4 @@
+import './treino.css'
 import { textoNota } from '../../lib/notas'
 import { collection, doc, query, where } from 'firebase/firestore'
 import { AnimatePresence, animate, m, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
@@ -566,6 +567,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     )
 
   return (
+    <div className="treino-pagina min-h-lvh">
     <main className="mx-auto max-w-md px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-4">
       <AvisoNotificacoes />
       <BotaoVoltar aoVoltar={sair} />
@@ -642,7 +644,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
             gravaPc(Math.round(peso * frac * 10) / 10)
           }
           return (
-            <m.div key={e.slot.slotId} variants={item} className={`relative rounded-xl border bg-gradient-to-b from-slate-900 to-slate-900/90 p-4 shadow-[0_4px_20px_rgb(0_0_0/0.12)] ${gc ? gc.borda : 'border-slate-700/70'}`} data-treino-cartao>
+            <m.div key={e.slot.slotId} variants={item} className={`relative rounded-xl border p-4 ${gc ? gc.borda : 'border-slate-700/70'}`} data-treino-cartao>
               {gk && ordem > 0 && <span aria-hidden className={`absolute -top-4 left-6 h-4 w-0.5 ${gc?.faixa}`} />}
               {gk && (
                 <div className={`mb-2 text-xs font-semibold ${gc?.texto}`}>
@@ -918,5 +920,6 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
       )}
       </AnimatePresence>
     </main>
+    </div>
   )
 }

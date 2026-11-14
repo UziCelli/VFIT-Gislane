@@ -600,9 +600,9 @@
     "semantic_hash": ""
   },
   "src/features/aluno/Treino.tsx": {
-    "mtime": 1794662451.5502782,
-    "seen": 1794662469.8495774,
-    "ast_hash": "85ee6027f41657d86c37e3a8bbd905da",
+    "mtime": 1794662901.5212986,
+    "seen": 1794663174.7101235,
+    "ast_hash": "a54d2d6691d64441bb1fcf2eff005957",
     "semantic_hash": ""
   },
   "src/features/aluno/Tutorial.tsx": {
@@ -1884,9 +1884,9 @@
     "semantic_hash": ""
   },
   "docs/estado-sessao.md": {
-    "mtime": 1794662382.0018399,
-    "seen": 1794662469.8499885,
-    "ast_hash": "b7375a16b26f52adc54d06dc0f581ce4",
+    "mtime": 1794663424.682193,
+    "seen": 1794663431.1851096,
+    "ast_hash": "400e0f0f8690c6945b77153f99927047",
     "semantic_hash": ""
   },
   "docs/firebase-setup.md": {
@@ -1902,9 +1902,9 @@
     "semantic_hash": ""
   },
   "docs/mapa.md": {
-    "mtime": 1794662382.004121,
-    "seen": 1794662469.8500009,
-    "ast_hash": "ce1f747e24dd0aedb20f7af32bb2f8d1",
+    "mtime": 1794663122.4530554,
+    "seen": 1794663174.711207,
+    "ast_hash": "90da97d3923ada95b99bc2071465e3fa",
     "semantic_hash": ""
   },
   "docs/peso-corporal.md": {
@@ -2604,9 +2604,15 @@
     "semantic_hash": ""
   },
   "e2e/treino-layout.spec.ts": {
-    "mtime": 1794662572.2521293,
-    "seen": 1794662654.3975275,
-    "ast_hash": "2e3fd6acf70b41d3ba821384d71587db",
+    "mtime": 1794662901.5215752,
+    "seen": 1794663174.7092712,
+    "ast_hash": "3b4af70feb1a24fb28ec2e6cbab68484",
+    "semantic_hash": ""
+  },
+  "e2e/treino-fluidez.spec.ts": {
+    "mtime": 1794663368.924172,
+    "seen": 1794663431.1846297,
+    "ast_hash": "4056a39d8fae8e445559f2244779a43a",
     "semantic_hash": ""
   },
   "package-lock.json": {

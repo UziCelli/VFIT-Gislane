@@ -1,0 +1,55 @@
+/* Apenas o treino (aluno e presencial). Mistura 8% de um tom claro da própria
+   paleta nas superfícies, sem filtro de brilho no texto ou nas cores dos métodos. */
+/* O presencial reserva espaço abaixo para o seletor de alunos. Mantém o
+   mesmo fundo nessa reserva, sem criar um corte escuro no fim da rolagem. */
+section:has(> .treino-pagina) {
+  background-color: color-mix(in srgb, var(--color-slate-950) 92%, var(--color-slate-300));
+}
+
+.treino-pagina {
+  background:
+    radial-gradient(ellipse at 0 0, color-mix(in srgb, var(--color-marca-500) 12%, transparent), transparent 38rem),
+    color-mix(in srgb, var(--color-slate-950) 92%, var(--color-slate-300));
+}
+
+.treino-pagina [data-treino-cartao] {
+  border-radius: 20px;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--color-slate-900) 92%, var(--color-slate-300)),
+    color-mix(in srgb, var(--color-slate-900) 96%, var(--color-slate-300)));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.treino-pagina button.bg-slate-800 {
+  border-color: color-mix(in srgb, var(--color-slate-600) 75%, var(--color-marca-400));
+  border-radius: 14px;
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--color-slate-800) 90%, var(--color-marca-300)),
+    var(--color-slate-800));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 2px 5px rgb(0 0 0 / 0.12);
+}
+
+.treino-pagina button.bg-marca-500 {
+  background: linear-gradient(160deg,
+    color-mix(in srgb, var(--color-marca-500) 96%, white),
+    var(--color-marca-500));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 4px 12px color-mix(in srgb, var(--color-marca-900) 30%, transparent);
+}
+
+.treino-pagina [data-treino-cartao] input[inputmode='decimal'] {
+  min-height: 44px;
+  border-color: var(--color-slate-600);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-slate-950) 94%, var(--color-slate-300));
+}
+
+.treino-pagina [data-treino-cartao] input[inputmode='decimal']:focus {
+  border-color: var(--color-marca-400);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-marca-400) 18%, transparent);
+}
+
+@media (hover: hover) {
+  .treino-pagina button.bg-slate-800:not(:disabled):hover {
+    border-color: var(--color-marca-400);
+  }
+}

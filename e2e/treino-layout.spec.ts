@@ -21,6 +21,7 @@ test('treino: nomes, métodos e controles não se sobrepõem no aluno e no prese
   for (const coach of [false, true]) {
     const context = await browser.newContext({ viewport: { width: 1280, height: 800 } })
     const page = await context.newPage()
+    await page.addInitScript(() => localStorage.setItem('forca-novidades-pc', '2'))
     await page.goto('/')
     const conta = coach ? COACH : ALUNO
     await page.getByLabel('E-mail').fill(conta.email)

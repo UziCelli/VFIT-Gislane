@@ -10,7 +10,6 @@ import { db } from '../../lib/firebase'
 import { useDoc } from '../../lib/hooks'
 import { Aviso, Botao, Campo, Cartao, Msg, Pagina } from '../../ui'
 import { IcCheck } from '../../icones'
-import AssistenteIA from './AssistenteIA'
 import ChavesAvisos from './ChavesAvisos'
 import { permissao } from '../aluno/AvisoNotificacoes'
 import { AVISOS_COACH, inscreverAvisos } from '../../lib/push'
@@ -248,7 +247,6 @@ export default function MinhaConta({ uid, email, abrirTutorial }: { uid: string;
         </Cartao>
         {perfil?.papel === 'coach' && !carregando && <NotificacoesCoach />}
         {perfil?.papel === 'coach' && !carregando && <DuasEtapas />}
-        {perfil?.papel === 'coach' && !carregando && <AssistenteIA />}
         <Msg>{erro && <Aviso>{erro}</Aviso>}</Msg>
         <Msg>{ok && <Aviso>{ok}</Aviso>}</Msg>
         <Botao type="button" className="w-full" onClick={abrirTutorial}>Como usar</Botao>

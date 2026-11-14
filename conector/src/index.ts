@@ -9,11 +9,12 @@ import { chaveDoGoogle } from '../../push/src/jwt'
 import { executar } from './execucao'
 import { catalogoExercicios, listarAlunos, verAluno, verMesos } from './ferramentas'
 import { apagarPedido, concluirLogin, criarPedido, lerPedido, type KV } from './login'
-import type { Descanso } from '../../push/src/index'
+import { PedidoOAuth } from './pedido'
+export { PedidoOAuth } from './pedido'
 
 type Env = {
   OAUTH_KV: KVNamespace
-  DESCANSO: DurableObjectNamespace<Descanso>
+  PEDIDOS: DurableObjectNamespace<PedidoOAuth>
   OAUTH_PROVIDER: OAuthHelpers
   MCP_RESOURCE: string
   APP_URL: string
@@ -52,10 +53,10 @@ function criarServidor() {
 }
 const mcp = createMcpHandler(criarServidor)
 
-// Cada pedido usa uma instância própria do Durable Object já existente no Worker.
+// Cada pedido usa uma instância própria do Durable Object deste Worker.
 // KV continua exclusivo para concessões OAuth; não garante consumo único de pedidos.
 function pedidos(env: Env): KV {
-  const objeto = (k: string) => env.DESCANSO.get(env.DESCANSO.idFromName(`__mcp:${k}`))
+  const objeto = (k: string) => env.PEDIDOS.get(env.PEDIDOS.idFromName(`__mcp:${k}`))
   return {
     get: (k) => objeto(k).lerPedido(),
     put: (k, v, o) => objeto(k).guardarPedido(v, Date.now() + (o?.expirationTtl ?? 600) * 1000),
@@ -124,3 +125,5 @@ export const provedor = () => new OAuthProvider({
   defaultHandler: loginHandler,
   resourceMetadata: { resource: E.MCP_RESOURCE },
 })
+
+export default provedor()

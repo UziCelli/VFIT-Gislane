@@ -4,14 +4,14 @@ Este PR ainda é um rascunho e não deve ser integrado nem publicado.
 
 ## Alterações realizadas
 
-- As rotas do conector foram encaminhadas no código do Worker `vfit-descanso`, atrás da variável `MCP_ENABLED`; sem ela, o conector fica desligado. Não há outro Worker para publicar.
-- Cada pedido OAuth usa uma instância própria do Durable Object existente. Seu consumo é transacional, para impedir duas aprovações simultâneas. As concessões OAuth ainda precisam do KV.
-- A verificação do token renovado exige o mesmo usuário e projeto. A tela informa que esta entrega só faz leitura.
+- O conector usa o Worker separado `vfit-conector`, criado pelo Victor. O Worker `vfit-descanso` continua responsável pelas notificações.
+- O KV `vfit-mcp-oauth` foi vinculado na configuração usando o namespace informado pelo Victor. Os limites gratuitos são compartilhados pela conta Cloudflare.
+- Cada pedido OAuth usa um Durable Object próprio do conector. Seu consumo é transacional para impedir duas aprovações simultâneas. A verificação do token renovado exige o mesmo usuário e projeto.
+- A tela informa que esta entrega só faz leitura. A criação e o ajuste de treinos ficam para entrega posterior, como rascunho revisado pelo coach, sem alterar cargas dos alunos.
 
 ## Antes de ligar
 
-- Provisionar um namespace KV gratuito e vinculá-lo ao Worker como `OAUTH_KV`. Incluir seu ID na configuração versionada ou no processo de publicação, sem apagar bindings existentes. O token de publicação precisa ter acesso aos recursos usados. Conferir as cotas e o plano da conta; custo zero depende do volume e das configurações.
-- Configurar no Worker `MCP_ENABLED=true`, `MCP_RESOURCE=https://vfit-descanso.vfitcoach-site.workers.dev/mcp`, `APP_URL=https://app.vfitcoachapp.com`, `PROJETO=forca--app` e `FIREBASE_API_KEY` com a chave web pública do projeto. Essas configurações ainda não estão prontas para publicação automática.
-- Validar fluxo completo OAuth/MCP em ambiente de teste, incluindo revogação, concorrência real, renovação de token, limites de uso, isolamento e comportamento com App Check. Validar notificações existentes e as duas marcas após alterar o Worker.
-- Esta entrega só lê dados e atende VFIT. Criar e ajustar treinos exige outra entrega, com rascunho revisado pelo coach e sem alterar cargas dos alunos.
-- Atualizar o plano e o mapa, revisar a política e realizar a revisão cruzada. Não conectar dados reais antes de concluir as verificações.
+- Preparar e validar o processo de publicação independente, incluindo a variável `FIREBASE_API_KEY` com a chave web pública do Firebase. O workflow de deploy automático do conector está ausente por enquanto.
+- Validar o fluxo OAuth/MCP completo em ambiente de teste, incluindo revogação, concorrência real, renovação de token, limites, isolamento e App Check. A inicialização OAuth, a descoberta de recurso e a recusa sem token foram testadas localmente; o login real não foi testado.
+- Implementar e testar o suporte à segunda marca. Atualmente, o conector é apenas VFIT.
+- Revisar a política, atualizar o plano e obter revisão cruzada antes de disponibilizar dados reais.

@@ -1,4 +1,3 @@
-import { provedor } from '../../conector/src/index'
 import { lerCorpoJson } from './corpo'
 import { atenderIA, MAX_CORPO_IA, ROTAS_IA, type AcaoIA, type ResultadoIA } from './ia'
 import { DurableObject } from 'cloudflare:workers'
@@ -8,7 +7,7 @@ import { chaveDaConta, chaveDoGoogle, verificarAviso, verificarIdToken, type Pro
 import { alvosDe, comAparelho, endpointOk, semAparelho, type Fixa, inicioDoDiaBrasilia, nomeAgenda, nomeCoaches, nomeDO, passoAgenda, prefixoAgenda, tipoCoachOk, uidOk, validarAvisos, validarDesligados, validarEsquecer, validarFimEm, validarInscricao, validarRecado, type Aviso, type Inscricao, type Tipo, type TipoCoach } from './validar'
 import { enviarPush, gerarParVapid, type ParVapid } from './webpush'
 
-type Env = { DESCANSO: DurableObjectNamespace<Descanso>; MCP_ENABLED?: string }
+type Env = { DESCANSO: DurableObjectNamespace<Descanso> }
 
 type Mensagem = { title: string; body: string; tag: string; url: string }
 
@@ -198,29 +197,7 @@ export class Descanso extends DurableObject<Env> {
     }
   }
 
-  // Instâncias exclusivas para pedidos OAuth; a transação impede duas aprovações.
-  async guardarPedido(valor: string, expiracao: number): Promise<void> {
-    await this.ctx.storage.put('pedidoOAuth', valor)
-    await this.ctx.storage.setAlarm(expiracao)
-  }
-
-  async lerPedido(): Promise<string | null> {
-    return (await this.ctx.storage.get<string>('pedidoOAuth')) ?? null
-  }
-
-  async consumirPedido(): Promise<string | null> {
-    return this.ctx.storage.transaction(async (tx) => {
-      const valor = (await tx.get<string>('pedidoOAuth')) ?? null
-      if (valor !== null) await tx.delete('pedidoOAuth')
-      return valor
-    })
-  }
-
   async alarm() {
-    if (await this.ctx.storage.get('pedidoOAuth')) {
-      await this.ctx.storage.delete('pedidoOAuth')
-      return
-    }
     const agenda = [...(await this.ctx.storage.list({ prefix: 'ag:' })).keys()]
     if (agenda.length) return this.dispararAgenda(agenda)
     const inscricao = await this.ctx.storage.get<Inscricao>('inscricao')
@@ -237,10 +214,7 @@ export class Descanso extends DurableObject<Env> {
 }
 
 export default {
-  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    const rota = new URL(req.url).pathname
-    const rotaMcp = rota === '/mcp' || rota === '/authorize' || rota === '/pedido' || rota === '/concluir' || rota === '/cancelar' || rota.startsWith('/oauth/') || rota.startsWith('/.well-known/oauth-')
-    if (env.MCP_ENABLED === 'true' && rotaMcp) return provedor().fetch(req, env as never, ctx)
+  async fetch(req: Request, env: Env): Promise<Response> {
     const h = cors(req.headers.get('Origin'))
     const json = (corpo: unknown, status = 200, extra: Record<string, string> = {}) => Response.json(corpo, { status, headers: { ...h, 'Cache-Control': 'no-store', ...extra } })
     const { pathname } = new URL(req.url)

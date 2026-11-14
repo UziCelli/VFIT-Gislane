@@ -398,7 +398,7 @@ Comece por aqui para achar onde mexer.
 
 ## Conector MCP (rascunho)
 
-O roteamento está em `push/src/index.ts`; OAuth e ferramentas em `conector/src/`, com tela em `src/features/conta/ConectarClaude.tsx`. Está desligado por padrão. A configuração e pendências estão em `docs/conector-revisao-codex.md`.
+O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `src/features/conta/ConectarClaude.tsx`. O conector ainda não foi publicado. A configuração e pendências estão em `docs/conector-revisao-codex.md`.
 
 ## Pontos sensíveis (leia antes de auditar ou mexer)
 

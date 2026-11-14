@@ -7,8 +7,6 @@ on:
     branches: [main]
     paths:
       - 'push/**'
-      - 'conector/**'
-      - 'src/**'
       - '.github/workflows/push.yml'
   workflow_dispatch:
 
@@ -28,9 +26,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Instalar dependências do conector
-        working-directory: conector
-        run: npm ci
       - name: Publicar o Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

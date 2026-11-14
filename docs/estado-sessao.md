@@ -1,3 +1,7 @@
+## 14/11/2026 — Conector do Claude (MCP): Entrega 1 em andamento (Claude → Codex)
+- Plano: `docs/plano-conector-claude.md`. **Passagem para o Codex (onde parou e o que falta): `docs/conector-claude-handoff.md`.**
+- `conector/` tem só o começo (rest, firestore, ferramentas de leitura, config); falta `index.ts`, login/OAuth, tela `#/conectar-claude`, testes, workflow e Política. Nada testado ainda.
+
 ## 14/11/2026 — Guia mestre de segurança (Codex)
 - Branch `codex/seguranca-mestre-2026-11-14`: Worker limita JSON em streaming por bytes, respostas privadas no-store; build bloqueia artefatos internos e credenciais reconhecíveis; CSP retira acesso direto à Anthropic já movido ao Worker.
 - Auditoria, riscos offline, plano externo e inventário de licenças em `docs/security/`. Não houve deploy, migração, mudança de regras ou rotação de segredo.

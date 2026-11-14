@@ -1,0 +1,17 @@
+name = "vfit-conector"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+# agents/mcp/server usa AsyncLocalStorage.
+compatibility_flags = ["nodejs_compat"]
+
+# Concessões do OAuth (grátis). Sem `id`, o wrangler cria o namespace no 1º deploy.
+[[kv_namespaces]]
+binding = "OAUTH_KV"
+
+[vars]
+# URL que o claude.ai usa (o token do OAuth vale só para ela).
+MCP_RESOURCE = "https://vfit-conector.vfitcoach-site.workers.dev/mcp"
+# Onde o coach aprova a conexão.
+APP_URL = "https://app.vfitcoachapp.com"
+PROJETO = "forca--app"
+# FIREBASE_API_KEY (chave web pública do Firebase) não fica aqui: o workflow lê VITE_FIREBASE_API_KEY de .env.production e passa com --var.

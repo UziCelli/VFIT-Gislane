@@ -1,6 +1,6 @@
 # Conector MCP — revisão e continuação
 
-Este PR ainda é um rascunho e não deve ser integrado nem publicado.
+O Victor autorizou o Codex a revisar e integrar sem aguardar o Claude. O teste com conta real ocorre após a publicação.
 
 ## Alterações realizadas
 
@@ -14,7 +14,7 @@ Este PR ainda é um rascunho e não deve ser integrado nem publicado.
 - O workflow de publicação independente está preparado para executar após merge na main e passa `FIREBASE_API_KEY` a partir da configuração web pública. Confirmar na primeira publicação se o token da Cloudflare tem as permissões necessárias; não houve deploy do conector.
 - Validar o fluxo OAuth/MCP completo em ambiente de teste, incluindo revogação, concorrência real, renovação de token, limites, isolamento e App Check. A inicialização OAuth, a descoberta de recurso e a recusa sem token foram testadas localmente; o login real não foi testado.
 - Implementar e testar o suporte à segunda marca. Atualmente, o conector é apenas VFIT.
-- Revisar a política, atualizar o plano e obter revisão cruzada antes de disponibilizar dados reais.
+- Revisar a política e atualizar o plano. Revisão do Claude poderá ser feita depois, conforme autorização do Victor.
 
 ## Validações locais
 

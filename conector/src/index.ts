@@ -25,7 +25,7 @@ const json = (v: unknown, status: number, origem: string | null) =>
   new Response(JSON.stringify(v), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...cors(origem) } })
 
 // ---- Ferramentas (MCP sem estado) ----
-const rodar = <T>(leitura: Parameters<typeof executar>[1]) =>
+const rodar = (leitura: Parameters<typeof executar>[1]) =>
   executar({ refreshToken: getMcpAuthContext()?.props.refreshToken, apiKey: E.FIREBASE_API_KEY, projeto: E.PROJETO }, leitura)
 
 function criarServidor() {

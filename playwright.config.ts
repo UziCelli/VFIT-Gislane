@@ -29,6 +29,6 @@ export default defineConfig({
     command: `npx vite build${marca} && npx vite preview --host 127.0.0.1 --port 5173 --strictPort`,
     url: 'http://127.0.0.1:5173',
     reuseExistingServer: !process.env.CI,
-    env: { VITE_USE_EMULATOR: '1' },
+    env: { VITE_USE_EMULATOR: '1', VITE_CONECTOR_URL: 'http://conector.teste' },
   },
 })

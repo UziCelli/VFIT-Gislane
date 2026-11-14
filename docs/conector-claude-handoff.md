@@ -21,6 +21,14 @@ O Victor (personal, não programa, TDAH: respostas curtas, em tópicos, pt-BR) c
 2. PR 2 — escrita: `criar_meso`, `ajustar_meso` (detalhes no plano).
 3. PR 3 — Gislane: rota por marca (`/gislane/mcp`), como o `push` faz com `PROJETOS`.
 
+## Atualização final (o agente `dev` seguiu escrevendo até o limite acabar)
+Também já existem, **todos como rascunho, sem typecheck/test/build e sem revisão**:
+- App: `src/features/conta/ConectarClaude.tsx` + rota em `src/App.tsx`; `VITE_CONECTOR_URL` em `.env.production`; ajustes em `firebase.json` (CSP), `package.json`, `vite.config.ts`, `playwright.config.ts`.
+- Política de Privacidade: `Politica.tsx` e `src/lib/privacidade.ts`.
+- Testes: `conector/src/{ferramentas,login,rest}.test.ts`, `e2e/conectar-claude.spec.ts`.
+- `.github/workflows/conector.yml`.
+O que falta de fato: rodar tudo, corrigir, `docs/mapa.md` + `graphify update .`, revisão e CI. Ignore os itens "Falta fazer" abaixo que já aparecem aqui.
+
 ## Situação da Entrega 1 (WIP, nada testado ainda)
 Um agente `dev` começou a escrever em `conector/` e foi interrompido. **Não passou por typecheck, testes nem revisão.** Trate como rascunho e confira cada arquivo.
 

@@ -8,10 +8,12 @@ import { cors } from '../../push/src/cors'
 import { chaveDoGoogle } from '../../push/src/jwt'
 import { executar } from './execucao'
 import { catalogoExercicios, listarAlunos, verAluno, verMesos } from './ferramentas'
-import { apagarPedido, concluirLogin, criarPedido, lerPedido } from './login'
+import { apagarPedido, concluirLogin, criarPedido, lerPedido, type KV } from './login'
+import type { Descanso } from '../../push/src/index'
 
 type Env = {
   OAUTH_KV: KVNamespace
+  DESCANSO: DurableObjectNamespace<Descanso>
   OAUTH_PROVIDER: OAuthHelpers
   MCP_RESOURCE: string
   APP_URL: string
@@ -50,6 +52,18 @@ function criarServidor() {
 }
 const mcp = createMcpHandler(criarServidor)
 
+// Cada pedido usa uma instância própria do Durable Object já existente no Worker.
+// KV continua exclusivo para concessões OAuth; não garante consumo único de pedidos.
+function pedidos(env: Env): KV {
+  const objeto = (k: string) => env.DESCANSO.get(env.DESCANSO.idFromName(`__mcp:${k}`))
+  return {
+    get: (k) => objeto(k).lerPedido(),
+    put: (k, v, o) => objeto(k).guardarPedido(v, Date.now() + (o?.expirationTtl ?? 600) * 1000),
+    delete: async (k) => { await objeto(k).consumirPedido() },
+    consume: (k) => objeto(k).consumirPedido(),
+  }
+}
+
 // ---- Login: /authorize -> app -> /concluir ----
 const gerarRedirect = (req: AuthRequest, erro: 'access_denied') => authorizationErrorRedirect(req, erro)
 
@@ -64,7 +78,7 @@ const loginHandler = {
       try {
         const req = await env.OAUTH_PROVIDER.parseAuthRequest(request)
         const c = await env.OAUTH_PROVIDER.describeConsent(req)
-        const id = await criarPedido(env.OAUTH_KV, { req, cliente: c.clientName, host: c.redirectHost }, agora)
+        const id = await criarPedido(pedidos(env), { req, cliente: c.clientName, host: c.redirectHost }, agora)
         return Response.redirect(`${env.APP_URL}/#/conectar-claude?pedido=${id}`, 302)
       } catch (e) {
         if (e instanceof AuthorizationError && e.redirectTo) return Response.redirect(e.redirectTo, 302)
@@ -72,7 +86,7 @@ const loginHandler = {
       }
     }
     if (url.pathname === '/pedido' && request.method === 'GET') {
-      const p = await lerPedido(env.OAUTH_KV, url.searchParams.get('id'), agora)
+      const p = await lerPedido(pedidos(env), url.searchParams.get('id'), agora)
       return p ? json({ cliente: p.cliente, host: p.host }, 200, origem) : json({ erro: 'Pedido vencido ou já usado.' }, 404, origem)
     }
     if (url.pathname === '/concluir' && request.method === 'POST') {
@@ -80,7 +94,7 @@ const loginHandler = {
       if (l.status) return json({ erro: 'Pedido inválido.' }, l.status, origem)
       const r = await concluirLogin(
         {
-          kv: env.OAUTH_KV, agora, projeto: env.PROJETO, apiKey: env.FIREBASE_API_KEY, buscar: fetch,
+          kv: pedidos(env), agora, projeto: env.PROJETO, apiKey: env.FIREBASE_API_KEY, buscar: fetch,
           obterChave: (kid) => chaveDoGoogle(kid),
           completar: async (req, uid, refreshToken) =>
             (await env.OAUTH_PROVIDER.completeAuthorization({ request: req as AuthRequest, userId: uid, metadata: {}, scope: (req as AuthRequest).scope, props: { refreshToken } })).redirectTo,
@@ -92,16 +106,16 @@ const loginHandler = {
     if (url.pathname === '/cancelar' && request.method === 'POST') {
       const l = await lerCorpoJson(request, 1024)
       const id = l.status ? null : (l.corpo as { pedido?: unknown })?.pedido
-      const p = await lerPedido(env.OAUTH_KV, id, agora)
+      const p = await lerPedido(pedidos(env), id, agora)
       if (!p) return json({ erro: 'Pedido vencido ou já usado.' }, 400, origem)
-      await apagarPedido(env.OAUTH_KV, id as string)
+      await apagarPedido(pedidos(env), id as string)
       return json({ redirectTo: gerarRedirect(p.req as AuthRequest, 'access_denied') }, 200, origem)
     }
     return texto('Não encontrado.', 404)
   },
 }
 
-export default new OAuthProvider({
+export const provedor = () => new OAuthProvider({
   authorizeEndpoint: '/authorize',
   tokenEndpoint: '/oauth/token',
   clientRegistrationEndpoint: '/oauth/register',

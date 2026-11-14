@@ -1,14 +1,17 @@
-# Conector MCP — continuação em rascunho
+# Conector MCP — revisão e continuação
 
-Este documento registra a revisão do rascunho #188. Não está pronto para produção ou integração.
-A publicação automática do conector foi removida deste rascunho enquanto os pontos abaixo são resolvidos.
+Este PR ainda é um rascunho e não deve ser integrado nem publicado.
 
-## Pontos que bloqueiam a entrega
+## Alterações realizadas
 
-- O pedido OAuth usa leitura e exclusão separadas no KV, que é eventualmente consistente: acessos simultâneos podem consumi-lo mais de uma vez. A autorização precisa de consumo atômico e teste de concorrência.
-- O código cria um Worker separado. O pedido mais recente do Victor é aproveitar o backend existente e sua hospedagem, sem custo adicional. Integrar ao Worker existente requer verificar limites compartilhados, roteamento, deploy e falhas, sem prejudicar notificações.
-- O escopo atual cobre apenas leitura, e apenas a marca VFIT. Criar e ajustar treinos continuam pendentes e devem preservar as cargas e a revisão do coach.
-- A compatibilidade real com clientes MCP, o fluxo OAuth, a revogação, os limites de uso e o isolamento entre contas precisam de testes antes de disponibilizar dados de alunos.
-- O plano usa KV e serviços Cloudflare e Firebase sujeitos a cotas; custo zero depende das cotas e das configurações das contas. Não há garantia de custo zero para qualquer volume.
+- As rotas do conector foram encaminhadas no código do Worker `vfit-descanso`, atrás da variável `MCP_ENABLED`; sem ela, o conector fica desligado. Não há outro Worker para publicar.
+- Cada pedido OAuth usa uma instância própria do Durable Object existente. Seu consumo é transacional, para impedir duas aprovações simultâneas. As concessões OAuth ainda precisam do KV.
+- A verificação do token renovado exige o mesmo usuário e projeto. A tela informa que esta entrega só faz leitura.
 
-O código herdado deve ser tratado como protótipo, não como implementação validada. Não conectar contas reais nem publicar até resolver os pontos acima e concluir revisão cruzada e testes.
+## Antes de ligar
+
+- Provisionar um namespace KV gratuito e vinculá-lo ao Worker como `OAUTH_KV`. Incluir seu ID na configuração versionada ou no processo de publicação, sem apagar bindings existentes. O token de publicação precisa ter acesso aos recursos usados. Conferir as cotas e o plano da conta; custo zero depende do volume e das configurações.
+- Configurar no Worker `MCP_ENABLED=true`, `MCP_RESOURCE=https://vfit-descanso.vfitcoach-site.workers.dev/mcp`, `APP_URL=https://app.vfitcoachapp.com`, `PROJETO=forca--app` e `FIREBASE_API_KEY` com a chave web pública do projeto. Essas configurações ainda não estão prontas para publicação automática.
+- Validar fluxo completo OAuth/MCP em ambiente de teste, incluindo revogação, concorrência real, renovação de token, limites de uso, isolamento e comportamento com App Check. Validar notificações existentes e as duas marcas após alterar o Worker.
+- Esta entrega só lê dados e atende VFIT. Criar e ajustar treinos exige outra entrega, com rascunho revisado pelo coach e sem alterar cargas dos alunos.
+- Atualizar o plano e o mapa, revisar a política e realizar a revisão cruzada. Não conectar dados reais antes de concluir as verificações.

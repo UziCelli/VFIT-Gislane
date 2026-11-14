@@ -54,9 +54,9 @@ export default function ConectarClaude({ pedido }: { pedido: string | null }) {
   return (
     <Pagina titulo="Conectar o Claude">
       <Cartao className="max-w-md space-y-4">
-        <h2 className="text-lg font-semibold">Permitir que o Claude veja e monte treinos dos seus alunos?</h2>
+        <h2 className="text-lg font-semibold">Permitir que este assistente consulte dados dos seus alunos?</h2>
         <p className="text-sm text-slate-400">
-          O Claude vai ler os alunos, anamnese, avaliações, dores e cargas, com o seu login. Treino que ele montar é sempre rascunho, para você revisar.
+          O assistente poderá ler alunos, anamnese, avaliações, dores e cargas com o seu login. A criação de treinos ainda não está disponível.
         </p>
         <p className="text-sm text-slate-400">
           Pedido de <strong className="text-slate-200">{quem.cliente}</strong>, que volta para <strong className="text-slate-200">{quem.host}</strong>. Só permita se foi você que acabou de pedir.

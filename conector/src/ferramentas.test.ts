@@ -162,7 +162,7 @@ describe('executar (formato da resposta)', () => {
     const r = await executar(cfg((async () => new Response('{}', { status: 400 })) as typeof fetch), async () => 1)
     expect(r.isError).toBe(true)
     expect(r.content[0].text).toContain('conectar')
-    expect((await executar(cfg(fetch, undefined), async () => 1)).isError).toBe(true)
+    expect((await executar({ ...cfg(fetch), refreshToken: undefined }, async () => 1)).isError).toBe(true)
   })
   it('Firestore negando vira a mensagem de reconectar; erro desconhecido não vaza detalhe', async () => {
     const b = banco(dados, true)

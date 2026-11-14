@@ -12,6 +12,7 @@ export type KV = {
   get(k: string): Promise<string | null>
   put(k: string, v: string, o?: { expirationTtl: number }): Promise<void>
   delete(k: string): Promise<void>
+  consume(k: string): Promise<string | null>
 }
 // `req` é o AuthRequest do OAuth (o Worker o devolve ao completar). Nome e host aparecem na tela do app.
 export type Pedido = { req: unknown; criadoEm: number; cliente: string; host: string }
@@ -68,10 +69,11 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
     if (perfil?.dados.papel !== 'coach') return nega(403, 'Só o coach pode conectar o Claude.')
     // O token renovado tem que continuar com o 2º fator e ser da mesma pessoa; senão o conector não funcionaria depois.
     const novo = await verificarIdToken(await trocarToken(refreshToken, d.apiKey, d.buscar), d.obterChave, agoraS, true)
-    if (novo?.uid !== quem.uid) return nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
+    if (novo?.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
   } catch (e) {
     return e instanceof ErroConector && e.message === RECONECTAR ? nega(403, 'Entre de novo com o código de 6 dígitos para conectar.') : nega(503, 'Não deu para conferir agora. Tente de novo.')
   }
-  await apagarPedido(d.kv, c.pedido as string) // uso único (o KV não é atômico: vale por boa-fé do navegador que tem o id)
+  // O armazenamento deve consumir de forma atômica, inclusive entre requisições simultâneas.
+  if (!(await d.kv.consume(CHAVE + (c.pedido as string)))) return nega(400, 'Este pedido venceu ou já foi usado. Volte e conecte de novo.')
   return { status: 200, redirectTo: await d.completar(pedido.req, quem.uid, refreshToken) }
 }

@@ -396,7 +396,13 @@ Comece por aqui para achar onde mexer.
 | `alterar-email.yml` | dispatch manual | altera e-mail de aluno (admin) |
 | `backup.yml` | schedule (diário) | backup Firestore → Cloud Storage |
 
+## Conector MCP (rascunho)
+
+O roteamento está em `push/src/index.ts`; OAuth e ferramentas em `conector/src/`, com tela em `src/features/conta/ConectarClaude.tsx`. Está desligado por padrão. A configuração e pendências estão em `docs/conector-revisao-codex.md`.
+
 ## Pontos sensíveis (leia antes de auditar ou mexer)
+
+O pedido OAuth precisa de consumo atômico no Durable Object e validação de segundo fator, usuário e projeto; nunca registrar credenciais ou dados dos alunos. A integração completa, o KV e a revogação ainda exigem validação antes de ativar.
 
 Onde já houve falha ou onde errar custa caro. Cada linha diz o que protege e como é testado. Quem corrigir um bug novo acrescenta uma linha aqui.
 

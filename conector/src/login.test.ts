@@ -16,7 +16,7 @@ async function jwt(extra: object = {}, mfa = true) {
 }
 const memoria = (): KV & { m: Map<string, string> } => {
   const m = new Map<string, string>()
-  return { m, get: async (k) => m.get(k) ?? null, put: async (k, v) => void m.set(k, v), delete: async (k) => void m.delete(k) }
+  return { m, get: async (k) => m.get(k) ?? null, put: async (k, v) => void m.set(k, v), delete: async (k) => void m.delete(k), consume: async (k) => { const v = m.get(k) ?? null; m.delete(k); return v } }
 }
 const resposta = (corpo: unknown, status = 200) => Response.json(corpo, { status })
 
@@ -66,6 +66,13 @@ describe('concluirLogin', () => {
     const velho = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA - VALIDADE_PEDIDO_MS - 1)
     expect((await concluirLogin(t.d, await corpo(velho))).status).toBe(400)
   })
+  it('só uma de duas aprovações simultâneas usa o mesmo pedido', async () => {
+    const t = montar('coach', jwt())
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+    const c = await corpo(id)
+    const resultados = await Promise.all([concluirLogin(t.d, c), concluirLogin(t.d, c)])
+    expect(resultados.map((r) => r.status).sort()).toEqual([200, 400])
+  })
   it('sem pedido válido nem lê o Firestore', async () => {
     const t = montar('coach', jwt())
     expect((await concluirLogin(t.d, await corpo('a'.repeat(43)))).status).toBe(400)
@@ -83,7 +90,7 @@ describe('concluirLogin', () => {
     expect((await concluirLogin(t.d, await corpo(id))).status).toBe(403)
   })
   it('token renovado sem 2º fator ou de outra pessoa = recusa', async () => {
-    for (const renovado of [jwt({}, false), jwt({ sub: 'outro' })]) {
+    for (const renovado of [jwt({}, false), jwt({ sub: 'outro' }), jwt({ aud: 'gislane-personal-trainer', iss: 'https://securetoken.google.com/gislane-personal-trainer' })]) {
       const t = montar('coach', renovado)
       const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
       expect((await concluirLogin(t.d, await corpo(id))).status).toBe(403)

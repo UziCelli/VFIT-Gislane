@@ -71,35 +71,51 @@ export default function GuiaFisio() {
       <p className="mb-2 text-sm text-slate-400">{lista.length} métodos</p>
       <div className="space-y-3">
         {lista.map((m) => (
+          // Hierarquia: título → evidência/queixas → pré-requisito (liberação) → protocolo → observação → sinais de alerta → fontes.
           <Cartao key={m.id}>
-            <h2 className="font-semibold">{m.id} · {m.nome}</h2>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-bold leading-snug">
+              <span className="text-slate-400">{m.id} ·</span> {m.nome}
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${SELO[m.nivel]}`}>{TEXTO_NIVEL[m.nivel]}</span>
               {m.nivelNota && <span className="text-xs text-slate-400">{m.nivelNota}</span>}
             </div>
-            <p className="mt-2 text-xs text-slate-400">{m.queixas.map((id) => QUEIXAS.find((q) => q.id === id)?.rotulo).join(' · ')}</p>
-            <h3 className="mt-3 text-xs font-semibold uppercase text-slate-400">Protocolo</h3>
-            <p className="text-xs italic text-slate-400">Sugestão inicial — ajustar individualmente</p>
-            <ul className="mt-1 list-disc pl-5 text-sm">
-              {m.protocolo.map((p) => (
-                <li key={p}>{p}</li>
-              ))}
-            </ul>
-            {m.ressalva && <p className="mt-2 rounded-lg border border-amber-700 bg-amber-950/50 px-3 py-2 text-sm text-amber-200">{m.ressalva}</p>}
+            <p className="mt-2 text-sm text-slate-400">{m.queixas.map((id) => QUEIXAS.find((q) => q.id === id)?.rotulo).join(' · ')}</p>
+
             {m.liberacao && (
-              <p className="mt-2 text-sm">
-                <span className="rounded-full bg-red-950 px-3 py-1 text-xs font-bold text-red-300 ring-1 ring-red-700">Exige liberação do médico ou fisioterapeuta</span>
-                {m.liberacao !== 'Sempre' && <span className="text-red-300">: {m.liberacao}</span>}
-              </p>
+              <div className="mt-4 rounded-lg border border-red-800 bg-red-950/40 px-3 py-3">
+                <p className="text-sm font-semibold text-red-200">Exige liberação do médico ou fisioterapeuta</p>
+                {m.liberacao !== 'Sempre' && <p className="mt-1.5 text-sm text-red-300">Quando: {m.liberacao}</p>}
+              </div>
             )}
-            <h3 className="mt-3 text-xs font-semibold uppercase text-slate-400">Parar e procurar médico ou fisioterapeuta se:</h3>
-            {m.alertaGeral && <p className="text-xs text-slate-400">Sinais gerais de perigo (a pesquisa não trouxe sinais específicos).</p>}
-            <ul className="list-disc pl-5 text-sm">
-              {m.encaminharSe.map((e) => (
-                <li key={e}>{e}</li>
-              ))}
-            </ul>
-            <Refs refs={m.refs} />
+
+            <section className="mt-5">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">Protocolo</h3>
+              <p className="mt-0.5 text-xs italic text-slate-500">Sugestão inicial — ajustar individualmente</p>
+              <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm leading-relaxed">
+                {m.protocolo.map((p) => (
+                  <li key={p}>{p}</li>
+                ))}
+              </ul>
+            </section>
+
+            {m.ressalva && <p className="mt-4 border-l-2 border-amber-600 pl-3 text-sm text-amber-200">{m.ressalva}</p>}
+
+            <section className="mt-5 border-t border-slate-800 pt-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-red-300">Parar e procurar médico ou fisioterapeuta se:</h3>
+              {m.alertaGeral && <p className="mt-1 text-xs text-slate-400">Sinais gerais de perigo (a pesquisa não trouxe sinais específicos).</p>}
+              <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+                {m.encaminharSe.map((e) => (
+                  <li key={e}>{e}</li>
+                ))}
+              </ul>
+            </section>
+
+            {m.refs.length > 0 && (
+              <footer className="mt-4 border-t border-slate-800 pt-1">
+                <Refs refs={m.refs} />
+              </footer>
+            )}
           </Cartao>
         ))}
       </div>

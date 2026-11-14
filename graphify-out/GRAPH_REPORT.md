@@ -1,7 +1,7 @@
 # Graph Report - claude-cloud-celli  (2026-11-14)
 
 ## Corpus Check
-- 396 files · ~406,160 words
+- 396 files · ~406,209 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 14 file(s) not represented in the graph (top: .css 4, (none) 2, .ico 2)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `71e53d72`
+- Built from commit: `d67313b1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -1013,7 +1013,7 @@ Nodes (3): AvisoIOS(), iOS(), standalone()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `Pontos sensíveis (leia antes de auditar ou mexer)` connect `Treino.tsx` to `avaliacao.ts`, `react`, `Entrar.tsx`, ``src/lib/` — Firestore, estado, cálculos com dados`, `engine/index.ts`, `MinhaConta.tsx`, `AvaliacaoCoach.tsx`, `acoes.ts`, `lib/acesso.ts`, `EditarTreino.tsx`, `util.ts`, `12/11/2026 — orientação individual dos métodos`, `src/ia.ts`, `log.ts`, `acoes.ts`, `Segurança — passos do Victor no console`, `evolucao.test.ts`, `App.tsx`, `Árvore por pasta`, `FimTreino.tsx`, `Entrar.tsx`, `vitest`, `Avaliacao.tsx`, `cartaoStory.ts`, `iaTreino.ts`, `Coleções Firestore`, `Alunos.tsx`, `vidro.tsx`, `src/index.ts`, `InicioAluno.tsx`, `Plano — Entrega 4: registro de erros e segurança`, `GuiaMetodos.tsx`, `evolucao.ts`, `avisos-pagamento.mjs`, `src/acesso.ts`, `Plano — carga por lado (2 halteres) e exercícios isométricos`, `ui.tsx`, `diaSP`, `ContaAluno.tsx`, `seriesDoRotulo`, `relatorio.ts`, `SessaoCard.tsx`, `conversores.ts`, `ContaAluno.tsx`, `Treino.tsx`, `engine/index.ts`, `AvisoIOS`, `Inicio.tsx`, `AnamneseCoach.tsx`, `Onde fica cada coisa`, `fetch`, `PagarPix.tsx`, `progressaoFisio.ts`, `MesosDoAluno.tsx`, `Novidades.tsx`?**
-  _High betweenness centrality (0.096) - this node is a cross-community bridge._
+  _High betweenness centrality (0.094) - this node is a cross-community bridge._
 - **Are the 165 inferred relationships involving `Pontos sensíveis (leia antes de auditar ou mexer)` (e.g. with `dados()` and `nadaPassaDaTela()`) actually correct?**
   _`Pontos sensíveis (leia antes de auditar ou mexer)` has 165 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@cloudflare/workers-types`, `@types/react`, `@types/react-dom` to the rest of the system?**

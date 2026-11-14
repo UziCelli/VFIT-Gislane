@@ -1,3 +1,7 @@
+## 14/11/2026 — Guia Físio: hierarquia de leitura (Claude)
+- Cartão de cada método em `GuiaFisio.tsx`: título maior (código em cinza) → evidência e queixas → **liberação** como pré-requisito (caixa própria, motivo em linha separada "Quando: …") → Protocolo → observação (borda lateral âmbar) → "Parar e procurar…" em vermelho, separado por linha → fontes no rodapé.
+- Só visual; nenhum texto ou alerta escondido. Aguarda a revisão cruzada do Codex.
+
 ## 14/11/2026 — Refino visual do treino (Codex)
 - PR #173: **Redesing para o final de 26**, branch `codex/refino-visual-treino`.
 - Ajuste pontual, separado do redesenho 2027 do PR #171: lista vertical e funções mantidas. Nome do exercício ocupa a largura do cartão; selos de método ficam em uma linha; edição, sino e descanso se alinham à direita e descem juntos quando falta espaço.

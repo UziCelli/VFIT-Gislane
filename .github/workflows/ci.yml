@@ -23,6 +23,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix conector # o typecheck confere o Worker do conector
       - run: npm run typecheck
       - run: npm test -- --passWithNoTests
       - run: npm run build

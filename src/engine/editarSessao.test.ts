@@ -98,7 +98,7 @@ describe('sessão editada no motor', () => {
 describe('trocarExercicio', () => {
   it('troca nome e id (cargas antigas ficam no id velho), mantém progressão, pausa e métodos da posição', () => {
     const s = trocarExercicio(iniciarEdicao(base, 1, 1), 3, 'Outro', 'o1')
-    expect(s.exercicios[2]).toEqual({ slotId: 'o1', nome: 'Outro', de: 3, pausaS: 45 })
+    expect(s.exercicios[2]).toEqual({ slotId: 'o1', nome: 'Outro', de: 3, pausaS: 45, origemSlotId: 'C', origemIsometrica: false })
     const e = prescreverSessao(editado(s), 1, 1)!.exercicios[2]
     expect(e.reps).toEqual([20, 20])
   })

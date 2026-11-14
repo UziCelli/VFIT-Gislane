@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import type { Meso, Registros, Slot } from '../../../engine'
 import { Aviso, Botao, campoBase, Cartao, Msg } from '../../../ui'
 import CampoExercicio from './CampoExercicio'
 import { doisLados, doisLadosPadrao } from '../../../lib/lados'
-import { comProgressaoIsometrica, agruparTrocas, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, removerGrupo, semanasComHistorico, trocarExercicio, type GrupoTroca } from './util'
+import { comProgressaoIsometrica, agruparTrocas, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, moverExercicio, removerExercicio, removerGrupo, semanasComHistorico, trocarExercicio, type GrupoTroca } from './util'
 
 
 export default function TabDivisao({
@@ -54,14 +54,8 @@ export default function TabDivisao({
 
     const atual = arr[p - 1]
     if (!nome) {
-      if (p !== arr.length) {
-        setHint(`Não dá para limpar a posição ${p}: existem exercícios depois dela no treino ${t}.`)
-        return
-      }
       if (semanasComHistorico(meso, registros, t, p).length && !confirm('Este exercício já tem cargas registradas. Elas ficam guardadas, mas deixam de aparecer. Continuar?')) return
-      const divisao = [...meso.divisao]
-      divisao[t - 1] = arr.slice(0, -1)
-      onAtualizar({ divisao })
+      onAtualizar(removerExercicio(meso, t, p))
       return
     }
 
@@ -74,6 +68,79 @@ export default function TabDivisao({
         `"${atual.nome}" foi trocado por "${nome}" no treino ${t}, posição ${p}. As semanas já com carga registrada continuam mostrando "${atual.nome}".`,
       )
     }
+  }
+
+  // Arrastar pela alça (dedo ou mouse): o item segue o dedo, os outros abrem espaço; solta = muda a ordem.
+  // Medidas na página (não na tela): `meios` = meio de cada item no começo, para a rolagem e os deslocamentos
+  // não confundirem a conta. Perto da borda (em cima, ou embaixo sobre a barra de abas) a tela rola sozinha.
+  const [arrasto, setArrasto] = useState<{ t: number; de: number; para: number; y0: number; dy: number; h: number; meios: number[] } | null>(null)
+  const dedoY = useRef(0)
+  const itens = (t: number) => [...document.querySelectorAll<HTMLElement>(`[data-testid="treino-${t}"] li[data-slot]`)]
+
+  function iniciarArrasto(e: PointerEvent<HTMLButtonElement>, t: number, p: number) {
+    if (e.button !== 0) return
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dedoY.current = e.clientY
+    const meios = itens(t).map((li) => {
+      const r = li.getBoundingClientRect()
+      return r.top + scrollY + r.height / 2
+    })
+    setArrasto({ t, de: p, para: p, y0: e.clientY + scrollY, dy: 0, h: e.currentTarget.closest('li')!.offsetHeight, meios })
+  }
+
+  // Posição nova = 1 + quantos outros itens têm o meio acima do dedo.
+  const seguirDedo = () =>
+    setArrasto((a) => {
+      if (!a) return a
+      const y = dedoY.current + scrollY
+      return { ...a, dy: y - a.y0, para: 1 + a.meios.filter((m, i) => i !== a.de - 1 && m < y).length }
+    })
+
+  function moverArrasto(e: PointerEvent) {
+    if (!arrasto) return
+    dedoY.current = e.clientY
+    seguirDedo()
+  }
+
+  const arrastando = arrasto != null
+  useEffect(() => {
+    if (!arrastando) return
+    let id = 0
+    const passo = () => {
+      const y = dedoY.current
+      const v = y < 100 ? -12 : y > innerHeight - 130 ? 12 : 0
+      if (v) {
+        scrollBy(0, v)
+        seguirDedo()
+      }
+      id = requestAnimationFrame(passo)
+    }
+    id = requestAnimationFrame(passo)
+    return () => cancelAnimationFrame(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [arrastando])
+
+  function soltarArrasto() {
+    if (arrasto && arrasto.para !== arrasto.de) onAtualizar(moverExercicio(meso, arrasto.t, arrasto.de, arrasto.para))
+    setArrasto(null)
+  }
+
+  // Quanto um item que não está sendo arrastado desce (+) ou sobe (−) para abrir espaço.
+  function desloc(t: number, p: number) {
+    if (!arrasto || arrasto.t !== t || p === arrasto.de) return 0
+    const { de, para, h } = arrasto
+    if (de < para && p > de && p <= para) return -h
+    if (para < de && p >= para && p < de) return h
+    return 0
+  }
+
+  // Teclado: seta para cima/baixo na alça move uma casa e mantém o foco nela.
+  function teclaAlca(e: KeyboardEvent, t: number, p: number) {
+    const para = e.key === 'ArrowUp' ? p - 1 : e.key === 'ArrowDown' ? p + 1 : 0
+    if (!para || para > (meso.divisao[t - 1]?.length ?? 0)) return
+    e.preventDefault()
+    onAtualizar(moverExercicio(meso, t, p, para))
+    requestAnimationFrame(() => itens(t)[para - 1]?.querySelector<HTMLButtonElement>('button[data-alca]')?.focus())
   }
 
   function mudarPausa(t: number, p: number, v: string) {
@@ -122,8 +189,32 @@ export default function TabDivisao({
           {posicoes.map((p) => {
             if (p > arr.length + 1) return null
             const slot = arr[p - 1]
+            const esteArrastado = arrasto?.t === t && arrasto.de === p
             return (
-              <li key={p} className="flex flex-wrap items-center gap-2 px-3 py-2">
+              <li
+                key={slot?.slotId ?? `novo-${p}`}
+                data-slot={slot ? '' : undefined}
+                style={slot && arrasto?.t === t ? { transform: `translateY(${esteArrastado ? arrasto.dy : desloc(t, p)}px)` } : undefined}
+                className={`flex flex-wrap items-center gap-2 px-3 py-2 ${esteArrastado ? 'relative z-10 rounded-lg bg-slate-800 shadow-lg ring-1 ring-marca-500' : arrasto?.t === t ? 'transition-transform' : ''}`}
+              >
+                {slot ? (
+                  <button
+                    type="button"
+                    data-alca
+                    aria-label={`Arrastar para mudar a ordem, posição ${p}`}
+                    title="Arraste para mudar a ordem (ou use as setas)"
+                    onPointerDown={(e) => iniciarArrasto(e, t, p)}
+                    onPointerMove={moverArrasto}
+                    onPointerUp={soltarArrasto}
+                    onPointerCancel={() => setArrasto(null)}
+                    onKeyDown={(e) => teclaAlca(e, t, p)}
+                    className="-ml-2 grid h-11 w-8 shrink-0 cursor-grab touch-none place-items-center text-lg text-slate-500 hover:text-slate-200 active:cursor-grabbing"
+                  >
+                    ⠿
+                  </button>
+                ) : (
+                  <span className="-ml-2 h-11 w-8 shrink-0" />
+                )}
                 <span className="w-4 shrink-0 text-slate-500">{p}</span>
                 <CampoExercicio
                   key={slot?.slotId ?? `novo-${t}-${p}`}
@@ -146,16 +237,16 @@ export default function TabDivisao({
                     className={`${campoBase} w-20 shrink-0 px-2 py-2 text-center outline-none focus:border-marca-500`}
                   />
                 )}
-                {slot && p === arr.length && (
-                  <button type="button" title="Remover" onClick={() => commit(t, p, '')} className="grid size-11 shrink-0 place-items-center text-lg text-slate-500 hover:text-red-400">
-                    ×
-                  </button>
-                )}
                 {slot && (
-                  <label className="flex min-h-11 basis-full items-center gap-2 pl-6 text-xs text-slate-400">
-                    <input type="checkbox" checked={doisLados(slot)} onChange={(e) => mudarLados(t, p, e.target.checked)} className="size-5" />
-                    2 lados (2 halteres / articulado)
-                  </label>
+                  <div className="flex basis-full items-center justify-between gap-2 pl-[3.5rem]">
+                    <label className="flex min-h-11 items-center gap-2 text-xs text-slate-400">
+                      <input type="checkbox" checked={doisLados(slot)} onChange={(e) => mudarLados(t, p, e.target.checked)} className="size-5" />
+                      2 lados (2 halteres / articulado)
+                    </label>
+                    <button type="button" aria-label={`Excluir exercício, posição ${p}`} onClick={() => commit(t, p, '')} className="min-h-11 shrink-0 px-2 text-xs text-slate-500 hover:text-red-400">
+                      Excluir
+                    </button>
+                  </div>
                 )}
               </li>
             )
@@ -199,7 +290,7 @@ export default function TabDivisao({
           ))}
         </div>
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{treinos.map(cartaoTreino)}</div>
-        <p className="mt-3 text-xs text-slate-400">Tab: próximo exercício · Enter no campo vazio: próximo treino · Pausa em branco = pausa do mesociclo.</p>
+        <p className="mt-3 text-xs text-slate-400">⠿ Arraste para mudar a ordem · Tab: próximo exercício · Enter no campo vazio: próximo treino · Pausa em branco = pausa do mesociclo.</p>
       </Cartao>
       <Msg>{hint && <Aviso>{hint}</Aviso>}</Msg>
       <TrocasEAdicoes meso={meso} registros={registros} onAtualizar={onAtualizar} />

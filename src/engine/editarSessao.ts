@@ -1,6 +1,7 @@
 // Edição de um treino do dia (presencial), sem mexer no planejamento. Funções puras: devolvem uma SessaoEditada
 // nova, gravada em `meso.sessoes[`${semana}-${treino}`]`. Cargas nunca são apagadas: ficam no slotId antigo.
 import { metodosDaSessao, slotsDaSessao } from './sessao'
+import { isometrico } from './isometria'
 import type { AplicacaoMetodo, Escopo, Meso, Metodo, SessaoEditada } from './tipos'
 
 const SEQUENCIA: Metodo[] = ['Biset', 'Triset', 'Superset', 'Circuito']
@@ -42,7 +43,10 @@ export function iniciarEdicao(meso: Meso, semana: number, treino: number): Sessa
     meso.sessoes?.[`${semana}-${treino}`] ?? {
       semana,
       treino,
-      exercicios: slotsDaSessao(meso, semana, treino),
+      exercicios: slotsDaSessao(meso, semana, treino).map((s) => {
+        const origem = s.de != null ? meso.divisao[treino - 1]?.[s.de - 1] : undefined
+        return origem ? { ...s, origemSlotId: origem.slotId, origemIsometrica: isometrico(origem) } : s
+      }),
       metodos: metodosDaSessao(meso, semana, treino),
     }
   )

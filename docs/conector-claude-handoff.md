@@ -29,10 +29,10 @@ Já existe (parcial):
 - `conector/src/rest.ts`: valores Firestore REST → JS (Timestamp vira `Ts`, com `toMillis`, para reaproveitar `lerAnamnese`/`lerAvaliacao`/`lerDor`/`lerCheckin`).
 - `conector/src/firestore.ts`: `trocarToken` (securetoken), cliente REST com Bearer, `ErroConector`, mensagem `RECONECTAR`.
 - `conector/src/ferramentas.ts`: ferramentas de leitura como funções puras (importa `src/engine`, `src/lib/*`, `exercicios.json` por caminho relativo).
+- `conector/src/index.ts` (entrada do Worker), `login.ts` (validação do login) e `execucao.ts`: **criados depois da 1ª versão desta nota; só existem como rascunho, não foram revisados nem rodaram.** Leia-os antes de aproveitar.
 
 **Falta fazer** (nada disso existe ainda):
-- `conector/src/index.ts` (entrada do Worker: OAuth provider + rota `/mcp` + `/authorize` + `/health`), registro das 4 ferramentas com `zod`.
-- Fluxo de login: endpoint que recebe `idToken` + `refreshToken` do app e valida (MFA + papel coach + pedido de uso único).
+- Conferir/completar `index.ts` (OAuth provider + rota `/mcp` + `/authorize` + `/health`, 4 ferramentas com `zod`) e `login.ts` (recebe `idToken` + `refreshToken` do app; valida MFA + papel coach + pedido de uso único).
 - Tela `#/conectar-claude` no app (`src/`), variável `VITE_CONECTOR_URL`, URL do conector no `connect-src` da CSP em `firebase.json`.
 - Testes Vitest: conversão REST (ida e volta), validação das ferramentas, pedido vencido/reusado, token sem 2º fator ou sem papel coach, e e2e da tela.
 - Workflow `.github/workflows/conector.yml` (igual ao `push.yml`: publica ao mudar `conector/**` e confere `/mcp` sem token = 401).

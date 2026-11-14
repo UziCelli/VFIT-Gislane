@@ -23,6 +23,7 @@ import { anamnesesNovas, anamnesesPendentes, lerAnamnese, pausadoSaude, sinaisAt
 import { Quadro } from '../../../vidro'
 import { useDores } from '../../fisio/useDores'
 import { useOrientacoes } from '../../fisio/useOrientacoes'
+import { prioridadesTreino } from './prioridades'
 
 const saudacao = (d: Date) => {
   const h = Number(d.toLocaleString('pt-BR', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }))
@@ -64,6 +65,14 @@ export default function Inicio({ nome }: { nome: string }) {
   const nomeDe = new Map(alunos.dados.filter((a) => a.status !== 'arquivado').map((a) => [a.id, a.nome]))
   const mesosAtivos = mesos.dados.filter((d) => nomeDe.has(d.alunoId)).map((d) => ({ id: d.id, alunoId: d.alunoId, meso: docParaMeso(d), nome: d.nome }))
   const paraRevisar = relatoriosParaRevisar(mesosAtivos, new Set(liberados.dados.map((x) => x.id)), agora)
+  const sinaisTreino = [
+    ...alertas.abaixo.map((a) => ({ alunoId: mesos.dados.find((m) => m.id === a.mesoId)?.alunoId ?? '', motivo: 'Repetições abaixo da meta · revisar' })),
+    ...alertas.demorados.map((a) => ({ alunoId: mesos.dados.find((m) => m.id === a.mesoId)?.alunoId ?? '', motivo: 'Treino demorado · revisar' })),
+    ...alertas.acima.map((a) => ({ alunoId: a.d.alunoId, motivo: 'Treino acima do tempo previsto · revisar' })),
+  ]
+  const prioridades = prioridadesTreino(alunos.dados, mesosAtivos, avaliacoes.dados, sinaisTreino, agora)
+  const prioridadesCarregando = alunos.carregando || mesos.carregando || avaliacoes.carregando || registros.carregando || arquivados.carregando
+  const prioridadesErro = alunos.erro || mesos.erro || avaliacoes.erro || registros.erro || arquivados.erro
   const paraAvaliar = avaliacoesParaFazer(mesosAtivos, avaliacoes.dados, agora)
   const docsAnam = anamneses.dados.map((d) => lerAnamnese(d.id, d)).filter((a): a is Anamnese => !!a && nomeDe.has(a.alunoId))
   const novasAnam = anamnesesNovas(docsAnam) // uma por aluno
@@ -143,6 +152,18 @@ export default function Inicio({ nome }: { nome: string }) {
           <span className="font-semibold underline">Ver lista</span>
         </a>
       )}
+      <section className="mb-3 space-y-2 rounded-3xl border border-marca-500/60 bg-marca-900/40 p-4" aria-labelledby="prioridades-treino">
+        <h2 id="prioridades-treino" className="font-semibold">Prioridades de treino <span className="font-display text-lg font-bold text-marca-300">{prioridades.length}</span></h2>
+        <p className="text-sm text-slate-300">Indícios para conferir e decidir os próximos passos. Avaliações dos últimos 37 dias incluem rascunhos e permanecem como lembrete nesse período.</p>
+        {prioridadesCarregando ? <p className="text-sm text-slate-300">Carregando prioridades...</p> : prioridadesErro ? <p className="text-sm text-amber-200">Não foi possível carregar todas as prioridades. Tente novamente quando houver conexão.</p> : prioridades.length === 0 ? <p className="text-sm text-slate-300">Nenhuma prioridade encontrada agora.</p> : (
+          <ul className="space-y-2">{prioridades.map((p) => <li key={p.alunoId}>
+            <a href={`#/aluno/${p.alunoId}`} className="block min-h-11 rounded-2xl border border-white/20 bg-white/10 p-3 hover:bg-white/15">
+              <span className="font-semibold underline">{p.nome}</span><span className="mt-1 block text-sm text-slate-200">{p.motivos.join(' · ')}</span>
+            </a>
+          </li>)}</ul>
+        )}
+        {(alunos.cache || mesos.cache || avaliacoes.cache || registros.cache || arquivados.cache) && <p className="text-sm text-amber-200">Dados em cache podem estar incompletos ou desatualizados.</p>}
+      </section>
       {paraRevisar.length > 0 && (
         <section className="mb-3 space-y-2 rounded-3xl border border-marca-500/60 bg-marca-900/40 p-4">
           <h2 className="font-semibold">

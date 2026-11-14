@@ -21,7 +21,7 @@ export function prioridadesTreino(alunos: (Usuario & { id: string })[], ciclos: 
     if (!atual && !futuro) { motivos.push('Sem mesociclo cadastrado'); ordem = 0 }
     if (atual && !futuro && fimISO(atual.meso) < hoje) { motivos.push('Ciclo encerrado · montar o próximo'); ordem = 0 }
     else if (atual && !futuro && fimISO(atual.meso) <= emSeteDias) { motivos.push('Ciclo termina em breve · planejar o próximo'); ordem = 1 }
-    const av = avaliacoes.filter((a) => a.alunoId === aluno.id && a.data <= hoje && (!atual || a.data >= atual.meso.inicio.slice(0, 10))).sort((a, b) => b.data.localeCompare(a.data))[0]
+    const av = avaliacoes.filter((a) => a.alunoId === aluno.id && a.data <= hoje).sort((a, b) => b.data.localeCompare(a.data))[0]
     if (av) { motivos.push(`Avaliação recente em ${av.data.slice(8, 10)}/${av.data.slice(5, 7)} · conferir o treino`); ordem = Math.min(ordem, 2) }
     for (const sinal of sinais.filter((s) => s.alunoId === aluno.id)) if (!motivos.includes(sinal.motivo)) motivos.push(sinal.motivo)
     return motivos.length ? [{ alunoId: aluno.id, nome: aluno.nome, motivos, ordem }] : []

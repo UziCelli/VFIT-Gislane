@@ -31,6 +31,9 @@ describe('prioridades de treino', () => {
     const sinais = [{ alunoId: 'Ana', motivo: 'Revisar' }, { alunoId: 'Ana', motivo: 'Revisar' }]
     expect(calcular([ciclo('2026-11-09')], avs, sinais)[0].motivos).toEqual(['Avaliação recente em 12/11 · conferir o treino', 'Revisar'])
   })
+  it('mantém avaliação recente anterior ao início do ciclo', () => {
+    expect(calcular([ciclo('2026-11-09')], [{ alunoId: 'Ana', data: '2026-11-08' }])[0].motivos).toContain('Avaliação recente em 08/11 · conferir o treino')
+  })
   it('exclui alunos aguardando e arquivados', () => {
     expect(prioridadesTreino([aluno('Ana', 'arquivado'), aluno('Bia', 'aguardando')], [], [], [], agora)).toEqual([])
   })

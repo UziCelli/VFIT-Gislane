@@ -2700,15 +2700,15 @@
     "semantic_hash": ""
   },
   "src/features/coach/inicio/prioridades.test.ts": {
-    "mtime": 1794697998.5938535,
-    "seen": 1794699161.3344593,
-    "ast_hash": "6459e16b395a56d0d33210648bffb82c",
+    "mtime": 1794700183.6355605,
+    "seen": 1794700200.7866123,
+    "ast_hash": "ebb56e906be2ad61114fbcddb41d566a",
     "semantic_hash": ""
   },
   "src/features/coach/inicio/prioridades.ts": {
-    "mtime": 1794697975.666064,
-    "seen": 1794699161.334461,
-    "ast_hash": "0d6fd2f9f793d19a7892763bb1d798f7",
+    "mtime": 1794700183.6351418,
+    "seen": 1794700200.7866142,
+    "ast_hash": "6fcf548d937b3f82a099b2e1e92002f5",
     "semantic_hash": ""
   },
   "package-lock.json": {

@@ -39,7 +39,7 @@ async function entrar(page: Page, email: string, senha: string) {
 test('coach entra, vê o pedido e toca em Permitir: o app manda os tokens ao conector', async ({ page }) => {
   const enviados = await conectorFalso(page)
   await entrar(page, COACH.email, COACH.senha)
-  await expect(page.getByText('Permitir que o Claude veja e monte treinos dos seus alunos?')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByText('Permitir que este assistente consulte dados dos seus alunos?')).toBeVisible({ timeout: 15000 })
   await expect(page.getByText('claude.ai', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Permitir' }).click()
   await expect(page.getByRole('heading', { name: 'Voltou ao Claude' })).toBeVisible()
@@ -68,6 +68,6 @@ test('pedido vencido: avisa em vez de mostrar os botões', async ({ page }) => {
 
 test('aluno não vê a tela de conexão', async ({ page }) => {
   await entrar(page, ALUNO.email, ALUNO.senha)
-  await expect(page.getByText('Permitir que o Claude')).toHaveCount(0)
+  await expect(page.getByText('Permitir que este assistente')).toHaveCount(0)
   await expect(page.getByText('Este pedido venceu')).toHaveCount(0)
 })

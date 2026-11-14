@@ -24,7 +24,7 @@ Escopo e arquitetura em `THREAT_MODEL.md`. Revisão estática, testes locais e b
 | T04 | Não aplicável ao fluxo atual | Pix + renovação manual, sem checkout com total cliente |
 | T05 | Não aplicável ao fluxo atual | Sem webhook de pagamento; reavaliar ao integrar gateway |
 | T06 | Não verificado em produção | Auth Firebase; aparelho/XSS ainda ameaça; não é sessão HTTP própria |
-| T07 | Parcial; 32 alertas históricos classificados | Gitleaks executado no histórico local; 32 fingerprints de configuração pública, teste e hashes de cache classificados; ver `VALIDATION.md`. Validade/credenciais do provedor não auditadas |
+| T07 | Parcial; 32 alertas históricos classificados | Gitleaks executado no histórico local; 32 ocorrências de configuração pública, teste e hashes de cache classificadas; 6 fingerprints exatos e allowlist do cache gerado revisada pelo Claude; ver `VALIDATION.md`. Validade/credenciais do provedor não auditadas |
 | T08 | Não verificado no provedor | Jobs main; segredo de repositório não é isolado de YAML malicioso |
 | T09 | Parcial | Lockfile; updates versionados; auditar ferramentas e scripts de instalação |
 | T10 | Parcial | Worker gerado, versão precache; recuperação documentada; deploy real não testado |

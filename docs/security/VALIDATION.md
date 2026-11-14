@@ -31,4 +31,13 @@ Relatório redigido mantido fora do repositório. Foram encontrados 32 alertas: 
 - As 26 ocorrências no cache são hashes SHA-256 hexadecimais no campo `hashes` do índice Graphify; o scanner confundiu nome de arquivo contendo “api” com credencial.
 - A fixture de `webpush.test.ts` reproduz o vetor público RFC 8291, Apêndice A, conforme comentário no próprio teste.
 
-`.gitleaksignore` registra somente os 32 fingerprints exatos, com comentários de classificação. Não ignora paths inteiros nem futuras ocorrências. Não são 32 segredos ativos confirmados, e a triagem não comprova segurança das contas. Nunca publicar valores dos candidatos em comentários/logs.
+Após revisão Claude, `.gitleaksignore` mantém 6 fingerprints exatos (configuração pública e vetor RFC); `.gitleaks.toml` estende as regras padrão e exclui apenas `^graphify-out/cache/`, pasta de metadados gerados. As 26 exceções por SHA do cache foram removidas: novos commits do Graphify mudam o fingerprint. Não guardar código, dados de usuário nem segredos nessa pasta, pois ela fica fora da varredura. Não são 32 segredos ativos confirmados, e a triagem não comprova segurança das contas. Nunca publicar valores dos candidatos em comentários/logs.
+
+## Correção solicitada na revisão do PR #176
+
+- Aplicada a allowlist do cache sugerida pelo Claude e removidos os 26 fingerprints históricos desse cache.
+- Gitleaks do CI fixado em 8.28.0, a versão usada pelo revisor. A sintaxe global `[[allowlists]]` não é aplicada pela versão local antiga 8.24.3; usar a versão fixada para reproduzir.
+- Regressão em repositório temporário: novo commit com stat-index gerado falha com configuração padrão (exit 1) e passa com a configuração revisada (exit 0).
+- Controle positivo: novo arquivo fora do cache com chave privada efêmera sem uso real continua bloqueado (exit 1); nenhum valor foi publicado.
+- Histórico completo: 294 commits, ~467 MB, zero alertas não ignorados com Gitleaks 8.28.0 (32,2 s).
+- Nenhum código de aplicação mudou nesta correção. O parecer anterior do Claude solicitava este ajuste antes do OK definitivo.

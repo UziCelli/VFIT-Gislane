@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Meso } from '../../../engine'
-import { agruparTrocas, aplicarAcoes, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, nomeImportado, posicoesAdicionadas, removerGrupo, trocarExercicio } from './util'
+import { agruparTrocas, aplicarAcoes, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, moverExercicio, nomeImportado, posicoesAdicionadas, removerExercicio, removerGrupo, trocarExercicio } from './util'
 
 const meso = {
   frequencia: 3,
@@ -287,5 +287,51 @@ describe('posicoesAdicionadas (aba Métodos)', () => {
     expect(posicoesAdicionadas(m, 2)).toEqual([{ pos: 2, nome: 'Remada', semanas: [2] }])
     expect(posicoesAdicionadas(m, 3)).toEqual([])
     expect(posicoesAdicionadas(meso, 1)).toEqual([])
+  })
+})
+
+describe('moverExercicio / removerExercicio', () => {
+  const s = (id: string) => ({ slotId: id, nome: id })
+  const met = (exercicio: number, metodo = 'Dropset', extra = {}) =>
+    ({ ativo: true, semana: 1, treino: 1, exercicio, metodo, escopo: 'Todas as séries', ...extra }) as Meso['metodos'][number]
+  const base = {
+    ...meso,
+    divisao: [[s('A'), s('B'), s('C'), s('D')], [s('E')], []],
+    trocas: { '1-1-2': s('Bx'), '2-2-1': s('Ex') },
+    metodos: [met(1), met(2, 'Biset', { grupo: 1 }), met(3, 'Biset', { grupo: 1 }), met(5, 'Rest-pause'), { ...met(1), treino: 2 }],
+  } as Meso
+
+  it('mover leva junto as trocas e os métodos; adicionados (pos 5+) e outros treinos não mudam', () => {
+    const r = moverExercicio(base, 1, 1, 3) // A vai para a posição 3
+    expect(r.divisao![0].map((x) => x.slotId)).toEqual(['B', 'C', 'A', 'D'])
+    expect(r.divisao![1]).toBe(base.divisao[1])
+    expect(r.trocas).toEqual({ '1-1-1': s('Bx'), '2-2-1': s('Ex') })
+    expect(r.metodos!.map((m) => [m.treino, m.exercicio, m.metodo])).toEqual([
+      [1, 3, 'Dropset'],
+      [1, 1, 'Biset'],
+      [1, 2, 'Biset'],
+      [1, 5, 'Rest-pause'],
+      [2, 1, 'Dropset'],
+    ])
+  })
+
+  it('mover para a mesma posição não muda nada', () => {
+    expect(moverExercicio(base, 1, 2, 2)).toEqual({})
+  })
+
+  it('remover do meio: tira o exercício, a troca e os métodos dele, sobe os de baixo e desfaz o grupo que ficou incompleto', () => {
+    const r = removerExercicio(base, 1, 2) // sai B (do Biset com C)
+    expect(r.divisao![0].map((x) => x.slotId)).toEqual(['A', 'C', 'D'])
+    expect(r.trocas).toEqual({ '2-2-1': s('Ex') })
+    expect(r.metodos!.map((m) => [m.treino, m.exercicio, m.metodo])).toEqual([
+      [1, 1, 'Dropset'],
+      [1, 4, 'Rest-pause'], // exercício adicionado (era pos 5) sobe junto
+      [2, 1, 'Dropset'],
+    ])
+  })
+
+  it('remover mantém o grupo que continua completo', () => {
+    const tri = { ...base, metodos: [met(1, 'Circuito', { grupo: 1 }), met(2, 'Circuito', { grupo: 1 }), met(4, 'Circuito', { grupo: 1 })] } as Meso
+    expect(removerExercicio(tri, 1, 1).metodos!.map((m) => m.exercicio)).toEqual([1, 3])
   })
 })

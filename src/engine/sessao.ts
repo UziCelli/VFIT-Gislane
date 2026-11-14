@@ -74,8 +74,12 @@ export function prescreverSessao(meso: Meso, semana: number, treino: number): Se
   const inicioSemana = new Date(Date.UTC(ano, mes - 1, dia + 7 * (semana - 1))).toISOString().slice(0, 10)
   const doTreino = metodosDaSessao(meso, semana, treino).filter((m) => m.ativo)
 
-  const exercicios = slotsDaSessao(meso, semana, treino).map(({ de, ...slot }, i): ExercicioPrescrito => {
+  const exercicios = slotsDaSessao(meso, semana, treino).map(({ de: deGravado, ...slot }, i): ExercicioPrescrito => {
     const pos = i + 1
+    // Sessão editada guarda a posição de quando foi editada; se o coach reordenou a divisão depois, o mesmo slot
+    // (da divisão ou da troca da semana) é achado onde está hoje. Slot trocado na hora segue a posição gravada.
+    const agora = (meso.divisao[treino - 1] ?? []).findIndex((s, k) => s.slotId === slot.slotId || meso.trocas?.[`${semana}-${treino}-${k + 1}`]?.slotId === slot.slotId)
+    const de = deGravado != null && agora >= 0 ? agora + 1 : deGravado
     // Exercício novo (sem `de`): progressão padrão, senão a dos auxiliares.
     const planejado = de != null ? meso.divisao[treino - 1]?.[de - 1] : undefined
     const iso = isometrico(slot)

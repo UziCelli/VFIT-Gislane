@@ -172,6 +172,48 @@ export function trocarExercicio(meso: Meso, registros: Registros, t: number, p: 
   return { divisao, trocas, preservou, progressaoExercicio: comProgressaoIsometrica(meso, divisao) }
 }
 
+// Métodos e trocas do treino `t` guardam a posição: `nova(p)` diz a posição nova (null = saiu). Grupo de método
+// (Biset…) que perde um membro e fica incompleto sai inteiro. Cargas ficam no slotId: nada se perde.
+function reposicionar(meso: Meso, t: number, divisao: Slot[][], nova: (p: number) => number | null): Partial<Meso> {
+  const trocas: Record<string, Slot> = {}
+  for (const [chave, slot] of Object.entries(meso.trocas ?? {})) {
+    const [w, tr, p] = chave.split('-').map(Number)
+    const np = tr === t ? nova(p) : p
+    if (np != null) trocas[`${w}-${tr}-${np}`] = slot
+  }
+  let metodos = meso.metodos.flatMap((m) => {
+    if (m.treino !== t) return [m]
+    const np = nova(m.exercicio)
+    return np == null ? [] : [{ ...m, exercicio: np }]
+  })
+  const chaveGrupo = (m: Meso['metodos'][number]) => `${m.semana}-${m.metodo}-${m.grupo}`
+  const membros = new Map<string, Set<number>>()
+  for (const m of metodos) if (m.treino === t && emGrupo(m.metodo) && m.grupo != null) membros.set(chaveGrupo(m), (membros.get(chaveGrupo(m)) ?? new Set()).add(m.exercicio))
+  metodos = metodos.filter((m) => m.treino !== t || !emGrupo(m.metodo) || m.grupo == null || totalCerto(m.metodo, membros.get(chaveGrupo(m))!.size))
+  return { divisao, trocas, metodos }
+}
+
+// Leva o exercício da posição `de` para `para` no treino `t`; os do meio andam uma casa.
+export function moverExercicio(meso: Meso, t: number, de: number, para: number): Partial<Meso> {
+  const arr = meso.divisao[t - 1] ?? []
+  if (de === para || !arr[de - 1] || !arr[para - 1]) return {}
+  const novoArr = [...arr]
+  novoArr.splice(para - 1, 0, ...novoArr.splice(de - 1, 1))
+  const divisao = [...meso.divisao]
+  divisao[t - 1] = novoArr
+  const ordem = novoArr.map((s) => arr.indexOf(s) + 1) // ordem[novaPos - 1] = posição antiga
+  return reposicionar(meso, t, divisao, (p) => (p > arr.length ? p : ordem.indexOf(p) + 1))
+}
+
+// Tira o exercício da posição `p` do treino `t` (qualquer posição); os de baixo sobem uma casa.
+export function removerExercicio(meso: Meso, t: number, p: number): Partial<Meso> {
+  const arr = meso.divisao[t - 1] ?? []
+  if (!arr[p - 1]) return {}
+  const divisao = [...meso.divisao]
+  divisao[t - 1] = arr.filter((_, i) => i !== p - 1)
+  return reposicionar(meso, t, divisao, (x) => (x === p ? null : x > p ? x - 1 : x))
+}
+
 // Algum exercício do treino `t` tem carga registrada? Olha a divisão (com as trocas vigentes por semana),
 // toda troca guardada e os exercícios adicionados por semana.
 function treinoTemCarga(meso: Meso, registros: Registros, t: number): boolean {

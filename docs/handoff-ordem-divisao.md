@@ -61,3 +61,11 @@ Branch: `claude/eloquent-lovelace-4b0eu2` (a partir da `main` em `e7961f3`).
 - A pausa dos principais (posições 1–2) acompanha a **posição**, não o exercício: quem vai para a posição 1 ganha a pausa dos principais (se não tiver pausa própria).
 - Sessão editada no presencial cujo exercício foi **trocado na hora** segue a progressão de quem estiver hoje na posição `de`.
 - Não há rolagem automática enquanto o dedo fica parado fora da borda (só perto das bordas).
+
+
+## Correção da revisão Codex — sessões presenciais
+- Excluir da divisão arquiva a progressão efetiva por identidade do exercício e das trocas semanais, depois de converter progressão legada. O motor usa esse arquivo quando o exercício permanece numa sessão presencial já editada.
+- Novas sessões presenciais guardam a identidade e a modalidade da origem. Trocar o exercício no presencial mantém essa origem: reordenar o plano continua acompanhando a progressão atual, e excluir a origem conserva a última progressão, mesmo quando a sessão chega depois de outro aparelho. Troca entre modalidades não mistura segundos e repetições.
+- O editor continua sem enviar `sessoes` ao Firestore: nenhum ajuste presencial é regravado por ele. Aliases das trocas presenciais legadas conhecidas são guardados na progressão, sem modificar as sessões.
+- Limite legado: uma troca presencial antiga que só guarda `de` e chega depois da exclusão, desconhecida do editor, não contém informação suficiente para recuperar sua origem. Nesse caso permanece o fallback posicional anterior. Abrir uma edição antiga também não inventa uma origem: somente novas sessões recebem os campos estáveis.
+- Teste de regressão: `src/features/coach/meso/ordemSessao.test.ts` cobre primeiro/meio/último, progressão legada, trocas semanais/presenciais, sessão recebida após a exclusão, unidades e ida/volta pelo formato de armazenamento sem gravar sessões.

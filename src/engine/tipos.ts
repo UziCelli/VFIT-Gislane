@@ -39,7 +39,8 @@ export interface Slot {
 
 // Exercício de uma sessão editada na hora. `de` = posição do treino planejado cuja progressão (séries/reps)
 // e pausa ele segue; sem `de` (exercício novo) = progressão padrão (ou auxiliares) e pausa do meso.
-export type SlotSessao = Slot & { de?: number }
+// Origem estável das novas edições: permanece nas trocas presenciais, mesmo se o plano mudar offline.
+export type SlotSessao = Slot & { de?: number; origemSlotId?: string; origemIsometrica?: boolean }
 
 // Treino de um dia (semana + treino) ajustado pelo coach no presencial. Substitui só aquela sessão:
 // a lista de exercícios (divisão + trocas) e os métodos dela. Posições dos métodos = índice + 1 nesta lista.

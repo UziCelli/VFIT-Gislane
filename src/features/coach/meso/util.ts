@@ -3,6 +3,8 @@ import {
   isometrico,
   progressaoIsometrica,
   linhaPrescrita,
+  linhaIsometrica,
+  migrarProgressao,
   METODOS,
   padraoMetodo,
   polimento,
@@ -197,21 +199,48 @@ function reposicionar(meso: Meso, t: number, divisao: Slot[][], nova: (p: number
 export function moverExercicio(meso: Meso, t: number, de: number, para: number): Partial<Meso> {
   const arr = meso.divisao[t - 1] ?? []
   if (de === para || !arr[de - 1] || !arr[para - 1]) return {}
+  meso = migrarProgressao(meso)
   const novoArr = [...arr]
   novoArr.splice(para - 1, 0, ...novoArr.splice(de - 1, 1))
   const divisao = [...meso.divisao]
   divisao[t - 1] = novoArr
   const ordem = novoArr.map((s) => arr.indexOf(s) + 1) // ordem[novaPos - 1] = posição antiga
-  return reposicionar(meso, t, divisao, (p) => (p > arr.length ? p : ordem.indexOf(p) + 1))
+  return { ...reposicionar(meso, t, divisao, (p) => (p > arr.length ? p : ordem.indexOf(p) + 1)), progressao: meso.progressao, progressaoExercicio: meso.progressaoExercicio ?? {} }
 }
 
 // Tira o exercício da posição `p` do treino `t` (qualquer posição); os de baixo sobem uma casa.
 export function removerExercicio(meso: Meso, t: number, p: number): Partial<Meso> {
   const arr = meso.divisao[t - 1] ?? []
   if (!arr[p - 1]) return {}
+  meso = migrarProgressao(meso)
+  const progressaoExercicio = { ...meso.progressaoExercicio }
+  const original = arr[p - 1]
+  // Arquiva antes da exclusão sem tocar nas sessões, inclusive as que chegarem de outro aparelho.
+  const guardar = (slot: Slot, w: number) => {
+    const iso = isometrico(slot)
+    const linha = (iso ? meso.progressaoExercicio?.[slot.slotId]?.[w - 1] : undefined)
+      ?? (iso === isometrico(original) ? linhaPrescrita(meso, w, t, p)
+        : iso ? linhaIsometrica() : (meso.progressao.padrao ?? meso.progressao.auxiliares)[w - 1] ?? [])
+    const linhas = [...(progressaoExercicio[slot.slotId] ?? Array.from({ length: meso.semanas }, () => []))]
+    linhas[w - 1] = [...linha]
+    progressaoExercicio[slot.slotId] = linhas
+  }
+  for (let w = 1; w <= meso.semanas; w++) {
+    guardar(original, w)
+    const troca = meso.trocas?.[`${w}-${t}-${p}`]
+    if (troca) guardar(troca, w)
+  }
+  // Trocas presenciais antigas conhecidas ainda só têm `de`; guarda um alias sem regravar sessoes.
+  for (const sessao of Object.values(meso.sessoes ?? {})) {
+    if (sessao.treino !== t) continue
+    for (const slot of sessao.exercicios) {
+      const atual = arr.findIndex((s, i) => s.slotId === slot.slotId || meso.trocas?.[`${sessao.semana}-${t}-${i + 1}`]?.slotId === slot.slotId)
+      if (!slot.origemSlotId && slot.de === p && (atual < 0 || atual === p - 1) && !meso.progressaoExercicio?.[slot.slotId]?.[sessao.semana - 1]) guardar(slot, sessao.semana)
+    }
+  }
   const divisao = [...meso.divisao]
   divisao[t - 1] = arr.filter((_, i) => i !== p - 1)
-  return reposicionar(meso, t, divisao, (x) => (x === p ? null : x > p ? x - 1 : x))
+  return { ...reposicionar(meso, t, divisao, (x) => (x === p ? null : x > p ? x - 1 : x)), progressao: meso.progressao, progressaoExercicio }
 }
 
 // Algum exercício do treino `t` tem carga registrada? Olha a divisão (com as trocas vigentes por semana),

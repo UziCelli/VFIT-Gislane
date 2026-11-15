@@ -402,7 +402,7 @@ O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `s
 
 ## Pontos sensíveis (leia antes de auditar ou mexer)
 
-**Conector MCP:** a chave web do Firebase aceita apenas origens autorizadas; a renovação feita pelo Worker deve enviar `Referer: https://app.vfitcoachapp.com/`. Sem isso o Google bloqueia a chamada. Testes em `conector/src/ferramentas.test.ts`.
+**Conector MCP:** a chave web do Firebase aceita apenas origens autorizadas; a renovação feita pelo Worker deve enviar `Referer: https://app.vfitcoachapp.com/`. Sem isso o Google bloqueia a chamada. Testes em `conector/src/ferramentas.test.ts`. A chamada `fetch` do Firestore deve ser feita sem vincular o objeto como `this`: o Cloudflare rejeita essa vinculação; `conector/src/firestore.test.ts` cobre a falha.
 
 O pedido OAuth precisa de consumo atômico no Durable Object e validação de segundo fator, usuário e projeto; nunca registrar credenciais ou dados dos alunos. A integração completa, o KV e a revogação ainda exigem validação antes de ativar.
 

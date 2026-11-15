@@ -59,6 +59,6 @@ jobs:
             echo "\`$url\` (no claude.ai: \`$url/mcp\`). Use como \`VITE_CONECTOR_URL\` no app."
           } >> "$GITHUB_STEP_SUMMARY"
           # Sem token, o MCP responde 401 e o OAuth publica os metadados.
-          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$url/mcp" -H 'Content-Type: application/json' -d '{}')" = 401
-          test "$(curl -s -o /dev/null -w '%{http_code}' "$url/.well-known/oauth-authorization-server")" = 200
-          test "$(curl -s -o /dev/null -w '%{http_code}' "$url/.well-known/oauth-protected-resource/mcp")" = 200
+          test "$(curl -s -A 'Mozilla/5.0 (compatible; VFIT-MCP-Healthcheck/1.0)' -o /dev/null -w '%{http_code}' -X POST "$url/mcp" -H 'Content-Type: application/json' -d '{}')" = 401
+          test "$(curl -s -A 'Mozilla/5.0 (compatible; VFIT-MCP-Healthcheck/1.0)' -o /dev/null -w '%{http_code}' "$url/.well-known/oauth-authorization-server")" = 200
+          test "$(curl -s -A 'Mozilla/5.0 (compatible; VFIT-MCP-Healthcheck/1.0)' -o /dev/null -w '%{http_code}' "$url/.well-known/oauth-protected-resource/mcp")" = 200

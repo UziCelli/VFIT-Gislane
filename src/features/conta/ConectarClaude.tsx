@@ -47,12 +47,12 @@ export default function ConectarClaude({ pedido }: { pedido: string | null }) {
   if (quem === null) return null
   if (quem === 'invalido')
     return (
-      <Pagina titulo="Conectar o Claude">
-        <Aviso>Este pedido venceu ou já foi usado. Volte ao claude.ai e conecte de novo.</Aviso>
+      <Pagina titulo="Conectar assistente">
+        <Aviso>Este pedido venceu ou já foi usado. Volte ao assistente e conecte de novo.</Aviso>
       </Pagina>
     )
   return (
-    <Pagina titulo="Conectar o Claude">
+    <Pagina titulo="Conectar assistente">
       <Cartao className="max-w-md space-y-4">
         <h2 className="text-lg font-semibold">Permitir que este assistente consulte dados dos seus alunos?</h2>
         <p className="text-sm text-slate-400">

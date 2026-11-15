@@ -4,9 +4,10 @@ import { docDeRest, idDeRest } from './rest'
 export type Buscar = typeof fetch
 export type Doc = { id: string; dados: Record<string, unknown> }
 
-// Mensagem já pronta para o Claude repetir ao coach.
+// Mensagens seguras para o assistente repetir ao coach.
 export class ErroConector extends Error {}
-export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e conectar o Claude de novo (precisa do login com o código de 6 dígitos).'
+export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e conectar o assistente de novo (precisa do login com o código de 6 dígitos).'
+export class ErroRenovacaoRecusada extends ErroConector {}
 
 export async function trocarToken(refreshToken: string, apiKey: string, buscar: Buscar = fetch): Promise<string> {
   let r: Response
@@ -21,9 +22,18 @@ export async function trocarToken(refreshToken: string, apiKey: string, buscar: 
   } catch {
     throw new ErroConector('Não deu para falar com o Firebase. Tente de novo.')
   }
-  if (!r.ok) throw new ErroConector(RECONECTAR)
-  const idToken = ((await r.json()) as { id_token?: unknown }).id_token
-  if (typeof idToken !== 'string' || !idToken) throw new ErroConector(RECONECTAR)
+  if (!r.ok) {
+    // Apenas códigos conhecidos significam que a credencial foi recusada. Nunca exponha o corpo.
+    const corpo = await r.json().catch(() => null) as { error?: { message?: unknown } } | null
+    const codigo = corpo?.error?.message
+    if (r.status === 400 && typeof codigo === 'string' && ['TOKEN_EXPIRED', 'INVALID_REFRESH_TOKEN', 'USER_DISABLED', 'USER_NOT_FOUND'].includes(codigo)) {
+      throw new ErroRenovacaoRecusada(RECONECTAR)
+    }
+    throw new ErroConector('Não consegui renovar seu login no Firebase. Tente de novo.')
+  }
+  const corpo = await r.json().catch(() => null) as { id_token?: unknown } | null
+  const idToken = corpo?.id_token
+  if (typeof idToken !== 'string' || !idToken) throw new ErroConector('Não consegui renovar seu login no Firebase. Tente de novo.')
   return idToken
 }
 

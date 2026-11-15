@@ -8,7 +8,8 @@
 // 2026-11-11: o PAR-Q com "sim" grave confirmado pausa o treino até o coach liberar.
 // 2026-11-12: orientações Físio, liberação profissional registrada e relato de sinais de alerta.
 // 2026-11-14: o coach pode usar o assistente Claude (Anthropic) para analisar treino e anamnese e montar o treino.
-export const VERSAO_PRIVACIDADE = '2026-11-14'
+// 2026-11-15: consulta por assistentes externos e envio ao respectivo fornecedor.
+export const VERSAO_PRIVACIDADE = '2026-11-15'
 
 export const aceitouPrivacidade = (p: { privacidadeVersao?: string }) => p.privacidadeVersao === VERSAO_PRIVACIDADE
 

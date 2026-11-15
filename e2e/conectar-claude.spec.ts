@@ -40,6 +40,7 @@ test('coach entra, vê o pedido e toca em Permitir: o app manda os tokens ao con
   const enviados = await conectorFalso(page)
   await entrar(page, COACH.email, COACH.senha)
   await expect(page.getByText('Permitir que este assistente consulte dados dos seus alunos?')).toBeVisible({ timeout: 15000 })
+  await expect(page.getByRole('heading', { name: 'Conectar assistente' })).toBeVisible()
   await expect(page.getByText('claude.ai', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Permitir' }).click()
   await expect(page.getByRole('heading', { name: 'Voltou ao Claude' })).toBeVisible()

@@ -43,10 +43,10 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import type { Meso, SessaoEditada } from '../engine'
-import { fimDoDiaSaoPaulo, proximoVencimento, type Usuario } from './acesso'
+import { fimDoDiaSaoPaulo, hojeMaisDias, proximoVencimento, type Usuario } from './acesso'
 import { CHAVE_RASCUNHO, VERSAO_ANAMNESE, type Respostas } from './anamnese'
 import { arquivadosVencidos } from './alertas'
-import { paraDoc, type AvaliacaoForm } from './avaliacao'
+import { paraDoc, somarDias, type AvaliacaoForm } from './avaliacao'
 import { idCardio, type TipoCardio } from './cardio'
 import type { NovoFeedback } from './feedback'
 import { docParaMeso, mesoParaDoc, registroId, type MesoDoc } from './conversores'
@@ -54,6 +54,8 @@ import { auth, authCadastro, db, apagarCacheAoSair, concluirSaida, reabrirAposFa
 import { sincronizarAntesDeSair } from './saidaSegura'
 import type { Importado } from './planilha'
 import { inicioJanela } from './resumo'
+import { fimISO } from './relatorio'
+import { proximoMesoId } from './proximoMesoId'
 import { VERSAO_PRIVACIDADE } from './privacidade'
 import { problemaSenha } from './senha'
 import { desinscreverAvisos } from './push'
@@ -184,6 +186,24 @@ export function salvarMeso(mesoId: string | null, alunoId: string, nome: string,
   if (mesoId) return { id: mesoId, gravado: updateDoc(doc(db, 'mesos', mesoId), dados) }
   const ref = doc(collection(db, 'mesos'))
   return { id: ref.id, gravado: setDoc(ref, { ...dados, alunoId, criadoEm: serverTimestamp() }) }
+}
+
+// Próximo ciclo usa identidade fixa pela origem, impedindo duas criações simultâneas pelo app e conector.
+// Transação exige conexão: nunca abre um editor para um documento ainda não confirmado.
+export async function salvarProximoMeso(origemId: string, alunoId: string, nome: string) {
+  const origem = doc(db, 'mesos', origemId)
+  const destino = doc(db, 'mesos', await proximoMesoId(origemId))
+  await runTransaction(db, async (tx) => {
+    const [fonte, existente] = await Promise.all([tx.get(origem), tx.get(destino)])
+    if (!fonte.exists() || fonte.data().alunoId !== alunoId) throw new Error('Mesociclo de origem não encontrado.')
+    if (existente.exists()) throw new Error('Já existe um próximo mesociclo para este ciclo. Atualize a tela.')
+    const original = docParaMeso(fonte.data() as MesoDoc)
+    const depois = somarDias(fimISO(original), 1)
+    const hoje = hojeMaisDias(0)
+    const meso = { ...original, inicio: depois > hoje ? depois : hoje }
+    tx.set(destino, { nome, ...mesoParaDoc(meso), alunoId, criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() })
+  })
+  return destino.id
 }
 
 // Importa um meso da planilha com as cargas já registradas, tudo num lote só (tudo ou nada).

@@ -9,7 +9,7 @@ Força é uma PWA de treino offline, com painel do coach e aplicativo do aluno. 
 - `src/engine/`: fórmulas e montagem de sessões, puras e testáveis.
 - `src/lib/`: integração Firebase, acesso, sincronização e lógica compartilhada; `src/features/`: telas e fluxos.
 - `marcas/vfit/` e `marcas/gislane/`: configuração, tema e recursos; conferir ambas quando mudar código comum.
-- `push/`: Worker Cloudflare e Durable Objects para push e intermediação de IA. `conector/`: Worker MCP/OAuth separado, atualmente de leitura para VFIT.
+- `push/`: Worker Cloudflare e Durable Objects para push e intermediação de IA. `conector/`: Worker MCP/OAuth separado, para VFIT; leitura nas concessões antigas e prescrição em desenvolvimento com consentimento e aprovação explícitos ([contrato](docs/conector-prescricao.md)).
 - `tools/` e `.github/workflows/`: administração, backups, validação e publicação; `tests/`/`e2e/`: regras e fluxos.
 
 ## Fluxo de dados

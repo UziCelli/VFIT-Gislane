@@ -1,12 +1,15 @@
 // Firestore REST como o próprio coach (Bearer do idToken dele): o firestore.rules decide tudo. Nunca loga token nem dado.
-import { docDeRest, idDeRest } from './rest'
+import { docDeRest, idDeRest, paraRest } from './rest'
 
 export type Buscar = typeof fetch
-export type Doc = { id: string; dados: Record<string, unknown> }
+export type Doc = { id: string; dados: Record<string, unknown>; updateTime?: string }
 
-// Mensagem já pronta para o Claude repetir ao coach.
+// Mensagens seguras para o assistente repetir ao coach.
 export class ErroConector extends Error {}
-export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e conectar o Claude de novo (precisa do login com o código de 6 dígitos).'
+// Resposta explícita do servidor confirma que o commit não aconteceu.
+export class ErroPrescricaoRecusada extends ErroConector {}
+export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e conectar o assistente de novo (precisa do login com o código de 6 dígitos).'
+export class ErroRenovacaoRecusada extends ErroConector {}
 
 export async function trocarToken(refreshToken: string, apiKey: string, buscar: Buscar = fetch): Promise<string> {
   let r: Response
@@ -21,14 +24,23 @@ export async function trocarToken(refreshToken: string, apiKey: string, buscar: 
   } catch {
     throw new ErroConector('Não deu para falar com o Firebase. Tente de novo.')
   }
-  if (!r.ok) throw new ErroConector(RECONECTAR)
-  const idToken = ((await r.json()) as { id_token?: unknown }).id_token
-  if (typeof idToken !== 'string' || !idToken) throw new ErroConector(RECONECTAR)
+  if (!r.ok) {
+    // Apenas códigos conhecidos significam que a credencial foi recusada. Nunca exponha o corpo.
+    const corpo = await r.json().catch(() => null) as { error?: { message?: unknown } } | null
+    const codigo = corpo?.error?.message
+    if (r.status === 400 && typeof codigo === 'string' && ['TOKEN_EXPIRED', 'INVALID_REFRESH_TOKEN', 'USER_DISABLED', 'USER_NOT_FOUND'].includes(codigo)) {
+      throw new ErroRenovacaoRecusada(RECONECTAR)
+    }
+    throw new ErroConector('Não consegui renovar seu login no Firebase. Tente de novo.')
+  }
+  const corpo = await r.json().catch(() => null) as { id_token?: unknown } | null
+  const idToken = corpo?.id_token
+  if (typeof idToken !== 'string' || !idToken) throw new ErroConector('Não consegui renovar seu login no Firebase. Tente de novo.')
   return idToken
 }
 
 export class Firestore {
-  constructor(private projeto: string, private token: string, private buscar: Buscar = fetch) {}
+  constructor(private projeto: string, private token: string, private buscar: Buscar = fetch, private appCheck?: string) {}
 
   private base = () => `https://firestore.googleapis.com/v1/projects/${this.projeto}/databases/(default)/documents`
 
@@ -39,7 +51,7 @@ export class Firestore {
       const buscar = this.buscar
       r = await buscar(url, {
         method: corpo === undefined ? 'GET' : 'POST',
-        headers: { Authorization: `Bearer ${this.token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { Authorization: `Bearer ${this.token}`, ...(this.appCheck && { 'X-Firebase-AppCheck': this.appCheck }), ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
         ...(corpo === undefined ? {} : { body: JSON.stringify(corpo) }),
       })
     } catch {
@@ -54,8 +66,8 @@ export class Firestore {
     const r = await this.chamar(`${this.base()}/${caminho.split('/').map(encodeURIComponent).join('/')}`)
     if (r.status === 404) return null
     if (!r.ok) throw new ErroConector('O Firestore não respondeu direito. Tente de novo.')
-    const d = (await r.json()) as { name: string; fields?: Record<string, unknown> }
-    return { id: idDeRest(d.name), dados: docDeRest(d.fields) }
+    const d = (await r.json()) as { name: string; fields?: Record<string, unknown>; updateTime?: string }
+    return { id: idDeRest(d.name), dados: docDeRest(d.fields), updateTime: d.updateTime }
   }
 
   // Um filtro de igualdade só (não precisa de índice). Sem filtro = a coleção toda.
@@ -68,7 +80,21 @@ export class Firestore {
       },
     })
     if (!r.ok) throw new ErroConector('O Firestore não respondeu direito. Tente de novo.')
-    const linhas = (await r.json()) as { document?: { name: string; fields?: Record<string, unknown> } }[]
-    return linhas.flatMap((l) => (l.document ? [{ id: idDeRest(l.document.name), dados: docDeRest(l.document.fields) }] : []))
+    const linhas = (await r.json()) as { document?: { name: string; fields?: Record<string, unknown>; updateTime?: string } }[]
+    return linhas.flatMap((l) => (l.document ? [{ id: idDeRest(l.document.name), dados: docDeRest(l.document.fields), updateTime: l.document.updateTime }] : []))
   }
+  // Um único commit, com pré-condição do documento e carimbo do servidor.
+  async gravarMeso(id: string, dados: Record<string, unknown>, esperado: string | null, origem?: { id: string; updateTime: string }): Promise<void> {
+    const nome = `projects/${this.projeto}/databases/(default)/documents/mesos/${id}`
+    const campos = Object.fromEntries(Object.entries(dados).map(([k, v]) => [k, paraRest(v)]))
+    const r = await this.chamar(`${this.base()}:commit`, { writes: [{
+      update: { name: nome, fields: campos },
+      ...(esperado ? { updateMask: { fieldPaths: [...new Set([...Object.keys(campos), 'pausaPrincipaisS', 'progressaoPct', 'limiteReps', 'tempoLimiteMin'])] } } : {}),
+      currentDocument: esperado ? { updateTime: esperado } : { exists: false },
+      updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }, ...(esperado ? [] : [{ fieldPath: 'criadoEm', setToServerValue: 'REQUEST_TIME' }])],
+    }, ...(origem ? [{ verify: `projects/${this.projeto}/databases/(default)/documents/mesos/${origem.id}`, currentDocument: { updateTime: origem.updateTime } }] : [])] })
+    if (r.status === 409 || r.status === 400 || r.status === 412) throw new ErroPrescricaoRecusada('O mesociclo mudou. Prepare e confirme novamente.')
+    if (!r.ok) throw new ErroConector('Não foi possível salvar o mesociclo. Confira o resultado antes de tentar de novo.')
+  }
+
 }

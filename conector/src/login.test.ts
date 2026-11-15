@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { b64u } from '../../push/src/b64'
+import { limparCacheAppCheck } from './appcheck'
 import { criarPedido, concluirLogin, lerPedido, VALIDADE_PEDIDO_MS, type Deps, type KV } from './login'
 
 const te = new TextEncoder()
@@ -51,12 +52,41 @@ describe('pedido', () => {
   })
 })
 
+describe('concluirLogin com App Check', () => {
+  it('manda o token de App Check na consulta ao perfil', async () => {
+    limparCacheAppCheck()
+    const t = montar('coach', jwt())
+    const base = t.d.buscar
+    let ac: string | null = null
+    t.d.buscar = (async (url: string, init?: RequestInit) => {
+      if (String(url).includes('firebaseappcheck')) return resposta({ token: 'ac-login', ttl: '3600s' })
+      if (String(url).includes('firestore')) ac = new Headers(init?.headers).get('x-firebase-appcheck')
+      return base(url, init)
+    }) as typeof fetch
+    t.d.appId = '1:2:web:abc'
+    t.d.debugToken = 'dbg'
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'Claude', host: 'claude.ai' }, AGORA)
+    expect((await concluirLogin(t.d, await corpo(id))).status).toBe(200)
+    expect(ac).toBe('ac-login')
+  })
+})
+
 describe('concluirLogin', () => {
   it('coach com 2º fator conecta e o refreshToken segue para o OAuth; o pedido some', async () => {
     const t = montar('coach', jwt())
     const id = await criarPedido(t.kv, { req: { a: 1 }, cliente: 'Claude', host: 'claude.ai' }, AGORA)
     expect(await concluirLogin(t.d, await corpo(id))).toEqual({ status: 200, redirectTo: 'https://claude.ai/volta?uid=coach1' })
     expect(t.kv.m.size).toBe(0)
+  })
+  it('só ativa escrita quando a versão exibida coincide com o pedido do servidor', async () => {
+    for (const [armazenada, enviada, esperada] of [[2, 2, 2], [2, undefined, undefined], [undefined, 2, undefined]] as const) {
+      const t = montar('coach', jwt())
+      let versao: number | undefined
+      t.d.completar = async (_req, _uid, _refresh, v) => { versao = v; return 'https://example.com' }
+      const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h', versaoConsentimento: armazenada }, AGORA)
+      expect((await concluirLogin(t.d, await corpo(id, { versaoConsentimento: enviada }))).status).toBe(200)
+      expect(versao).toBe(esperada)
+    }
   })
   it('pedido reusado ou vencido = recusa', async () => {
     const t = montar('coach', jwt())
@@ -96,6 +126,22 @@ describe('concluirLogin', () => {
       expect((await concluirLogin(t.d, await corpo(id))).status).toBe(403)
     }
   })
+  it('distingue token inválido, conta ou projeto diferente e falta de segundo fator', async () => {
+    const casos: [Promise<string>, string][] = [
+      [Promise.resolve('token-invalido-privado'), 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.'],
+      [jwt({ exp: AGORA / 1000 - 1 }), 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.'],
+      [jwt({ aud: 'projeto-desconhecido' }), 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.'],
+      [jwt({ sub: 'outra-pessoa-privada' }), 'O login renovado não corresponde à conta ou ao projeto da sessão. Saia do app e entre novamente para conectar.'],
+      [jwt({ aud: 'gislane-personal-trainer', iss: 'https://securetoken.google.com/gislane-personal-trainer' }), 'O login renovado não corresponde à conta ou ao projeto da sessão. Saia do app e entre novamente para conectar.'],
+      [jwt({}, false), 'Não foi possível confirmar a verificação em 2 etapas no login renovado. Saia do app e entre novamente com o código de 6 dígitos.'],
+    ]
+    for (const [renovado, erro] of casos) {
+      const t = montar('coach', renovado)
+      const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+      expect(await concluirLogin(t.d, await corpo(id))).toEqual({ status: 403, erro })
+      expect(t.kv.m.size).toBe(1)
+    }
+  })
   it('token de outro projeto (Gislane) = recusa; corpo incompleto = 400', async () => {
     const t = montar('coach', jwt())
     const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
@@ -122,5 +168,35 @@ describe('falhas na conferência', () => {
       return original(url, init)
     }) as typeof fetch
     expect(await concluirLogin(t.d, c)).toEqual({ status: 503, erro: 'Não consegui renovar seu login no Firebase. Tente de novo.' })
+  })
+})
+
+
+describe('diagnóstico seguro do login', () => {
+  it('distingue recusa do perfil, renovação recusada e token renovado inválido', async () => {
+    const t = montar('coach', jwt({}, false))
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+    const c = await corpo(id)
+    const original = t.d.buscar
+    for (const status of [401, 403]) {
+      t.d.buscar = (async () => resposta({ segredo: 'privado' }, status)) as typeof fetch
+      expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O app recusou a consulta ao seu perfil. Verifique as permissões do Firestore e tente de novo.' })
+    }
+    t.d.buscar = (async (url: string, init?: RequestInit) => String(url).includes('securetoken')
+      ? resposta({ error: { message: 'INVALID_REFRESH_TOKEN', detalhe: 'privado' } }, 400) : original(url, init)) as typeof fetch
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O Firebase recusou a renovação do login. Saia do app e entre novamente para conectar.' })
+    t.d.buscar = original
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'Não foi possível confirmar a verificação em 2 etapas no login renovado. Saia do app e entre novamente com o código de 6 dígitos.' })
+    expect(t.kv.m.size).toBe(1)
+  })
+  it('respostas desconhecidas ou malformadas do Firebase são falhas de serviço, sem expor detalhes', async () => {
+    const t = montar('coach', jwt())
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+    const c = await corpo(id)
+    const original = t.d.buscar
+    for (const respostaFirebase of [resposta({ error: { message: 'segredo privado' } }, 400), resposta({ error: { message: 'INVALID_REFRESH_TOKEN' } }, 503), new Response('segredo privado', { status: 200 })]) {
+      t.d.buscar = (async (url: string, init?: RequestInit) => String(url).includes('securetoken') ? respostaFirebase : original(url, init)) as typeof fetch
+      expect(await concluirLogin(t.d, c)).toEqual({ status: 503, erro: 'Não consegui renovar seu login no Firebase. Tente de novo.' })
+    }
   })
 })

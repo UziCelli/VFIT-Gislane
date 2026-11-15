@@ -3,14 +3,16 @@ import { z } from 'zod'
 import type { executar } from './execucao'
 import { entradaPrescricaoSchema, type EntradaPrescricao } from './prescricao'
 import type { Resposta } from './execucao'
+import { statusDeConexao } from './statusConexao'
 import { catalogoExercicios, listarAlunos, verAluno, verMesos } from './ferramentas'
 
 type Rodar = (leitura: Parameters<typeof executar>[1]) => ReturnType<typeof executar>
 
-export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: EntradaPrescricao) => Promise<Resposta>; consultar: (id: string) => Promise<Resposta> }) {
+export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: EntradaPrescricao) => Promise<Resposta>; consultar: (id: string) => Promise<Resposta> }, diagnostico: () => unknown = () => undefined) {
   const s = new McpServer({ name: 'vfit-conector', version: '1.0.0' })
   const annotations = { readOnlyHint: true, destructiveHint: false, openWorldHint: true }
   const alunoId = z.string().describe('id do aluno (vem de listar_alunos)')
+  s.registerTool('verificar_conexao', { annotations, description: 'Verifica as permissões da conexão atual e se pode preparar propostas de treino.' }, async () => ({ content: [{ type: 'text' as const, text: JSON.stringify(statusDeConexao(diagnostico())) }] }))
   s.registerTool('listar_alunos', { annotations, description: 'Lista os alunos: nome, status, pago até, meso atual (semana e fim) e se já tem próximo meso.' }, () => rodar((fs) => listarAlunos(fs)))
   s.registerTool(
     'ver_aluno',

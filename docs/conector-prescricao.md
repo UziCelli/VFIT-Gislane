@@ -13,6 +13,12 @@ Esta entrega está em desenvolvimento e **ainda não foi publicada**. O conector
 
 Concessões OAuth anteriores continuam apenas com leitura. Para obter a nova permissão de prescrição, desconecte o conector e conecte novamente, aceitando o consentimento atualizado. A aprovação de cada proposta continua sendo necessária.
 
+## Diagnosticar uma conexão
+
+No assistente conectado, execute `verificar_conexao` para consultar o estado atual da autorização. A resposta informa se a conexão está `aprovada`, `somente_leitura` ou `incompleta`, se pode preparar propostas e que a confirmação acontece no app. Ela não inclui UID, tokens ou outros dados de identidade.
+
+O pedido de consentimento novo exige que o app envie a versão 2 depois de mostrar as permissões. Se o app em cache estiver desatualizado, o conector rejeita o pedido com a orientação para atualizar o app e reabrir o pedido original; não conclui a conexão silenciosamente como somente leitura. A mensagem para reconectar, sozinha, não confirma a causa: use `verificar_conexao` para conferir o estado registrado.
+
 ## Limites e cuidados
 
 - A IA prepara uma sugestão; o coach continua responsável por revisar e aprovar o treino.

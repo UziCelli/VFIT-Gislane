@@ -14,7 +14,7 @@ test.beforeAll(async () => {
 })
 
 // O Worker é falso: devolve o nome do pedido e guarda o que o app manda.
-async function conectorFalso(page: Page) {
+async function conectorFalso(page: Page, versaoConsentimento?: number) {
   const enviados: { rota: string; corpo: Record<string, string> }[] = []
   await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', async (route) => {
     const req = route.request()
@@ -22,7 +22,7 @@ async function conectorFalso(page: Page) {
     const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type' }
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
     if (rota === '/volta') return route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>Voltou ao Claude</h1>' })
-    if (rota === '/pedido') return route.fulfill({ status: 200, headers: cors, json: { cliente: 'Claude', host: 'claude.ai' } })
+    if (rota === '/pedido') return route.fulfill({ status: 200, headers: cors, json: { cliente: 'Claude', host: 'claude.ai', versaoConsentimento } })
     enviados.push({ rota, corpo: req.postDataJSON() })
     return route.fulfill({ status: 200, headers: cors, json: { redirectTo: 'https://vfit-conector.vfitcoach-site.workers.dev/volta' } })
   })
@@ -41,6 +41,7 @@ test('coach entra, vê o pedido e toca em Permitir: o app manda os tokens ao con
   await entrar(page, COACH.email, COACH.senha)
   await expect(page.getByText('Permitir que este assistente consulte dados dos seus alunos?')).toBeVisible({ timeout: 15000 })
   await expect(page.getByRole('heading', { name: 'Conectar assistente' })).toBeVisible()
+  await expect(page.getByText('A criação de treinos não está disponível nesta conexão.', { exact: false })).toBeVisible()
   await expect(page.getByText('claude.ai', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Permitir' }).click()
   await expect(page.getByRole('heading', { name: 'Voltou ao Claude' })).toBeVisible()
@@ -49,6 +50,15 @@ test('coach entra, vê o pedido e toca em Permitir: o app manda os tokens ao con
   expect(enviados[0].corpo.pedido).toBe(PEDIDO)
   expect(enviados[0].corpo.idToken.split('.')).toHaveLength(3)
   expect(enviados[0].corpo.refreshToken.length).toBeGreaterThan(10)
+})
+
+test('nova conexão informa a preparação de treinos e envia a versão autorizada', async ({ page }) => {
+  const enviados = await conectorFalso(page, 2)
+  await entrar(page, COACH.email, COACH.senha)
+  await expect(page.getByText('Também poderá preparar treinos para você conferir e salvar no app.', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: 'Permitir' }).click()
+  await expect(page.getByRole('heading', { name: 'Voltou ao Claude' })).toBeVisible()
+  expect(enviados[0].corpo.versaoConsentimento).toBe(2)
 })
 
 test('coach: Cancelar avisa o conector e volta', async ({ page }) => {

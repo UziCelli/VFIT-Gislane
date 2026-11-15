@@ -1,9 +1,10 @@
 import { Client, InMemoryTransport } from '@modelcontextprotocol/client'
 import { describe, expect, it } from 'vitest'
 import { criarServidor } from './servidor'
+import { statusDeConexao } from './statusConexao'
 
 describe('lista de ferramentas MCP', () => {
-  it('anuncia as quatro ferramentas como leitura, sem ação destrutiva e com acesso externo', async () => {
+  it('anuncia as cinco ferramentas como leitura, sem ação destrutiva e com acesso externo', async () => {
     const servidor = criarServidor(async () => { throw new Error('A listagem não deve executar ferramentas') })
     const cliente = new Client({ name: 'teste', version: '1.0.0' })
     const [transporteCliente, transporteServidor] = InMemoryTransport.createLinkedPair()
@@ -11,13 +12,37 @@ describe('lista de ferramentas MCP', () => {
     await cliente.connect(transporteCliente)
     try {
       const { tools } = await cliente.listTools()
-      expect(tools.map((f) => f.name).sort()).toEqual(['catalogo_exercicios', 'listar_alunos', 'ver_aluno', 'ver_mesos'])
+      expect(tools.map((f) => f.name).sort()).toEqual(['catalogo_exercicios', 'listar_alunos', 'ver_aluno', 'ver_mesos', 'verificar_conexao'])
       for (const ferramenta of tools) {
         expect(ferramenta.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false, openWorldHint: true })
       }
     } finally {
       await cliente.close()
       await servidor.close()
+    }
+  })
+  it('verifica a conexão atual sem expor credenciais ou identidade', async () => {
+    for (const [props, estado] of [
+      [{ refreshToken: 'segredo', uid: 'identidade', writeApproved: true }, 'aprovada'],
+      [{ refreshToken: 'segredo' }, 'somente_leitura'],
+      [{ refreshToken: 'segredo', writeApproved: true }, 'incompleta'],
+      [{ refreshToken: 'segredo', uid: 'identidade', writeApproved: 'true' }, 'incompleta'],
+      [{}, 'incompleta'],
+    ] as const) {
+      const servidor = criarServidor(async () => { throw new Error('não deve ler dados') }, undefined, () => props)
+      const cliente = new Client({ name: 'teste', version: '1.0.0' })
+      const [c, s] = InMemoryTransport.createLinkedPair()
+      await servidor.connect(s)
+      await cliente.connect(c)
+      try {
+        const resposta = await cliente.callTool({ name: 'verificar_conexao', arguments: {} })
+        const texto = JSON.stringify(resposta)
+        expect(texto).not.toContain('segredo')
+        expect(texto).not.toContain('identidade')
+        expect(statusDeConexao(props)).toMatchObject({ versaoConector: 'prescricao-v2', autorizacaoTreinos: estado, podePrepararTreinos: estado === 'aprovada', confirmacaoNoApp: true })
+        const conteudo = resposta.content as { type: string; text: string }[]
+        expect(JSON.parse(conteudo[0].text)).toEqual(statusDeConexao(props))
+      } finally { await cliente.close(); await servidor.close() }
     }
   })
   it('anuncia preparação com confirmação no app e consulta separada', async () => {

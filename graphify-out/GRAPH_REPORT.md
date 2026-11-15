@@ -1,7 +1,7 @@
-# Graph Report - claude-cloud-celli  (2026-11-14)
+# Graph Report - app  (2026-11-14)
 
 ## Corpus Check
-- 445 files · ~423,590 words
+- 445 files · ~423,891 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 17 file(s) not represented in the graph (top: .css 4, (none) 3, .toml 3)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `aeef0d5a`
+- Built from commit: `b68c3d70`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -233,21 +233,21 @@
 5. `vitest` - 91 edges
 6. `prescreverSessao()` - 69 edges
 7. ``src/lib/` — Firestore, estado, cálculos com dados` - 65 edges
-8. `firebase` - 63 edges
-9. `Meso` - 63 edges
-10. `Aviso()` - 63 edges
+8. `Meso` - 63 edges
+9. `Aviso()` - 63 edges
+10. `firebase` - 63 edges
 
 ## Surprising Connections (you probably didn't know these)
+- ``src/features/auth/` — Autenticação` --references--> `useSair()`  [INFERRED]
+  docs/mapa.md → src/features/auth/BotaoSair.tsx
+- ``src/features/privacidade/` — Política e Aceite` --references--> `CaixaAceite()`  [INFERRED]
+  docs/mapa.md → src/features/privacidade/Politica.tsx
+- ``src/lib/` — Privacidade` --references--> `senhaJaConferida()`  [INFERRED]
+  docs/mapa.md → src/lib/privacidade.ts
+- ``relatorios/{mesoId}`` --references--> `relatorioCiclo()`  [INFERRED]
+  docs/mapa.md → src/lib/relatorio.ts
 - `Pontos sensíveis (leia antes de auditar ou mexer)` --references--> `dados()`  [INFERRED]
   docs/mapa.md → e2e/fisio.spec.ts
-- `Pontos sensíveis (leia antes de auditar ou mexer)` --references--> `nadaPassaDaTela()`  [INFERRED]
-  docs/mapa.md → e2e/layout.spec.ts
-- `Pontos sensíveis (leia antes de auditar ou mexer)` --references--> `versao()`  [INFERRED]
-  docs/mapa.md → e2e/privacidade.spec.ts
-- `Pontos sensíveis (leia antes de auditar ou mexer)` --references--> `pedido()`  [INFERRED]
-  docs/mapa.md → push/src/corpo.test.ts
-- `Arquitetura` --references--> `verificarIdToken()`  [INFERRED]
-  docs/plano-conector-claude.md → push/src/jwt.ts
 
 ## Import Cycles
 - 2-file cycle: `src/lib/avaliacao.ts -> src/lib/segmentos.ts -> src/lib/avaliacao.ts`
@@ -1051,7 +1051,7 @@ Cohesion: 0.70
 Nodes (3): atualizarNaEntrada(), deveRecarregar(), versaoDisponivel()
 
 ## Knowledge Gaps
-- **4 isolated node(s):** `RFC-8291`, `RFC-8292`, `RFC-8291`, `RFC-8188`
+- **4 isolated node(s):** `RFC-8188`, `RFC-8292`, `RFC-8291`, `RFC-8291`
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1542 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **17 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -1059,15 +1059,15 @@ Nodes (3): atualizarNaEntrada(), deveRecarregar(), versaoDisponivel()
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `vitest` connect `vitest` to `avaliacao.ts`, `ataques.test.ts`, `progressaoFisio.ts`, `corpoPaths.ts`, `Hoje.tsx`, `lib/planilha.test.ts`, `lib/fisio.ts`, `Entrar.tsx`, `Alunos.tsx`, `notasMetodo.ts`, `ref_node_fs`, `util.ts`, `util.ts`, `src/ia.ts`, `anamnese.ts`, `alertas.ts`, `segmentos.ts`, `iaTreino.ts`, `lados.ts`, `cartaoRelatorio.ts`, `jwt.ts`, `push.ts`, `push.ts`, `cartaoStory.ts`, `criarCoach`, `Árvore por pasta`, `react`, `react`, `aluno-exemplo.test.ts`, `firebase-admin`, `progressaoFisio.ts`, `campoBase`, `src/index.ts`, `VozTreino.tsx`, `Plano — Redesenho das telas secundárias (VFITCOACH + Gislane)`, `Treino.tsx`, `avisos-pagamento.mjs`, `pix.ts`, `src/acesso.ts`, `src/index.ts`, `Pontos sensíveis (leia antes de auditar ou mexer)`, `sugestoesFisio.ts`, `SessaoCard.tsx`, `prescreverSessao`, `mesoAtual.ts`, `registrarErro`, `EnviarFeedback.tsx`, `dor.ts`, `FimTreino.tsx`, `package.json`, `SenhaSegura`, `ui.tsx`, `evolucao.test.ts`, `GuiaFisio.tsx`, `descanso.ts`, `CardioHoje.tsx`, `engine/index.ts`, `calcularAlertas.test.ts`, `cartaoDepoimento.ts`, `Onde fica cada coisa`, `cors`, `resumo.test.ts`, `atualizar.ts`, `seriesDoRotulo`, `rules.test.ts`, ``src/lib/` — Firestore, estado, cálculos com dados`, `conversores.ts`, `marca.test.ts`, `Entrar.tsx`, `hojeSaoPaulo`?**
-  _High betweenness centrality (0.076) - this node is a cross-community bridge._
+  _High betweenness centrality (0.088) - this node is a cross-community bridge._
 - **Are the 158 inferred relationships involving `Pontos sensíveis (leia antes de auditar ou mexer)` (e.g. with `dados()` and `nadaPassaDaTela()`) actually correct?**
   _`Pontos sensíveis (leia antes de auditar ou mexer)` has 158 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `RFC-8291`, `RFC-8292`, `RFC-8291` to the rest of the system?**
+- **What connects `RFC-8188`, `RFC-8292`, `RFC-8291` to the rest of the system?**
   _4 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `avaliacao.ts` be split into smaller, more focused modules?**
   _Cohesion score 0.0663265306122449 - nodes in this community are weakly interconnected._
 - **Why does `Pontos sensíveis (leia antes de auditar ou mexer)` connect `Pontos sensíveis (leia antes de auditar ou mexer)` to `avaliacao.ts`, `FisioCoach.tsx`, `progressaoFisio.ts`, `Hoje.tsx`, `limpeza-lgpd.mjs`, `Entrar.tsx`, `Alunos.tsx`, `ContaAluno.tsx`, `util.ts`, `util.ts`, `src/ia.ts`, `@playwright/test`, `lados.ts`, `push.ts`, `Avaliacao.tsx`, `cartaoStory.ts`, `Árvore por pasta`, `acoesFisio.ts`, `react`, `Treino.tsx`, `VozTreino.tsx`, `src/index.ts`, `Botao`, `avisos-pagamento.mjs`, `PainelEvolucao.tsx`, `App.tsx`, `pix.ts`, `src/acesso.ts`, `src/index.ts`, `Principal`, `SessaoCard.tsx`, `prescreverSessao`, `registrarErro`, `ui.tsx`, `FimTreino.tsx`, `SenhaSegura`, `Hoje.tsx`, `AnamneseCoach.tsx`, `layout.spec.ts`, `CardioHoje.tsx`, `main.tsx`, `Onde fica cada coisa`, `Mapa do Código — Força`, `seed.ts`, `log.ts`, `seriesDoRotulo`, `vidro.tsx`, ``src/lib/` — Firestore, estado, cálculos com dados`, `conversores.ts`, `Tutorial.tsx`, `Entrar.tsx`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+  _High betweenness centrality (0.077) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `Botao()` (e.g. with `Pontos sensíveis (leia antes de auditar ou mexer)` and ``src/` — Raiz`) actually correct?**
   _`Botao()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **Should `FisioCoach.tsx` be split into smaller, more focused modules?**

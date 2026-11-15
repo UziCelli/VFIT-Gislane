@@ -105,3 +105,22 @@ describe('concluirLogin', () => {
     expect((await concluirLogin(t.d, null)).status).toBe(400)
   })
 })
+
+describe('falhas na conferência', () => {
+  it('distingue falha no perfil e falha na renovação sem mostrar detalhes internos', async () => {
+    const t = montar('coach', jwt())
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+    const c = await corpo(id)
+    const original = t.d.buscar
+    t.d.buscar = (async (url: string, init?: RequestInit) => {
+      if (!String(url).includes('securetoken')) throw new Error('detalhe privado')
+      return original(url, init)
+    }) as typeof fetch
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 503, erro: 'Não consegui consultar seu perfil no app. Tente de novo.' })
+    t.d.buscar = (async (url: string, init?: RequestInit) => {
+      if (String(url).includes('securetoken')) throw new Error('detalhe privado')
+      return original(url, init)
+    }) as typeof fetch
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 503, erro: 'Não consegui renovar seu login no Firebase. Tente de novo.' })
+  })
+})

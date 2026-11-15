@@ -402,6 +402,8 @@ O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `s
 
 ## Pontos sensíveis (leia antes de auditar ou mexer)
 
+**Conector MCP:** a chave web do Firebase aceita apenas origens autorizadas; a renovação feita pelo Worker deve enviar `Referer: https://app.vfitcoachapp.com/`. Sem isso o Google bloqueia a chamada. Testes em `conector/src/ferramentas.test.ts`.
+
 O pedido OAuth precisa de consumo atômico no Durable Object e validação de segundo fator, usuário e projeto; nunca registrar credenciais ou dados dos alunos. A integração completa, o KV e a revogação ainda exigem validação antes de ativar.
 
 Onde já houve falha ou onde errar custa caro. Cada linha diz o que protege e como é testado. Quem corrigir um bug novo acrescenta uma linha aqui.

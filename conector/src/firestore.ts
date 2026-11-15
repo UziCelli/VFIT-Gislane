@@ -13,7 +13,9 @@ export async function trocarToken(refreshToken: string, apiKey: string, buscar: 
   try {
     r = await buscar(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(apiKey)}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      // A chave web do Firebase é restrita ao domínio do app. O pedido do Worker
+      // precisa identificar essa origem para que o Google aceite a chave pública.
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Referer: 'https://app.vfitcoachapp.com/' },
       body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken }),
     })
   } catch {

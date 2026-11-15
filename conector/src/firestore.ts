@@ -35,7 +35,9 @@ export class Firestore {
   private async chamar(url: string, corpo?: unknown): Promise<Response> {
     let r: Response
     try {
-      r = await this.buscar(url, {
+      // No Cloudflare, fetch rejeita receber o Firestore como `this`.
+      const buscar = this.buscar
+      r = await buscar(url, {
         method: corpo === undefined ? 'GET' : 'POST',
         headers: { Authorization: `Bearer ${this.token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
         ...(corpo === undefined ? {} : { body: JSON.stringify(corpo) }),

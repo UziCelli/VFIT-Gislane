@@ -66,12 +66,20 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   if (!quem || quem.projeto !== d.projeto) return nega(403, 'Entre com e-mail, senha e o código de 6 dígitos para conectar.')
   try {
     const perfil = await new Firestore(d.projeto, idToken, d.buscar).doc(`usuarios/${quem.uid}`)
-    if (perfil?.dados.papel !== 'coach') return nega(403, 'Só o coach pode conectar o Claude.')
-    // O token renovado tem que continuar com o 2º fator e ser da mesma pessoa; senão o conector não funcionaria depois.
+    if (perfil?.dados.papel !== 'coach') return nega(403, 'Só o coach pode conectar o assistente.')
+  } catch (e) {
+    return e instanceof ErroConector && e.message === RECONECTAR
+      ? nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
+      : nega(503, 'Não consegui consultar seu perfil no app. Tente de novo.')
+  }
+  try {
+    // A renovação precisa manter o 2º fator, o projeto e a mesma pessoa.
     const novo = await verificarIdToken(await trocarToken(refreshToken, d.apiKey, d.buscar), d.obterChave, agoraS, true)
     if (novo?.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
   } catch (e) {
-    return e instanceof ErroConector && e.message === RECONECTAR ? nega(403, 'Entre de novo com o código de 6 dígitos para conectar.') : nega(503, 'Não deu para conferir agora. Tente de novo.')
+    return e instanceof ErroConector && e.message === RECONECTAR
+      ? nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
+      : nega(503, 'Não consegui renovar seu login no Firebase. Tente de novo.')
   }
   // O armazenamento deve consumir de forma atômica, inclusive entre requisições simultâneas.
   if (!(await d.kv.consume(CHAVE + (c.pedido as string)))) return nega(400, 'Este pedido venceu ou já foi usado. Volte e conecte de novo.')

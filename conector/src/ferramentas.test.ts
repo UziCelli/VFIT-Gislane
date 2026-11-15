@@ -172,3 +172,15 @@ describe('executar (formato da resposta)', () => {
     expect(estranho.content[0].text).toBe('Erro inesperado no conector.')
   })
 })
+
+describe('renovação do Firebase', () => {
+  it('envia o domínio autorizado junto com a chave pública', async () => {
+    let cabecalhos: Headers | undefined
+    const buscar = (async (_url: string, init?: RequestInit) => {
+      cabecalhos = new Headers(init?.headers)
+      return Response.json({ id_token: 'token' })
+    }) as typeof fetch
+    await executar({ refreshToken: 'refresh', apiKey: 'chave', projeto: 'forca--app', buscar }, async () => ({}))
+    expect(cabecalhos?.get('referer')).toBe('https://app.vfitcoachapp.com/')
+  })
+})

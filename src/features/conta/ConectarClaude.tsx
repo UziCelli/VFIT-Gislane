@@ -6,7 +6,7 @@ import { Aviso, Botao, Cartao, Pagina } from '../../ui'
 
 const BASE = import.meta.env.VITE_CONECTOR_URL as string | undefined
 
-type Quem = { cliente: string; host: string }
+type Quem = { cliente: string; host: string; versaoConsentimento?: number }
 
 // Só coach: aprova a conexão do Claude (claude.ai) ao app. O app manda o login do coach ao conector; o Firestore segue decidindo tudo.
 export default function ConectarClaude({ pedido }: { pedido: string | null }) {
@@ -30,7 +30,7 @@ export default function ConectarClaude({ pedido }: { pedido: string | null }) {
     try {
       const u = auth.currentUser
       if (!u) throw new Error()
-      const corpo = rota === 'cancelar' ? { pedido } : { pedido, idToken: await u.getIdToken(true), refreshToken: u.refreshToken }
+      const corpo = rota === 'cancelar' ? { pedido } : { pedido, idToken: await u.getIdToken(true), refreshToken: u.refreshToken, versaoConsentimento: typeof quem === 'object' && quem ? quem.versaoConsentimento : undefined }
       const r = await fetch(`${BASE}/${rota}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) })
       const dados = (await r.json().catch(() => ({}))) as { redirectTo?: string; erro?: string }
       if (!r.ok || !dados.redirectTo) {
@@ -56,7 +56,7 @@ export default function ConectarClaude({ pedido }: { pedido: string | null }) {
       <Cartao className="max-w-md space-y-4">
         <h2 className="text-lg font-semibold">Permitir que este assistente consulte dados dos seus alunos?</h2>
         <p className="text-sm text-slate-400">
-          O assistente poderá ler alunos, anamnese, avaliações, dores e cargas com o seu login. A criação de treinos ainda não está disponível.
+          O assistente poderá ler alunos, anamnese, avaliações, dores e cargas com o seu login. {quem.versaoConsentimento === 2 ? 'Também poderá preparar treinos para você conferir e salvar no app.' : 'A criação de treinos não está disponível nesta conexão.'}
         </p>
         <p className="text-sm text-slate-400">
           Pedido de <strong className="text-slate-200">{quem.cliente}</strong>, que volta para <strong className="text-slate-200">{quem.host}</strong>. Só permita se foi você que acabou de pedir.

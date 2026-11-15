@@ -28,7 +28,13 @@
 - Isométricos em segundos (padrão 3×30 s), progressão até 60 s/série, cronômetro por série e tempo sob tensão separado de movimentos/volume. Sem migração nem mudança de regras.
 - Claude: correções da entrega A documentadas em `docs/revisao-pr166.md`; Codex implementa B. Ver plano para decisões e limites.
 
-# Estado da sessão (retomada) — atualizado em 12/11/2026
+# Estado da sessão (retomada) — atualizado em 15/11/2026
+
+## 15/11/2026 — Prescrição MCP (em andamento; ainda não publicada)
+- Próxima entrega do conector VFIT: assistente prepara proposta de treino; coach conectado aprova explicitamente com MFA antes de gravar.
+- Concessões OAuth antigas continuam somente leitura. Para prescrever, o coach precisa desconectar e conectar de novo, aceitando o novo consentimento.
+- A proposta usa o fluxo normal de mesociclo do app (próximo/agenda existente); não cria um domínio de rascunhos. Não altera registros nem cargas já anotadas.
+- Implementação e revisão ainda em andamento; não foi publicada. Política de Privacidade precisa descrever o novo uso e consentimento antes de ativar. Detalhes: `docs/conector-prescricao.md`.
 
 Leia antes: `CLAUDE.md`, `docs/mapa.md`. Branch de trabalho: recriada a partir da `main` a cada entrega. Os PRs até o #126 (avaliação física) estão juntados e publicados.
 

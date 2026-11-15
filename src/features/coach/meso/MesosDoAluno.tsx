@@ -2,7 +2,7 @@ import { m } from 'motion/react'
 import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { collection, doc, query, where, type Timestamp } from 'firebase/firestore'
 import type { Usuario } from '../../../lib/acesso'
-import { darAcessoAoApp, duplicarMeso, excluirMeso, salvarMeso } from '../../../lib/acoes'
+import { darAcessoAoApp, duplicarMeso, excluirMeso, salvarMeso, salvarProximoMeso } from '../../../lib/acoes'
 import { registrarErro } from '../../../lib/log'
 import type { Meso } from '../../../engine'
 import { docParaMeso, type MesoSalvo } from '../../../lib/conversores'
@@ -143,8 +143,12 @@ export default function MesosDoAluno({ uid }: { uid: string }) {
               prox={prox}
               onMontar={() => {
                 if (!agora) return
-                const depois = somarDias(fimISO(agora.meso), 1)
-                criar(`Mesociclo ${mesos.dados.length + 1}`, { ...agora.meso, inicio: depois > hojeISO ? depois : hojeISO })
+                if (criando.current) return
+                criando.current = true
+                setErro(null)
+                salvarProximoMeso(agora.doc.id, uid, `Mesociclo ${mesos.dados.length + 1}`)
+                  .then((id) => ir(`/meso/${id}`))
+                  .catch(() => { setErro('Não foi possível montar o próximo mesociclo. Confira a internet e atualize a tela.'); criando.current = false })
               }}
               onErro={setErro}
             />

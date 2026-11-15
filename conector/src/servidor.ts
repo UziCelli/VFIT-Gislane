@@ -1,11 +1,13 @@
 import { McpServer } from '@modelcontextprotocol/server'
 import { z } from 'zod'
 import type { executar } from './execucao'
+import { entradaPrescricaoSchema, type EntradaPrescricao } from './prescricao'
+import type { Resposta } from './execucao'
 import { catalogoExercicios, listarAlunos, verAluno, verMesos } from './ferramentas'
 
 type Rodar = (leitura: Parameters<typeof executar>[1]) => ReturnType<typeof executar>
 
-export function criarServidor(rodar: Rodar) {
+export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: EntradaPrescricao) => Promise<Resposta>; consultar: (id: string) => Promise<Resposta> }) {
   const s = new McpServer({ name: 'vfit-conector', version: '1.0.0' })
   const annotations = { readOnlyHint: true, destructiveHint: false, openWorldHint: true }
   const alunoId = z.string().describe('id do aluno (vem de listar_alunos)')
@@ -25,5 +27,16 @@ export function criarServidor(rodar: Rodar) {
     ({ alunoId, mesoId }) => rodar((fs) => verMesos(fs, alunoId, mesoId)),
   )
   s.registerTool('catalogo_exercicios', { annotations, description: 'Nomes dos exercícios do catálogo (use exatamente estes) e os métodos disponíveis.' }, () => rodar(async () => catalogoExercicios()))
+  if (propostas) {
+    s.registerTool('preparar_treino', {
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+      description: 'Prepara uma proposta de treino. Nenhum mesociclo é salvo até o coach revisar e confirmar no app.',
+      inputSchema: entradaPrescricaoSchema,
+    }, (entrada) => propostas.preparar(entrada))
+    s.registerTool('consultar_proposta', {
+      annotations, description: 'Consulta o estado de uma proposta criada por esta conta.',
+      inputSchema: z.object({ id: z.string().uuid() }).strict(),
+    }, ({ id }) => propostas.consultar(id))
+  }
   return s
 }

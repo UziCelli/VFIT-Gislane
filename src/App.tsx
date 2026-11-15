@@ -44,6 +44,7 @@ import FisioCoach from './features/fisio/FisioCoach'
 import GuiaMetodos from './features/metodos/GuiaMetodos'
 import MinhaConta from './features/conta/MinhaConta'
 import ConectarClaude from './features/conta/ConectarClaude'
+import ConfirmarTreinoMcp from './features/conta/ConfirmarTreinoMcp'
 import AcaoEmail from './features/auth/AcaoEmail'
 import Politica from './features/privacidade/Politica'
 import PagarPix, { PIX } from './features/aluno/PagarPix'
@@ -281,6 +282,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />
   else if (rota === '/metodos') tela = <GuiaMetodos coach />
   else if (rota === '/fisio') tela = <GuiaFisio />
+  else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} />
   else if (rota.startsWith('/conectar-claude')) tela = <ConectarClaude pedido={new URLSearchParams(rota.split('?')[1]).get('pedido')} />
   else if (rota === '/conta') tela = <MinhaConta uid={uid} email={email} abrirTutorial={() => setTutorial(true)} />
   return (

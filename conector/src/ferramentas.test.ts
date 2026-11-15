@@ -126,6 +126,15 @@ describe('ver_mesos', () => {
     expect(JSON.stringify(atual)).not.toContain('99') // cada meso mostra só os próprios registros
     expect(r[0].treinos[0].exercicios[0].semanas[0].feito).toBe('99×-')
   })
+  it('expõe identificadores da divisão planejada, mesmo com troca e sessão ajustada', async () => {
+    const troca = { slotId: 'troca', nome: 'Supino Inclinado Barra' }
+    const presencial = { slotId: 'presencial', nome: 'Supino Reto Halter' }
+    const ajustado = { ...m1, trocas: { '1-1-1': troca }, sessoes: { '2-1': { semana: 2, treino: 1, exercicios: [presencial], metodos: [] } } }
+    const [r] = await verMesos(banco({ ...dados, mesos: { m1: ajustado } }).fs, 'al1', 'm1', HOJE)
+    expect(r.divisaoPlanejada).toEqual([{ treino: 1, exercicios: [{ pos: 1, slotId: 'sx1', nome: 'Supino Reto Barra' }] }, { treino: 2, exercicios: [] }, { treino: 3, exercicios: [] }])
+    expect(r.treinos[0].exercicios[0].nome).toBe(troca.nome)
+    expect(r.treinos[0].exercicios[0].semanas[1]).toMatchObject({ nome: presencial.nome })
+  })
   it('mesoId filtra um só', async () => {
     const r = await verMesos(banco({ ...dados, mesos: { m1, m2: meso('2026-12-01') }, registros }).fs, 'al1', 'm2', HOJE)
     expect(r.map((m) => m.id)).toEqual(['m2'])

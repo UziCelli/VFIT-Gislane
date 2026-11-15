@@ -58,4 +58,35 @@ describe('gravação REST com regras reais', () => {
     await expect(salvarPrescricao(fs, segundo, 'prox2', agora)).rejects.toThrow()
     expect((await fs.doc(`mesos/${proximoId}`))?.dados.mcpOperacao).toBe('prox1')
   }, 60000)
+  it('remove exercícios de dois treinos sem alterar cargas ou sessões, e rejeita versão anterior', async () => {
+    const meso = { ...mesoPadrao(), inicio: '2026-11-01', frequencia: 5, divisao: [
+      [{ slotId: 'face1', nome: 'Facepull' }, { slotId: 'sup', nome: 'Supino Reto Barra' }], [], [], [],
+      [{ slotId: 'face5', nome: 'Facepull' }, { slotId: 'perna', nome: 'Agachamento Livre' }],
+    ] }
+    const sessoes = { '1-1': { semana: 1, treino: 1, exercicios: [{ slotId: 'face1', nome: 'Facepull', origemSlotId: 'face1' }], metodos: [] } }
+    const cargas = { face1: { s1: 20 }, sup: { s1: 40 } }
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const db = ctx.firestore() as unknown as SDK
+      await Promise.all([
+        setDoc(doc(db, 'mesos', 'remocao'), { alunoId: 'aluno', nome: 'Remoção', ...mesoParaDoc(meso), sessoes }),
+        setDoc(doc(db, 'registros', 'remocao_s01_t1'), { alunoId: 'aluno', mesoId: 'remocao', cargas }),
+      ])
+    })
+    const fs = firestore()
+    const entrada = { acao: 'editar' as const, alunoId: 'aluno', mesoId: 'remocao', removerSlotIds: ['face1', 'face5'] }
+    const p = await prepararPrescricao(fs, entrada, agora)
+    const antiga = await prepararPrescricao(fs, entrada, agora)
+    expect(p.previaDados?.sessoes).toEqual(sessoes)
+    await salvarPrescricao(fs, p, 'remover1', agora)
+    await expect(salvarPrescricao(fs, antiga, 'remover2', agora)).rejects.toThrow('mudou')
+    const salvo = await fs.doc('mesos/remocao')
+    expect(salvo?.dados.sessoes).toEqual(sessoes)
+    expect(salvo?.dados.divisao).toMatchObject({ t1: [{ slotId: 'sup' }], t5: [{ slotId: 'perna' }] })
+    expect(salvo?.dados.progressaoExercicio).toHaveProperty('face1.w1')
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      const snap = await getDoc(doc(ctx.firestore() as unknown as SDK, 'registros', 'remocao_s01_t1'))
+      expect(snap.data()?.cargas).toEqual(cargas)
+    })
+  }, 60000)
+
 })

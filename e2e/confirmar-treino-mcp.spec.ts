@@ -64,3 +64,31 @@ test('resultado pendente não oferece salvar outra vez e permite consultar', asy
   await expect(page.getByText('Treino salvo no app.')).toBeVisible()
   expect(consultas).toBe(1)
 })
+test('retirada de exercício em dois treinos mostra impactos antes de salvar', async ({ page }) => {
+  const linhas = { w1: [8, 8], w2: [10, 10] }
+  const dados = { ...proposta.dados, frequencia: 5, dias: [], divisao: { t1: [], t2: [], t3: [], t4: [], t5: [] }, progressao: { principais: linhas, auxiliares: linhas }, metodos: [] }
+  const antes = { ...dados, nome: 'Anterior', divisao: { ...dados.divisao, t1: [{ slotId: 'segredo1', nome: 'Facepull' }], t5: [{ slotId: 'segredo5', nome: 'Facepull' }] } }
+  const remocao = { ...proposta, dados, previaDados: dados, antes, remocoes: [{ slotId: 'segredo1', nome: 'Facepull', treino: 1, posicao: 1 }, { slotId: 'segredo5', nome: 'Facepull', treino: 5, posicao: 1 }], avisos: ['As cargas registradas continuam guardadas.', 'Os exercícios removidos deixam de aparecer no treino planejado.', 'As sessões presenciais já ajustadas permanecem como estão.'] }
+  let envios = 0
+  await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', async (route) => {
+    const req = route.request(), cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+    if (req.method() === 'GET') return route.fulfill({ headers: cors, json: { status: 'proposta', proposta: remocao } })
+    envios++
+    return envios === 1 ? route.fulfill({ status: 503, headers: cors, json: { erro: 'Tente novamente.' } }) : route.fulfill({ headers: cors, json: { status: 'salva', resultado: { mesoId: 'x' } } })
+  })
+  await entrar(page)
+  await expect(page.getByText('Facepull · Treino 1')).toBeVisible()
+  await expect(page.getByText('Facepull · Treino 5')).toBeVisible()
+  await expect(page.getByText('As cargas registradas continuam guardadas.')).toBeVisible()
+  await expect(page.getByText('Uma sessão presencial ajustada pode manter o exercício retirado.')).toBeVisible()
+  await expect(page.getByText('As sessões presenciais já ajustadas permanecem como estão.')).toBeVisible()
+  await expect(page.getByText('segredo1')).toHaveCount(0)
+  await page.getByText('Treino atual antes da alteração').click()
+  await expect(page.getByText('Facepull', { exact: true }).first()).toBeVisible()
+  await page.getByRole('button', { name: 'Salvar treino' }).click()
+  await expect(page.getByText('Tente novamente.')).toBeVisible()
+  await page.getByRole('button', { name: 'Salvar treino' }).click()
+  await expect(page.getByText('Treino salvo no app.')).toBeVisible()
+  expect(envios).toBe(2)
+})

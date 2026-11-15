@@ -81,3 +81,50 @@ describe('métodos em exercícios adicionados', () => {
     expect((await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', nome: 'Renomeado' }, agora)).nome).toBe('Renomeado')
   })
 })
+
+describe('remoção de exercícios por ID', () => {
+  const exemplo = () => {
+    const padrao = mesoPadrao()
+    return { ...padrao, inicio: '2026-11-01', frequencia: 5, divisao: [
+      [{ slotId: 'face1', nome: 'Facepull' }, { slotId: 'sup', nome: 'Supino Reto Barra' }, { slotId: 'rem', nome: 'Remada Curvada Barra' }], [], [], [],
+      [{ slotId: 'face5', nome: 'Facepull' }, { slotId: 'perna', nome: 'Agachamento Livre' }],
+    ], trocas: { '1-1-2': { slotId: 'troca', nome: 'Supino Inclinado Halteres' } }, metodos: [
+      { ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Biset' as const, escopo: 'Todas as séries' as const, grupo: 1 },
+      { ativo: true, semana: 1, treino: 1, exercicio: 2, metodo: 'Biset' as const, escopo: 'Todas as séries' as const, grupo: 1 },
+      { ativo: true, semana: 1, treino: 1, exercicio: 3, metodo: 'Dropset' as const, escopo: 'Todas as séries' as const },
+    ], sessoes: { '1-1': { semana: 1, treino: 1, exercicios: [{ slotId: 'face1', nome: 'Facepull', origemSlotId: 'face1' }], metodos: [] } } }
+  }
+  const montar = () => {
+    const fs = banco()
+    const meso = exemplo()
+    const d = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(meso), sessoes: meso.sessoes } }
+    fs.doc.mockImplementation(async (p) => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno', nome: 'Ana' } } : p === 'mesos/ciclo' ? d : null)
+    return { fs, meso }
+  }
+  it('remove nos treinos certos, remapeia métodos e trocas e conserva a progressão de sessões presenciais', async () => {
+    const { fs, meso } = montar()
+    const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', removerSlotIds: ['face1', 'face5'] }, agora)
+    expect(p.remocoes).toEqual([{ slotId: 'face1', nome: 'Facepull', treino: 1, posicao: 1 }, { slotId: 'face5', nome: 'Facepull', treino: 5, posicao: 1 }])
+    expect(p.resumo).toContain('Facepull (treino 1); Facepull (treino 5)')
+    expect(p.avisos).toHaveLength(3)
+    expect(p.dados.divisao).toMatchObject({ t1: [{ slotId: 'sup' }, { slotId: 'rem' }], t5: [{ slotId: 'perna' }] })
+    expect(p.dados.metodos).toEqual([expect.objectContaining({ metodo: 'Dropset', exercicio: 2 })])
+    expect(p.dados.trocas).toHaveProperty('1-1-1.slotId', 'troca')
+    expect(p.dados.progressaoExercicio).toHaveProperty('face1.w1')
+    expect(p.dados.progressaoExercicio).toHaveProperty('face5.w1')
+    expect(p.antes?.sessoes).toEqual(meso.sessoes)
+    expect(p.previaDados?.sessoes).toEqual(meso.sessoes)
+    expect(p.dados).not.toHaveProperty('sessoes')
+    expect(p.dados).not.toHaveProperty('alunoId')
+    await salvarPrescricao(fs as unknown as Firestore, p, 'op-remover', agora)
+    expect(fs.gravarMeso.mock.calls[0][2]).toBe(documento.updateTime)
+  })
+  it('recusa IDs repetidos, antigos ou combinados com outro mesociclo', async () => {
+    const { fs, meso } = montar()
+    const entrada = { acao: 'editar' as const, alunoId: 'aluno', mesoId: 'ciclo' }
+    expect(entradaPrescricaoSchema.safeParse({ ...entrada, removerSlotIds: ['face1', 'face1'] }).success).toBe(false)
+    expect(entradaPrescricaoSchema.safeParse({ ...entrada, removerSlotIds: ['face1'], meso }).success).toBe(false)
+    expect(entradaPrescricaoSchema.safeParse({ acao: 'criar', alunoId: 'aluno', removerSlotIds: ['face1'] }).success).toBe(false)
+    await expect(prepararPrescricao(fs as unknown as Firestore, { ...entrada, removerSlotIds: ['antigo'] }, agora)).rejects.toThrow('não encontrado')
+  })
+})

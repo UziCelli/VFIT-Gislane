@@ -136,6 +136,7 @@ export async function verMesos(fs: Firestore, alunoId: string, mesoId?: string, 
       semanas: meso.semanas,
       frequencia: meso.frequencia,
       dias: meso.dias ?? null,
+      divisaoPlanejada: meso.divisao.map((exercicios, t) => ({ treino: t + 1, exercicios: exercicios.map((slot, i) => ({ pos: i + 1, slotId: slot.slotId, nome: slot.nome })) })),
       treinosConcluidos: regs.filter((r) => r.realizado).map((r) => `${r.semana}-${r.treino}`),
       treinos,
     }

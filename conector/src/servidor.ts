@@ -23,7 +23,7 @@ export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: En
     'ver_mesos',
     {
       annotations,
-      description: 'Mesos do aluno (atual, próximo e anteriores): treinos, exercícios, séries e reps prescritas por semana e as cargas × reps que o aluno registrou.',
+      description: 'Mesos do aluno (atual, próximo e anteriores): treinos, exercícios, séries e reps prescritas por semana e as cargas × reps que o aluno registrou. Para remover exercícios, use os slotId da divisaoPlanejada, não os exercícios de sessões ajustadas.',
       inputSchema: z.object({ alunoId, mesoId: z.string().optional().describe('só este meso (opcional)') }),
     },
     ({ alunoId, mesoId }) => rodar((fs) => verMesos(fs, alunoId, mesoId)),
@@ -32,7 +32,7 @@ export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: En
   if (propostas) {
     s.registerTool('preparar_treino', {
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-      description: 'Prepara uma proposta de treino. Nenhum mesociclo é salvo até o coach revisar e confirmar no app.',
+      description: 'Prepara uma proposta de treino. Para remover exercícios da divisão, use acao editar com mesoId e removerSlotIds obtidos em ver_mesos.divisaoPlanejada; omita meso. Registros e sessões são preservados. Nenhum mesociclo é salvo até o coach revisar e confirmar no app.',
       inputSchema: entradaPrescricaoSchema,
     }, (entrada) => propostas.preparar(entrada))
     s.registerTool('consultar_proposta', {

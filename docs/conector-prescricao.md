@@ -2,9 +2,9 @@
 
 ## Situação
 
-Esta entrega está em desenvolvimento e **ainda não foi publicada**. O conector existente oferece leitura. Esta extensão permitirá que um assistente prepare uma proposta de mesociclo e que o coach a revise e aprove no app.
+O conector oferece leitura e permite que um assistente prepare uma proposta de mesociclo para o coach revisar e aprovar no app. A remoção de exercícios descrita abaixo está em desenvolvimento e aguarda publicação.
 
-## Como usar quando estiver disponível
+## Como usar
 
 1. No app VFIT, entre como coach e conclua a verificação em duas etapas.
 2. No assistente MCP já conectado, solicite uma proposta para um aluno. O assistente prepara a prescrição; isso, por si só, não grava o treino.
@@ -24,5 +24,6 @@ O pedido de consentimento novo exige que o app envie a versão 2 depois de mostr
 - A IA prepara uma sugestão; o coach continua responsável por revisar e aprovar o treino.
 - A autorização de escrita depende de coach autenticado com segundo fator (MFA) e da nova concessão OAuth.
 - A integração não substitui o fluxo de registro do aluno nem edita cargas ou repetições já anotadas. Os registros existentes devem ser preservados.
+- A remoção de exercícios da divisão pode ser proposta pelos IDs obtidos em `ver_mesos` (`divisaoPlanejada`). A confirmação mostra os exercícios e os treinos afetados. As cargas continuam guardadas; os exercícios removidos deixam de aparecer no plano e sessões presenciais já ajustadas permanecem como estavam. Outras alterações estruturais em mesociclos existentes continuam restritas.
 - O uso e envio de dados ao fornecedor do assistente precisam estar descritos na Política de Privacidade e aceitos antes de ativar a escrita.
-- Enquanto a entrega não for publicada e validada, a escrita não está disponível em produção; use o conector apenas para leitura.
+- A remoção de exercícios pelo assistente ficará disponível após a publicação dessa extensão.

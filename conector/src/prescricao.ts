@@ -8,6 +8,7 @@ import { proximoMesoId } from '../../src/lib/proximoMesoId'
 import { somarDias } from '../../src/lib/avaliacao'
 import { dataSP, mesoAtual, proximoMeso } from '../../src/features/aluno/mesoAtual'
 import { mesoPadrao } from '../../src/features/coach/meso/mesoPadrao'
+import { removerExercicio } from '../../src/features/coach/meso/util'
 import { ErroConector, ErroPrescricaoRecusada, type Firestore } from './firestore'
 
 const id = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/)
@@ -47,9 +48,9 @@ const mesoSchema = z.object({ frequencia: inteiro(1, 7), semanas: inteiro(1, 12)
   for (const k of Object.keys(m.trocas ?? {})) { const [s,t,p] = k.split('-').map(Number); if (s < 1 || s > m.semanas || t < 1 || t > m.frequencia || p < 1 || p > (m.divisao[t-1]?.length ?? 0)) erro('Troca fora do mesociclo.') }
   for (const k of Object.keys(m.adicoes ?? {})) { const [s,t] = k.split('-').map(Number); if (s < 1 || s > m.semanas || t < 1 || t > m.frequencia || (m.divisao[t-1]?.length ?? 0) + (m.adicoes?.[k]?.length ?? 0) > 10) erro('Adição fora do mesociclo.') }
 })
-export const entradaPrescricaoSchema = z.object({ acao: z.enum(['criar', 'proximo', 'editar']), alunoId: id, mesoId: id.optional(), nome: nome.optional(), meso: mesoSchema.optional() }).strict().superRefine((v, c) => { if (v.acao === 'editar' && !v.mesoId) c.addIssue({ code: 'custom', message: 'Informe mesoId para editar.' }); if (v.acao !== 'editar' && v.mesoId) c.addIssue({ code: 'custom', message: 'mesoId só pode ser usado para editar.' }); if (v.meso && v.acao !== 'editar') { const nomes = new Set(catalogo.flatMap((g) => g.exercicios.map((e) => e.nome))); const slots = [...v.meso.divisao.flat(), ...Object.values(v.meso.trocas ?? {}), ...Object.values(v.meso.adicoes ?? {}).flat()]; if (slots.some((s) => !nomes.has(s.nome))) c.addIssue({ code: 'custom', message: 'Use exercícios do catálogo.' }) } })
+export const entradaPrescricaoSchema = z.object({ acao: z.enum(['criar', 'proximo', 'editar']), alunoId: id, mesoId: id.optional(), nome: nome.optional(), meso: mesoSchema.optional(), removerSlotIds: z.array(id).min(1).max(70).optional().describe('Somente para acao editar com mesoId: use os slotId de ver_mesos.divisaoPlanejada e omita meso. Remove da divisão preservando registros e sessões.') }).strict().superRefine((v, c) => { if (v.removerSlotIds && (v.acao !== 'editar' || !v.mesoId || v.meso || new Set(v.removerSlotIds).size !== v.removerSlotIds.length)) c.addIssue({ code: 'custom', message: 'Para remover exercícios informe IDs distintos, em edição, sem enviar outro mesociclo.' }); if (v.acao === 'editar' && !v.mesoId) c.addIssue({ code: 'custom', message: 'Informe mesoId para editar.' }); if (v.acao !== 'editar' && v.mesoId) c.addIssue({ code: 'custom', message: 'mesoId só pode ser usado para editar.' }); if (v.meso && v.acao !== 'editar') { const nomes = new Set(catalogo.flatMap((g) => g.exercicios.map((e) => e.nome))); const slots = [...v.meso.divisao.flat(), ...Object.values(v.meso.trocas ?? {}), ...Object.values(v.meso.adicoes ?? {}).flat()]; if (slots.some((s) => !nomes.has(s.nome))) c.addIssue({ code: 'custom', message: 'Use exercícios do catálogo.' }) } })
 export type EntradaPrescricao = z.infer<typeof entradaPrescricaoSchema>
-export type PropostaPrescricao = { acao: EntradaPrescricao['acao']; alunoId: string; alunoNome: string; mesoId?: string; nome: string; resumo: string; dados: Record<string, unknown>; antes?: Record<string, unknown>; previaDados?: Record<string, unknown>; esperado?: string; origem?: { id: string; updateTime: string }; criadaEm: number }
+export type PropostaPrescricao = { acao: EntradaPrescricao['acao']; alunoId: string; alunoNome: string; mesoId?: string; nome: string; resumo: string; dados: Record<string, unknown>; antes?: Record<string, unknown>; previaDados?: Record<string, unknown>; remocoes?: { slotId: string; nome: string; treino: number; posicao: number }[]; avisos?: string[]; esperado?: string; origem?: { id: string; updateTime: string }; criadaEm: number }
 
 export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescricao, agoraMs: number): Promise<PropostaPrescricao> {
   const e = entradaPrescricaoSchema.parse(entrada)
@@ -74,7 +75,20 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
     const depois = somarDias(fimISO(atual.meso), 1)
     base = { ...atual.meso, inicio: depois > hoje ? depois : hoje }; titulo = `Mesociclo ${docs.length + 1}`
   } else { base = { ...mesoPadrao(), inicio: hoje }; titulo = `Mesociclo ${docs.length + 1}` }
-  const escolhido: Meso = e.acao === 'proximo' ? { ...(e.meso ?? base), inicio: base.inicio } : e.meso ?? base
+  let escolhido: Meso = e.acao === 'proximo' ? { ...(e.meso ?? base), inicio: base.inicio } : e.meso ?? base
+  const remocoes: NonNullable<PropostaPrescricao['remocoes']> = []
+  if (e.removerSlotIds) {
+    for (const slotId of e.removerSlotIds) {
+      const treino = base.divisao.findIndex((slots) => slots.some((s) => s.slotId === slotId))
+      const posicao = treino < 0 ? -1 : base.divisao[treino].findIndex((s) => s.slotId === slotId)
+      if (treino < 0 || posicao < 0) throw new ErroConector('Exercício não encontrado na divisão atual. Consulte o mesociclo novamente.')
+      remocoes.push({ slotId, nome: base.divisao[treino][posicao].nome, treino: treino + 1, posicao: posicao + 1 })
+    }
+    for (const { slotId, treino } of remocoes) {
+      const posicao = escolhido.divisao[treino - 1].findIndex((s) => s.slotId === slotId)
+      escolhido = { ...escolhido, ...removerExercicio(escolhido, treino, posicao + 1) }
+    }
+  }
   if (e.meso && e.acao !== 'editar') {
     const grupos = new Map<string, typeof e.meso.metodos>()
     for (const m of e.meso.metodos) {
@@ -87,8 +101,8 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
     }
     for (const membros of grupos.values()) if (new Set(membros.map((m) => m.exercicio)).size !== membros.length || !totalCerto(membros[0].metodo, membros.length)) throw new ErroConector('O grupo do método está incompleto ou repetido.')
   }
-  if (e.acao === 'editar' && (escolhido.frequencia !== base.frequencia || escolhido.semanas !== base.semanas || escolhido.inicio !== base.inicio || JSON.stringify(escolhido.divisao) !== JSON.stringify(base.divisao) || JSON.stringify(escolhido.trocas ?? {}) !== JSON.stringify(base.trocas ?? {}) || JSON.stringify(escolhido.adicoes ?? {}) !== JSON.stringify(base.adicoes ?? {}))) throw new ErroConector('Para proteger o histórico, altere divisão, datas e duração pelo app.')
-  if (e.acao === 'editar') {
+  if (e.acao === 'editar' && !e.removerSlotIds && (escolhido.frequencia !== base.frequencia || escolhido.semanas !== base.semanas || escolhido.inicio !== base.inicio || JSON.stringify(escolhido.divisao) !== JSON.stringify(base.divisao) || JSON.stringify(escolhido.trocas ?? {}) !== JSON.stringify(base.trocas ?? {}) || JSON.stringify(escolhido.adicoes ?? {}) !== JSON.stringify(base.adicoes ?? {}))) throw new ErroConector('Para proteger o histórico, altere divisão, datas e duração pelo app.')
+  if (e.acao === 'editar' && !e.removerSlotIds) {
     // Repetições podem mudar, mas não a quantidade de séries ou métodos: ambos podem ocultar cargas já lançadas.
     const mascara = (v: unknown): unknown => Array.isArray(v) ? v.map(mascara) : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a.localeCompare(b)).map(([k, x]) => [k, mascara(x)])) : v == null ? null : true
     if (JSON.stringify(mascara(escolhido.progressao)) !== JSON.stringify(mascara(base.progressao)) || JSON.stringify(mascara(escolhido.progressaoExercicio ?? {})) !== JSON.stringify(mascara(base.progressaoExercicio ?? {})) || JSON.stringify(escolhido.metodos) !== JSON.stringify(base.metodos)) throw new ErroConector('Para proteger as cargas, não altere séries ou métodos pelo assistente.')
@@ -97,7 +111,7 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   const { sessoes: _sessoes, ...semSessoes } = escolhido
   const validado = mesoSchema.parse(semSessoes)
   const n = e.nome ?? titulo
-  return { acao: e.acao, alunoId: e.alunoId, alunoNome: typeof aluno.dados.nome === 'string' ? aluno.dados.nome : 'Aluno', mesoId: e.mesoId, nome: n, resumo: `${n}: ${validado.frequencia} treinos por semana, ${validado.semanas} semanas, início ${validado.inicio}.`, dados: { nome: n, ...mesoParaDoc(validado) }, ...(e.acao === 'editar' ? { antes: { nome: titulo, ...mesoParaDoc(base), ...(sessoes ? { sessoes } : {}) }, previaDados: { nome: n, ...mesoParaDoc(validado), ...(sessoes ? { sessoes } : {}) } } : {}), esperado, origem, criadaEm: agoraMs }
+  return { acao: e.acao, alunoId: e.alunoId, alunoNome: typeof aluno.dados.nome === 'string' ? aluno.dados.nome : 'Aluno', mesoId: e.mesoId, nome: n, resumo: `${n}: ${validado.frequencia} treinos por semana, ${validado.semanas} semanas, início ${validado.inicio}.${remocoes.length ? ` Remover: ${remocoes.map((r) => `${r.nome} (treino ${r.treino})`).join('; ')}.` : ''}`, dados: { nome: n, ...mesoParaDoc(validado) }, ...(e.acao === 'editar' ? { antes: { nome: titulo, ...mesoParaDoc(base), ...(sessoes ? { sessoes } : {}) }, previaDados: { nome: n, ...mesoParaDoc(validado), ...(sessoes ? { sessoes } : {}) } } : {}), ...(remocoes.length ? { remocoes, avisos: ['As cargas registradas continuam guardadas.', 'Os exercícios removidos deixam de aparecer no treino planejado.', 'As sessões presenciais já ajustadas permanecem como estão.'] } : {}), esperado, origem, criadaEm: agoraMs }
 }
 
 export async function salvarPrescricao(fs: Firestore, proposta: PropostaPrescricao, idOperacao: string, _agoraMs: number): Promise<{ mesoId: string }> {

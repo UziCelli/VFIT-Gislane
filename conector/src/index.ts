@@ -1,13 +1,11 @@
 import { OAuthProvider, AuthorizationError, authorizationErrorRedirect, type AuthRequest, type OAuthHelpers } from '@cloudflare/workers-oauth-provider'
-import { McpServer } from '@modelcontextprotocol/server'
 import { createMcpHandler, getMcpAuthContext } from 'agents/mcp/server'
 import { env as ambiente } from 'cloudflare:workers'
-import { z } from 'zod'
 import { lerCorpoJson } from '../../push/src/corpo'
 import { cors } from '../../push/src/cors'
 import { chaveDoGoogle } from '../../push/src/jwt'
 import { executar } from './execucao'
-import { catalogoExercicios, listarAlunos, verAluno, verMesos } from './ferramentas'
+import { criarServidor } from './servidor'
 import { apagarPedido, concluirLogin, criarPedido, lerPedido, type KV } from './login'
 import { PedidoOAuth } from './pedido'
 export { PedidoOAuth } from './pedido'
@@ -31,27 +29,7 @@ const json = (v: unknown, status: number, origem: string | null) =>
 const rodar = (leitura: Parameters<typeof executar>[1]) =>
   executar({ refreshToken: getMcpAuthContext()?.props.refreshToken, apiKey: E.FIREBASE_API_KEY, projeto: E.PROJETO }, leitura)
 
-function criarServidor() {
-  const s = new McpServer({ name: 'vfit-conector', version: '1.0.0' })
-  const alunoId = z.string().describe('id do aluno (vem de listar_alunos)')
-  s.registerTool('listar_alunos', { description: 'Lista os alunos: nome, status, pago até, meso atual (semana e fim) e se já tem próximo meso.' }, () => rodar((fs) => listarAlunos(fs)))
-  s.registerTool(
-    'ver_aluno',
-    { description: 'Perfil do aluno, anamnese mais recente (com sinais de atenção), última avaliação física, notas por exercício, relatos de dor e check-ins de recuperação.', inputSchema: z.object({ alunoId }) },
-    ({ alunoId }) => rodar((fs) => verAluno(fs, alunoId)),
-  )
-  s.registerTool(
-    'ver_mesos',
-    {
-      description: 'Mesos do aluno (atual, próximo e anteriores): treinos, exercícios, séries e reps prescritas por semana e as cargas × reps que o aluno registrou.',
-      inputSchema: z.object({ alunoId, mesoId: z.string().optional().describe('só este meso (opcional)') }),
-    },
-    ({ alunoId, mesoId }) => rodar((fs) => verMesos(fs, alunoId, mesoId)),
-  )
-  s.registerTool('catalogo_exercicios', { description: 'Nomes dos exercícios do catálogo (use exatamente estes) e os métodos disponíveis.' }, () => rodar(async () => catalogoExercicios()))
-  return s
-}
-const mcp = createMcpHandler(criarServidor)
+const mcp = createMcpHandler(() => criarServidor(rodar))
 
 // Cada pedido usa uma instância própria do Durable Object deste Worker.
 // KV continua exclusivo para concessões OAuth; não garante consumo único de pedidos.

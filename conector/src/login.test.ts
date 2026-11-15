@@ -124,3 +124,33 @@ describe('falhas na conferência', () => {
     expect(await concluirLogin(t.d, c)).toEqual({ status: 503, erro: 'Não consegui renovar seu login no Firebase. Tente de novo.' })
   })
 })
+
+
+describe('diagnóstico seguro do login', () => {
+  it('distingue recusa do perfil, renovação recusada e token renovado inválido', async () => {
+    const t = montar('coach', jwt({}, false))
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+    const c = await corpo(id)
+    const original = t.d.buscar
+    for (const status of [401, 403]) {
+      t.d.buscar = (async () => resposta({ segredo: 'privado' }, status)) as typeof fetch
+      expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O app recusou a consulta ao seu perfil. Verifique as permissões do Firestore e tente de novo.' })
+    }
+    t.d.buscar = (async (url: string, init?: RequestInit) => String(url).includes('securetoken')
+      ? resposta({ error: { message: 'INVALID_REFRESH_TOKEN', detalhe: 'privado' } }, 400) : original(url, init)) as typeof fetch
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O Firebase recusou a renovação do login. Saia do app e entre novamente para conectar.' })
+    t.d.buscar = original
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O login renovado não passou na verificação de segurança. Saia do app e entre novamente com o código de 6 dígitos.' })
+    expect(t.kv.m.size).toBe(1)
+  })
+  it('respostas desconhecidas ou malformadas do Firebase são falhas de serviço, sem expor detalhes', async () => {
+    const t = montar('coach', jwt())
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+    const c = await corpo(id)
+    const original = t.d.buscar
+    for (const respostaFirebase of [resposta({ error: { message: 'segredo privado' } }, 400), resposta({ error: { message: 'INVALID_REFRESH_TOKEN' } }, 503), new Response('segredo privado', { status: 200 })]) {
+      t.d.buscar = (async (url: string, init?: RequestInit) => String(url).includes('securetoken') ? respostaFirebase : original(url, init)) as typeof fetch
+      expect(await concluirLogin(t.d, c)).toEqual({ status: 503, erro: 'Não consegui renovar seu login no Firebase. Tente de novo.' })
+    }
+  })
+})

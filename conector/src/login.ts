@@ -2,7 +2,7 @@
 // Sem Cloudflare aqui: o KV e o OAuth chegam por parâmetro, então tudo roda no Vitest.
 import { b64u } from '../../push/src/b64'
 import { verificarIdToken } from '../../push/src/jwt'
-import { ErroConector, Firestore, RECONECTAR, trocarToken, type Buscar } from './firestore'
+import { ErroConector, ErroRenovacaoRecusada, Firestore, RECONECTAR, trocarToken, type Buscar } from './firestore'
 
 export const VALIDADE_PEDIDO_MS = 10 * 60_000
 const CHAVE = 'conector:pedido:'
@@ -60,7 +60,7 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   const refreshToken = texto(c.refreshToken, 2048)
   if (!idToken || !refreshToken) return nega(400, 'Pedido incompleto.')
   const pedido = await lerPedido(d.kv, c.pedido, d.agora)
-  if (!pedido) return nega(400, 'Este pedido venceu ou já foi usado. Volte ao claude.ai e conecte de novo.')
+  if (!pedido) return nega(400, 'Este pedido venceu ou já foi usado. Volte ao assistente e conecte de novo.')
   const agoraS = Math.floor(d.agora / 1000)
   const quem = await verificarIdToken(idToken, d.obterChave, agoraS, true)
   if (!quem || quem.projeto !== d.projeto) return nega(403, 'Entre com e-mail, senha e o código de 6 dígitos para conectar.')
@@ -69,16 +69,16 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
     if (perfil?.dados.papel !== 'coach') return nega(403, 'Só o coach pode conectar o assistente.')
   } catch (e) {
     return e instanceof ErroConector && e.message === RECONECTAR
-      ? nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
+      ? nega(403, 'O app recusou a consulta ao seu perfil. Verifique as permissões do Firestore e tente de novo.')
       : nega(503, 'Não consegui consultar seu perfil no app. Tente de novo.')
   }
   try {
     // A renovação precisa manter o 2º fator, o projeto e a mesma pessoa.
     const novo = await verificarIdToken(await trocarToken(refreshToken, d.apiKey, d.buscar), d.obterChave, agoraS, true)
-    if (novo?.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
+    if (novo?.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'O login renovado não passou na verificação de segurança. Saia do app e entre novamente com o código de 6 dígitos.')
   } catch (e) {
-    return e instanceof ErroConector && e.message === RECONECTAR
-      ? nega(403, 'Entre de novo com o código de 6 dígitos para conectar.')
+    return e instanceof ErroRenovacaoRecusada
+      ? nega(403, 'O Firebase recusou a renovação do login. Saia do app e entre novamente para conectar.')
       : nega(503, 'Não consegui renovar seu login no Firebase. Tente de novo.')
   }
   // O armazenamento deve consumir de forma atômica, inclusive entre requisições simultâneas.

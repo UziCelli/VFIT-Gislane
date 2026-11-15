@@ -12,6 +12,9 @@ test('política abre sem login', async ({ page }) => {
   await page.goto('/privacidade')
   await expect(page.getByRole('heading', { name: 'Política de Privacidade' })).toBeVisible()
   await expect(page.getByText(`CREF ${marca.responsavel.cref}`)).toBeVisible()
+  await expect(page.getByText('Versão vigente: 15/11/2026', { exact: false })).toBeVisible()
+  await expect(page.getByText('Assistentes externos:', { exact: false })).toContainText('Claude (Anthropic) ou ChatGPT (OpenAI)')
+  await expect(page.getByText('Assistentes externos:', { exact: false })).toContainText('No momento, essa conexão permite apenas consulta')
 })
 
 test('cadastro: botão só habilita com a caixa marcada', async ({ page }) => {
@@ -70,7 +73,7 @@ test('termos atualizados: quem já conferiu a senha só vê o pop-up, mesmo sem 
   await expect(page.getByText('Olá, Gil')).toBeVisible()
   // Sessão aberta, aparelho sem o resultado do login (como quem entrou antes desta versão) e termos novos.
   await page.evaluate(() => localStorage.removeItem('forca-senha'))
-  await versao(uid, '2026-11-09')
+  await versao(uid, '2026-11-14')
   await page.reload()
   await expect(page.getByRole('dialog', { name: 'Atualizamos os termos' })).toBeVisible()
   await expect(page.getByLabel('Senha atual')).toHaveCount(0)

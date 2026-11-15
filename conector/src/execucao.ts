@@ -8,7 +8,7 @@ export async function executar(
   leitura: (fs: Firestore) => Promise<unknown>,
 ): Promise<Resposta> {
   try {
-    if (typeof cfg.refreshToken !== 'string') throw new ErroConector('Conexão incompleta. Desconecte e conecte o Claude de novo.')
+    if (typeof cfg.refreshToken !== 'string') throw new ErroConector('Conexão incompleta. Desconecte e conecte o assistente de novo.')
     const token = await trocarToken(cfg.refreshToken, cfg.apiKey, cfg.buscar)
     const dado = await leitura(new Firestore(cfg.projeto, token, cfg.buscar))
     return { content: [{ type: 'text', text: JSON.stringify(dado) }] }

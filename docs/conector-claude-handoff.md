@@ -49,7 +49,7 @@ Já existe (parcial):
 
 Ferramentas da Entrega 1: `listar_alunos`, `ver_aluno(alunoId)`, `ver_mesos(alunoId)` (resumido por exercício e semana, para não estourar o contexto), `catalogo_exercicios`.
 
-## Regras do repositório (CLAUDE.md)
+## Regras do repositório (AGENTS.md; conferir versão atual)
 - Fluxo: implementar → `typecheck`, `test`, `build` → revisão do diff → PR **em rascunho** → CI → juntar só com o comentário "Revisão cruzada: OK" do outro agente.
 - TDD no motor e nas regras. Textos em pt-BR. `pt-topo` em cabeçalhos no topo.
 - `graphify query` antes de grepar; `graphify update .` depois de mudar código. `graphify-out/cache/last_query_stamp` é sujeira: `git checkout --` nele.

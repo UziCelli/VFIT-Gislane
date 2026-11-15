@@ -5,7 +5,7 @@ Implementado nesta branch: limites de bytes no Worker, no-store, redução CSP, 
 ## P0 — responsável: proprietário/administrador
 
 1. GitHub → Settings → Environments: criar ambiente de produção limitado à main e revisar quem aprova. Migrar credenciais pelo gerenciador de segredos, sem copiá-las no chat; só depois vincular jobs ao ambiente e remover versões de escopo repositório. Aceite: branch de trabalho não recebe credencial mesmo alterando YAML. Coordenar todos os workflows para não interromper manutenção/deploy.
-2. GitHub → Rulesets: proteger main, exigir PR/revisão cruzada e CI, bloquear force push e exclusão, limitar bypass. Aceite: colaborador sem bypass não publica diretamente. Revisão Claude exigida por `CLAUDE.md` antes de juntar esta entrega.
+2. GitHub → Rulesets: proteger main, exigir PR/revisão cruzada e CI, bloquear force push e exclusão, limitar bypass. Aceite: colaborador sem bypass não publica diretamente. Revisão Claude exigida por [AGENTS.md](../../AGENTS.md) antes de juntar esta entrega.
 3. Conferir MFA Google/GitHub/Cloudflare/registrador, recuperação e IAM mínimo, projetos separados quando viável. Aceite: inventário de acessos e teste de recuperação sem dados reais expostos.
 4. Caso apareça segredo real: revogar/rotacionar primeiro, revisar acessos e somente depois tratar histórico. Esta auditoria não comprovou segredo ativo exposto.
 

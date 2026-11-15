@@ -27,7 +27,8 @@ npm run emuladores   # banco de teste local; rode o app com VITE_USE_EMULATOR=1
 npm run build
 ```
 - Especificação das fórmulas: [`docs/logica-planilha.md`](docs/logica-planilha.md)
-- Regras para o Claude Code (agentes, plugins, economia de tokens): [`CLAUDE.md`](CLAUDE.md)
+- Regras comuns dos agentes: [`AGENTS.md`](AGENTS.md). Cada agente lê apenas seu guia exclusivo, indicado ali.
+- Documentação sob demanda: [índice curto](docs/README.md).
 
 ## Manutenção
 - **Trocar e-mail de aluno** (o aluno não troca sozinho): GitHub → **Actions** → **Alterar e-mail de aluno** → **Run workflow** → e-mail atual e e-mail novo. A conta, a senha e o histórico continuam. Coaches trocam o próprio e-mail no app (clique no seu nome → Minha conta).

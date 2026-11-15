@@ -60,3 +60,24 @@ describe('preparação de cópias', () => {
     expect(proximo.dados.divisao).toEqual({ t1: [{ slotId: 'legado', nome: 'Exercício legado próprio' }], t2: [], t3: [] })
   })
 })
+
+describe('métodos em exercícios adicionados', () => {
+  const base = { ...mesoPadrao(), inicio: '2026-11-01', divisao: [[{ slotId: 'um', nome: 'Supino Reto Barra' }, { slotId: 'dois', nome: 'Remada Curvada Barra' }], [], []], adicoes: { '1-1': [{ slotId: 'tres', nome: 'Exercício legado próprio' }] }, metodos: [{ ativo: true, semana: 1, treino: 1, exercicio: 3, metodo: 'Dropset' as const, escopo: 'Todas as séries' as const }] }
+  const valida = (meso: typeof base) => entradaPrescricaoSchema.safeParse({ acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', meso })
+  it('aceita método em adição da sessão e recusa posição ou semana sem adição', () => {
+    expect(valida(base).success).toBe(true)
+    const grupo = [{ ...base.metodos[0], metodo: 'Biset' as const, grupo: 1 }, { ...base.metodos[0], metodo: 'Biset' as const, grupo: 1, exercicio: 2 }]
+    expect(entradaPrescricaoSchema.safeParse({ acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', meso: { ...base, metodos: grupo } }).success).toBe(true)
+    expect(valida({ ...base, metodos: [{ ...base.metodos[0], exercicio: 4 }] }).success).toBe(false)
+    expect(valida({ ...base, metodos: [{ ...base.metodos[0], semana: 2 }] }).success).toBe(false)
+    expect(valida({ ...base, adicoes: { '1-1': [{ slotId: 'um', nome: 'Supino Reto Barra' }] } }).success).toBe(false)
+  })
+  it('permite copiar ou renomear prescrição existente com método na adição', async () => {
+    const fs = banco()
+    const existente = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(base) } }
+    fs.consulta.mockResolvedValue([existente])
+    fs.doc.mockImplementation(async (p) => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? existente : null)
+    expect((await prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno' }, agora)).dados.metodos).toEqual(base.metodos)
+    expect((await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', nome: 'Renomeado' }, agora)).nome).toBe('Renomeado')
+  })
+})

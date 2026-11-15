@@ -38,11 +38,12 @@ const mesoSchema = z.object({ frequencia: inteiro(1, 7), semanas: inteiro(1, 12)
   m.divisao.forEach((treino, t) => treino.forEach((s, p) => vincular(s.slotId, `t${t + 1}p${p + 1}`)))
   for (const [chave, s] of Object.entries(m.trocas ?? {})) { const [, t, p] = chave.split('-'); vincular(s.slotId, `t${t}p${p}`) }
   for (const [chave, lista] of Object.entries(m.adicoes ?? {})) { const [, t] = chave.split('-'); lista.forEach((s, p) => vincular(s.slotId, `a${t}p${p + 1}`)) }
+  const slotsEfetivos = (w: number, t: number) => [...(m.divisao[t - 1] ?? []).map((s, p) => m.trocas?.[`${w}-${t}-${p + 1}`] ?? s), ...(m.adicoes?.[`${w}-${t}`] ?? [])]
   for (let w = 1; w <= m.semanas; w++) for (let t = 1; t <= m.frequencia; t++) {
-    const efetivos = [...(m.divisao[t - 1] ?? []).map((s, p) => m.trocas?.[`${w}-${t}-${p + 1}`] ?? s), ...(m.adicoes?.[`${w}-${t}`] ?? [])].map((s) => s.slotId)
+    const efetivos = slotsEfetivos(w, t).map((s) => s.slotId)
     if (new Set(efetivos).size !== efetivos.length) erro('Exercícios da mesma sessão não podem compartilhar slotId.')
   }
-  if (m.metodos.some((x) => x.semana > m.semanas || x.treino > m.frequencia || x.exercicio > (m.divisao[x.treino - 1]?.length ?? 0))) erro('Método fora do mesociclo.')
+  if (m.metodos.some((x) => x.semana > m.semanas || x.treino > m.frequencia || x.exercicio > slotsEfetivos(x.semana, x.treino).length)) erro('Método fora do mesociclo.')
   for (const k of Object.keys(m.trocas ?? {})) { const [s,t,p] = k.split('-').map(Number); if (s < 1 || s > m.semanas || t < 1 || t > m.frequencia || p < 1 || p > (m.divisao[t-1]?.length ?? 0)) erro('Troca fora do mesociclo.') }
   for (const k of Object.keys(m.adicoes ?? {})) { const [s,t] = k.split('-').map(Number); if (s < 1 || s > m.semanas || t < 1 || t > m.frequencia || (m.divisao[t-1]?.length ?? 0) + (m.adicoes?.[k]?.length ?? 0) > 10) erro('Adição fora do mesociclo.') }
 })

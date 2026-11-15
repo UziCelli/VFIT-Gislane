@@ -1,6 +1,6 @@
 # Mapa do Código — Força
 
-Comece por aqui para achar onde mexer.
+Consulta detalhada, não leitura inicial. Para localizar código, prefira busca ou Graphify existente; confirme no código atual. Antes de alterar uma área, busque seu tema em “Pontos sensíveis” e leia apenas as linhas pertinentes. Guias ativos: [índice](README.md).
 
 ## Onde mexer para…
 

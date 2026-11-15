@@ -115,7 +115,7 @@ return {
   ],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}', 'push/src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}', 'push/src/**/*.test.ts', 'conector/src/**/*.test.ts'],
   },
 };
 });

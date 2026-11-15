@@ -34,7 +34,7 @@ export default function Politica() {
         <Logo className="h-10 text-white" />
         Política de Privacidade
       </h1>
-      <p className="text-center text-xs text-slate-500">Versão vigente: 12/11/2026 (orientações Físio e sinais de alerta)</p>
+      <p className="text-center text-xs text-slate-500">Versão vigente: 14/11/2026 (assistente Claude do coach)</p>
       <Secao n={1} titulo="Quem cuida dos seus dados">
         <p>
           {marca.responsavel.nome}, personal trainer (CREF {marca.responsavel.cref}), é {marca.responsavel.papel} pelos dados do app {marca.nome}. Contato:{' '}
@@ -74,14 +74,17 @@ export default function Politica() {
         </p>
         <p>
           Anamnese: você responde no app, pelo celular, no começo e a cada ciclo de treino, e pode ver e atualizar quando quiser (aba Conta). Só você e o seu coach
-          veem. Não enviamos suas respostas para inteligência artificial nem para terceiros, e elas saem junto no "apagar de vez". Se você tem menos de 18 anos, um
+          veem. O app não envia suas respostas para inteligência artificial nem para terceiros (veja o assistente Claude abaixo), e elas saem junto no "apagar de vez". Se você tem menos de 18 anos, um
           responsável legal precisa autorizar ao responder. Um "sim" em perguntas de saúde mostra um aviso para procurar um médico. Um "sim" em coração ou pressão, dor no peito, tontura ou desmaio, ou supervisão médica pausa o seu treino até o seu coach conversar com você e liberar.
+        </p>
+        <p>
+          Assistente Claude: o coach pode usar o assistente Claude (Anthropic) para analisar seu treino e anamnese e montar seu treino. Para isso, os dados que ele pedir ao assistente são enviados à Anthropic. O treino montado é sempre um rascunho que o coach revisa antes de você ver.
         </p>
         <p>
           Físio: só você e o seu coach veem as suas orientações. O coach registra uma liberação profissional existente quando exigida; o app não diagnostica nem emite liberação clínica. O mesmo vale para o check-in de recuperação do fim do treino (sono, estresse, cansaço e alimentação, em notas de 1 a 5).
           Ao relatar um sinal de alerta, você recebe a orientação de parar e procurar médico ou fisioterapeuta, e o relato aparece para o coach no app.
           O aviso ao coach depende da sincronização com a internet e não é um serviço de emergência. A cópia já carregada pode ficar no aparelho para consulta offline.
-          Esses dados não são enviados para inteligência artificial e são apagados junto com a conta.
+          O app não envia esses dados para inteligência artificial (veja o assistente Claude abaixo) e eles são apagados junto com a conta.
         </p>
         <p>Não pedimos CPF, data de nascimento (só a idade, na avaliação física), endereço nem cartão.</p>
       </Secao>

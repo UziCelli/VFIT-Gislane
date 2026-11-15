@@ -404,6 +404,8 @@ O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `s
 
 **Conector MCP:** a chave web do Firebase aceita apenas origens autorizadas; a renovação feita pelo Worker deve enviar `Referer: https://app.vfitcoachapp.com/`. Sem isso o Google bloqueia a chamada. Testes em `conector/src/ferramentas.test.ts`. A chamada `fetch` do Firestore deve ser feita sem vincular o objeto como `this`: o Cloudflare rejeita essa vinculação; `conector/src/firestore.test.ts` cobre a falha.
 
+**Conector e App Check:** o Firestore está com App Check "Aplicado" e o Worker não tem navegador. `conector/src/appcheck.ts` troca o debug token (segredo `APPCHECK_DEBUG_TOKEN` do Worker) por um token de App Check e o `Firestore` manda `X-Firebase-AppCheck`; `FIREBASE_APP_ID` vem do workflow. Sem o segredo, o Firestore devolve 403: o login do coach falha ("O app recusou a consulta ao seu perfil") e as ferramentas pedem para reconectar. Com o segredo, mas debug token não registrado no Console, quem recusa é a própria troca do token: o login mostra "Não consegui consultar seu perfil no app" (503) e as ferramentas, "Não consegui validar o app no Firebase". Testes em `conector/src/appcheck.test.ts`.
+
 O pedido OAuth precisa de consumo atômico no Durable Object e validação de segundo fator, usuário e projeto; nunca registrar credenciais ou dados dos alunos. A integração completa, o KV e a revogação ainda exigem validação antes de ativar.
 
 Onde já houve falha ou onde errar custa caro. Cada linha diz o que protege e como é testado. Quem corrigir um bug novo acrescenta uma linha aqui.

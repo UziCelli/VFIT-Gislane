@@ -38,7 +38,7 @@ export async function trocarToken(refreshToken: string, apiKey: string, buscar: 
 }
 
 export class Firestore {
-  constructor(private projeto: string, private token: string, private buscar: Buscar = fetch) {}
+  constructor(private projeto: string, private token: string, private buscar: Buscar = fetch, private appCheck?: string) {}
 
   private base = () => `https://firestore.googleapis.com/v1/projects/${this.projeto}/databases/(default)/documents`
 
@@ -49,7 +49,7 @@ export class Firestore {
       const buscar = this.buscar
       r = await buscar(url, {
         method: corpo === undefined ? 'GET' : 'POST',
-        headers: { Authorization: `Bearer ${this.token}`, ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
+        headers: { Authorization: `Bearer ${this.token}`, ...(this.appCheck && { 'X-Firebase-AppCheck': this.appCheck }), ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
         ...(corpo === undefined ? {} : { body: JSON.stringify(corpo) }),
       })
     } catch {

@@ -185,3 +185,8 @@ Plano Spark do Firebase:
 - Logs usam até 20 documentos imutáveis por conta/dia UTC, com identificador validado nas regras. Somente alunos ativos ou coaches autenticados com segundo fator podem gravar. Contas aguardando/bloqueadas não podem. O limite local é conveniência; o servidor valida a cota. Excluir logs do dia libera os slots: limpeza automática deve manter o dia atual. Apps antigos com IDs aleatórios deixarão de registrar erros até atualizar, sem afetar cargas.
 - Pendências de console (App Check, regras publicadas, IAM e MFA) precisam ser conferidas no serviço; documentação não comprova seu estado real.
 - IA: a chave passa a ficar no Worker (Durable Object separado por projeto). O navegador recebe somente metadados; pedidos exigem coach com segundo fator e têm limite persistente de uso. A configuração antiga é transferida no servidor e removida do Firestore somente após salvar com sucesso. É preciso publicar o Worker atualizado junto do app. Aparelhos que já guardaram a chave devem atualizar e sair com limpeza; trocar a chave antiga é recomendado.
+
+## 11. App Check do conector (15/11/2026)
+- **Risco:** o Worker do conector usa um *debug token* de App Check (segredo `APPCHECK_DEBUG_TOKEN` na Cloudflare). Quem o tiver contorna o App Check do Firestore.
+- **Mitigação:** o App Check não é a única barreira. O `idToken` do coach, com 2º fator, continua obrigatório e o `firestore.rules` decide tudo. O token nunca é logado nem aparece em erro.
+- **Rotação:** gerar outro UUID, registrá-lo como debug token no Console do Firebase (App Check), atualizar o segredo `APPCHECK_DEBUG_TOKEN` no GitHub e publicar o conector de novo; depois apagar o antigo no Console.

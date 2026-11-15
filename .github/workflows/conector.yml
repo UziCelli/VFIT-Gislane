@@ -38,12 +38,23 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN }}
         working-directory: conector
         run: |
           # Chave web pública do Firebase (a mesma do app); não é segredo.
           chave=$(grep '^VITE_FIREBASE_API_KEY=' ../.env.production | cut -d= -f2)
           test -n "$chave"
-          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave"
+          # ID público do app web no Firebase (não é segredo).
+          appid=$(grep '^VITE_FIREBASE_APP_ID=' ../.env.production | cut -d= -f2)
+          test -n "$appid"
+          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid"
+          # Debug token do App Check: segredo do Worker. Sem ele o conector fica sem App Check (o Firestore recusa).
+          if [ -n "$APPCHECK_DEBUG_TOKEN" ]; then
+            printf %s "$APPCHECK_DEBUG_TOKEN" | npx --yes --package=wrangler@4.161.0 wrangler secret put APPCHECK_DEBUG_TOKEN
+          else
+            echo "::warning::Segredo APPCHECK_DEBUG_TOKEN vazio: o conector não consegue falar com o Firestore."
+            echo "> Aviso: segredo APPCHECK_DEBUG_TOKEN não configurado no GitHub." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Conferir o Worker no ar
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

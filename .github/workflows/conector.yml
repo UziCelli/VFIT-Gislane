@@ -1,46 +1,64 @@
-name: Diagnóstico temporário do conector
+name: Publicar conector do Claude (Cloudflare)
+
+# Publica o Worker do conector (pasta conector/) na Cloudflare: MCP + login OAuth do claude.ai.
+# Mesmos secrets do push.yml: CLOUDFLARE_API_TOKEN (Edit Cloudflare Workers e acesso ao namespace KV) e CLOUDFLARE_ACCOUNT_ID.
+# O KV OAUTH_KV já foi criado; seu ID consta em conector/wrangler.toml.
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'conector/**'
+      - 'push/src/**'
+      - 'src/**'
+      - '.github/workflows/conector.yml'
   workflow_dispatch:
+
+concurrency:
+  group: conector-worker
+  cancel-in-progress: false
+
 permissions:
   contents: read
+
 jobs:
-  diagnostico:
+  deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Conferir acesso do Worker ao Firebase sem conta real
+          cache: npm
+          cache-dependency-path: conector/package-lock.json
+      - name: Instalar dependências do conector
+        working-directory: conector
+        run: npm ci
+      - name: Publicar o Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        working-directory: conector
         run: |
-          mkdir -p /tmp/vfit-diag
-          cat > /tmp/vfit-diag/wrangler.toml <<'TOML'
-          name = "vfit-diagnostico-local"
-          main = "index.js"
-          compatibility_date = "2026-06-01"
-          TOML
-          cat > /tmp/vfit-diag/index.js <<'JS'
-          export default { async fetch(request, env) {
-            const headers = { 'Content-Type': 'application/x-www-form-urlencoded', Referer: 'https://app.vfitcoachapp.com/' };
-            try {
-              const r = await fetch('https://securetoken.googleapis.com/v1/token?key=' + encodeURIComponent(env.KEY), {
-                method: 'POST', headers, body: new URLSearchParams({grant_type:'refresh_token', refresh_token:'invalid'})
-              });
-              const body = await r.json();
-              const known = ['INVALID_REFRESH_TOKEN', 'API_KEY_HTTP_REFERRER_BLOCKED', 'API_KEY_SERVICE_BLOCKED'];
-              const reason = body.error?.message;
-              return Response.json({ status: r.status, reason: known.includes(reason) ? reason : 'OUTRO' });
-            } catch { return Response.json({ status: 0, reason: 'FALHA_REDE' }); }
-          }}
-          JS
-          chave=$(grep '^VITE_FIREBASE_API_KEY=' .env.production | cut -d= -f2)
-          cd /tmp/vfit-diag
-          npx --yes --package=wrangler@4.161.0 wrangler dev --local --port 8794 --var "KEY:$chave" >/tmp/vfit-diag.log 2>&1 &
-          processo=$!
-          trap 'kill "$processo" 2>/dev/null || true' EXIT
-          for tentativa in $(seq 1 45); do
-            if curl --max-time 2 -sS http://127.0.0.1:8794/ >/tmp/vfit-resposta.json 2>/dev/null; then break; fi
-            sleep 1
-          done
-          test -s /tmp/vfit-resposta.json
-          cat /tmp/vfit-resposta.json
+          # Chave web pública do Firebase (a mesma do app); não é segredo.
+          chave=$(grep '^VITE_FIREBASE_API_KEY=' ../.env.production | cut -d= -f2)
+          test -n "$chave"
+          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave"
+      - name: Conferir o Worker no ar
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          sub=$(curl -fsS -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" | jq -r '.result.subdomain')
+          url="https://vfit-conector.${sub}.workers.dev"
+          echo "URL do conector: $url"
+          {
+            echo "### URL do conector do Claude"
+            echo
+            echo "\`$url\` (no claude.ai: \`$url/mcp\`). Use como \`VITE_CONECTOR_URL\` no app."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Sem token, o MCP responde 401 e o OAuth publica os metadados.
+          test "$(curl -s -A 'Mozilla/5.0 (compatible; VFIT-MCP-Healthcheck/1.0)' -o /dev/null -w '%{http_code}' -X POST "$url/mcp" -H 'Content-Type: application/json' -d '{}')" = 401
+          test "$(curl -s -A 'Mozilla/5.0 (compatible; VFIT-MCP-Healthcheck/1.0)' -o /dev/null -w '%{http_code}' "$url/.well-known/oauth-authorization-server")" = 200
+          test "$(curl -s -A 'Mozilla/5.0 (compatible; VFIT-MCP-Healthcheck/1.0)' -o /dev/null -w '%{http_code}' "$url/.well-known/oauth-protected-resource/mcp")" = 200

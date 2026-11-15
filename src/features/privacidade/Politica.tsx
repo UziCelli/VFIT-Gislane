@@ -34,7 +34,7 @@ export default function Politica() {
         <Logo className="h-10 text-white" />
         Política de Privacidade
       </h1>
-      <p className="text-center text-xs text-slate-500">Versão vigente: 15/11/2026 (assistentes externos do coach)</p>
+      <p className="text-center text-xs text-slate-500">Versão vigente: 15/11/2026b (assistentes externos do coach)</p>
       <Secao n={1} titulo="Quem cuida dos seus dados">
         <p>
           {marca.responsavel.nome}, personal trainer (CREF {marca.responsavel.cref}), é {marca.responsavel.papel} pelos dados do app {marca.nome}. Contato:{' '}
@@ -77,7 +77,7 @@ export default function Politica() {
           responsável legal precisa autorizar ao responder. Um "sim" em perguntas de saúde mostra um aviso para procurar um médico. Um "sim" em coração ou pressão, dor no peito, tontura ou desmaio, ou supervisão médica pausa o seu treino até o seu coach conversar com você e liberar.
         </p>
         <p>
-          Assistentes externos: o coach pode conectar um assistente, como Claude (Anthropic) ou ChatGPT (OpenAI), para consultar dados dos seus alunos, incluindo treinos, anamnese, avaliações, relatos de dor e cargas. Os dados consultados podem ser enviados ao fornecedor do assistente escolhido. No momento, essa conexão permite apenas consulta; ela não cria nem altera treinos ou outros dados no app.
+          Assistentes externos: o coach pode conectar um assistente, como Claude (Anthropic) ou ChatGPT (OpenAI), para consultar dados dos seus alunos, incluindo treinos, anamnese, avaliações, relatos de dor e cargas. Os dados consultados podem ser enviados ao fornecedor do assistente escolhido. {marca.id === 'vfit' ? 'O assistente também pode preparar treinos novos ou alterações; o coach precisa conferir e confirmar cada proposta no app antes de salvá-la.' : 'No momento, essa conexão permite apenas consulta; ela não cria nem altera treinos ou outros dados no app.'}
         </p>
         <p>
           Físio: só você e o seu coach veem as suas orientações. O coach registra uma liberação profissional existente quando exigida; o app não diagnostica nem emite liberação clínica. O mesmo vale para o check-in de recuperação do fim do treino (sono, estresse, cansaço e alimentação, em notas de 1 a 5).

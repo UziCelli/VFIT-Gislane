@@ -24,3 +24,11 @@ class_name = "PedidoOAuth"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["PedidoOAuth"]
+
+[[durable_objects.bindings]]
+name = "PROPOSTAS"
+class_name = "PropostaTreino"
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["PropostaTreino"]

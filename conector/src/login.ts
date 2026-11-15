@@ -16,7 +16,7 @@ export type KV = {
   consume(k: string): Promise<string | null>
 }
 // `req` é o AuthRequest do OAuth (o Worker o devolve ao completar). Nome e host aparecem na tela do app.
-export type Pedido = { req: unknown; criadoEm: number; cliente: string; host: string }
+export type Pedido = { req: unknown; criadoEm: number; cliente: string; host: string; versaoConsentimento?: number }
 
 export async function criarPedido(kv: KV, dados: Omit<Pedido, 'criadoEm'>, agora: number): Promise<string> {
   const id = b64u(crypto.getRandomValues(new Uint8Array(32)))
@@ -49,7 +49,7 @@ export type Deps = {
   buscar: Buscar
   obterChave: (kid: string) => Promise<CryptoKey | null>
   // Conclui o OAuth e devolve a URL de volta ao claude.ai.
-  completar: (req: unknown, uid: string, refreshToken: string) => Promise<string>
+  completar: (req: unknown, uid: string, refreshToken: string, versaoConsentimento: number | undefined) => Promise<string>
 }
 export type Resultado = { status: 200; redirectTo: string } | { status: 400 | 403 | 503; erro: string }
 
@@ -90,5 +90,5 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   }
   // O armazenamento deve consumir de forma atômica, inclusive entre requisições simultâneas.
   if (!(await d.kv.consume(CHAVE + (c.pedido as string)))) return nega(400, 'Este pedido venceu ou já foi usado. Volte e conecte de novo.')
-  return { status: 200, redirectTo: await d.completar(pedido.req, quem.uid, refreshToken) }
+  return { status: 200, redirectTo: await d.completar(pedido.req, quem.uid, refreshToken, c.versaoConsentimento === pedido.versaoConsentimento ? pedido.versaoConsentimento : undefined) }
 }

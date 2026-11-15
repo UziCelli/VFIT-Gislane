@@ -78,6 +78,16 @@ describe('concluirLogin', () => {
     expect(await concluirLogin(t.d, await corpo(id))).toEqual({ status: 200, redirectTo: 'https://claude.ai/volta?uid=coach1' })
     expect(t.kv.m.size).toBe(0)
   })
+  it('só ativa escrita quando a versão exibida coincide com o pedido do servidor', async () => {
+    for (const [armazenada, enviada, esperada] of [[2, 2, 2], [2, undefined, undefined], [undefined, 2, undefined]] as const) {
+      const t = montar('coach', jwt())
+      let versao: number | undefined
+      t.d.completar = async (_req, _uid, _refresh, v) => { versao = v; return 'https://example.com' }
+      const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h', versaoConsentimento: armazenada }, AGORA)
+      expect((await concluirLogin(t.d, await corpo(id, { versaoConsentimento: enviada }))).status).toBe(200)
+      expect(versao).toBe(esperada)
+    }
+  })
   it('pedido reusado ou vencido = recusa', async () => {
     const t = montar('coach', jwt())
     const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)

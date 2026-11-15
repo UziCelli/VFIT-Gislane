@@ -14,7 +14,14 @@ test('política abre sem login', async ({ page }) => {
   await expect(page.getByText(`CREF ${marca.responsavel.cref}`)).toBeVisible()
   await expect(page.getByText('Versão vigente: 15/11/2026', { exact: false })).toBeVisible()
   await expect(page.getByText('Assistentes externos:', { exact: false })).toContainText('Claude (Anthropic) ou ChatGPT (OpenAI)')
-  await expect(page.getByText('Assistentes externos:', { exact: false })).toContainText('No momento, essa conexão permite apenas consulta')
+  const assistentes = page.getByText('Assistentes externos:', { exact: false })
+  if (marca.id === 'vfit') {
+    await expect(assistentes).toContainText('O assistente também pode preparar treinos novos ou alterações')
+    await expect(assistentes).toContainText('o coach precisa conferir e confirmar cada proposta no app antes de salvá-la')
+  } else {
+    await expect(assistentes).toContainText('No momento, essa conexão permite apenas consulta')
+    await expect(assistentes).toContainText('ela não cria nem altera treinos ou outros dados no app')
+  }
 })
 
 test('cadastro: botão só habilita com a caixa marcada', async ({ page }) => {

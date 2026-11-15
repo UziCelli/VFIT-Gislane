@@ -79,13 +79,23 @@ describe('concluirLogin', () => {
     expect(t.kv.m.size).toBe(0)
   })
   it('só ativa escrita quando a versão exibida coincide com o pedido do servidor', async () => {
-    for (const [armazenada, enviada, esperada] of [[2, 2, 2], [2, undefined, undefined], [undefined, 2, undefined]] as const) {
+    for (const [armazenada, enviada, esperada] of [[2, 2, 2], [undefined, undefined, undefined], [undefined, 2, undefined]] as const) {
       const t = montar('coach', jwt())
       let versao: number | undefined
       t.d.completar = async (_req, _uid, _refresh, v) => { versao = v; return 'https://example.com' }
       const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h', versaoConsentimento: armazenada }, AGORA)
       expect((await concluirLogin(t.d, await corpo(id, { versaoConsentimento: enviada }))).status).toBe(200)
       expect(versao).toBe(esperada)
+    }
+  })
+  it('não conclui pedido de escrita quando o app antigo não mostrou a nova autorização', async () => {
+    for (const versaoConsentimento of [undefined, 1, 3, null]) {
+      const t = montar('coach', jwt())
+      const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h', versaoConsentimento: 2 }, AGORA)
+      const resultado = await concluirLogin(t.d, await corpo(id, { versaoConsentimento }))
+      expect(resultado).toEqual({ status: 400, erro: 'Esta página está desatualizada. Atualize o app e reabra o pedido original de conexão para conferir as novas permissões.' })
+      expect(t.chamadas).toEqual([])
+      expect(t.kv.m.size).toBe(1)
     }
   })
   it('pedido reusado ou vencido = recusa', async () => {

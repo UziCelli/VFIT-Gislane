@@ -64,6 +64,7 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   if (!idToken || !refreshToken) return nega(400, 'Pedido incompleto.')
   const pedido = await lerPedido(d.kv, c.pedido, d.agora)
   if (!pedido) return nega(400, 'Este pedido venceu ou já foi usado. Volte ao assistente e conecte de novo.')
+  if (pedido.versaoConsentimento === 2 && c.versaoConsentimento !== 2) return nega(400, 'Esta página está desatualizada. Atualize o app e reabra o pedido original de conexão para conferir as novas permissões.')
   const agoraS = Math.floor(d.agora / 1000)
   const quem = await verificarIdToken(idToken, d.obterChave, agoraS, true)
   if (!quem || quem.projeto !== d.projeto) return nega(403, 'Entre com e-mail, senha e o código de 6 dígitos para conectar.')

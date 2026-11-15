@@ -11,6 +11,7 @@ import { PropostaTreino } from './proposta'
 export { PropostaTreino } from './proposta'
 import { executar } from './execucao'
 import { criarServidor } from './servidor'
+import { statusDeConexao } from './statusConexao'
 import { apagarPedido, concluirLogin, criarPedido, lerPedido, type KV } from './login'
 import { PedidoOAuth } from './pedido'
 export { PedidoOAuth } from './pedido'
@@ -43,7 +44,7 @@ const negado = () => ({ isError: true as const, content: [{ type: 'text' as cons
 const mcp = createMcpHandler(() => criarServidor(rodar, {
   preparar: async (entrada: EntradaPrescricao) => {
     const props = getMcpAuthContext()?.props
-    if (props?.writeApproved !== true || typeof props.uid !== 'string') return negado()
+    if (!statusDeConexao(props).podePrepararTreinos || typeof props?.uid !== 'string') return negado()
     const uid = props.uid
     return rodar(async (fs) => {
       const proposta = await prepararPrescricao(fs, entrada, Date.now())
@@ -54,12 +55,12 @@ const mcp = createMcpHandler(() => criarServidor(rodar, {
   },
   consultar: async (id: string) => {
     const props = getMcpAuthContext()?.props
-    if (props?.writeApproved !== true || typeof props.uid !== 'string') return negado()
+    if (!statusDeConexao(props).podePrepararTreinos || typeof props?.uid !== 'string') return negado()
     if (!idValido(id)) return { isError: true as const, content: [{ type: 'text' as const, text: 'Proposta inválida.' }] }
     const resultado = await propostaObjeto(E, id).ler(props.uid, Date.now())
     return { content: [{ type: 'text' as const, text: JSON.stringify(resultado ? { status: resultado.status, ...(resultado.status === 'salva' && { resultado: resultado.resultado }) } : { status: 'não encontrada' }) }] }
   },
-}))
+}, () => getMcpAuthContext()?.props))
 
 // Cada pedido usa uma instância própria do Durable Object deste Worker.
 // KV continua exclusivo para concessões OAuth; não garante consumo único de pedidos.

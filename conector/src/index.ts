@@ -49,7 +49,8 @@ const mcp = createMcpHandler(() => criarServidor(rodar, {
     return rodar(async (fs) => {
       const proposta = await prepararPrescricao(fs, entrada, Date.now())
       const id = crypto.randomUUID()
-      await propostaObjeto(E, id).guardar(id, uid, proposta, Date.now())
+      // O RPC só aceita objetos simples; a leitura REST pode conter timestamps como instâncias Ts.
+      await propostaObjeto(E, id).guardar(id, uid, structuredClone(proposta), Date.now())
       return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, mensagem: 'O coach precisa conferir e salvar no app.' }
     }, uid)
   },

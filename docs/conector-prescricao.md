@@ -22,6 +22,7 @@ O pedido de consentimento novo exige que o app envie a versão 2 depois de mostr
 ## Limites e cuidados
 
 - A IA prepara uma sugestão; o coach continua responsável por revisar e aprovar o treino.
+- Se a validação do mesociclo salvo falhar, a ferramenta informa apenas a região a conferir no app, sem incluir valores ou dados do aluno.
 - A autorização de escrita depende de coach autenticado com segundo fator (MFA) e da nova concessão OAuth.
 - A integração não substitui o fluxo de registro do aluno nem edita cargas ou repetições já anotadas. Os registros existentes devem ser preservados.
 - A remoção de exercícios da divisão pode ser proposta pelos IDs obtidos em `ver_mesos` (`divisaoPlanejada`). A confirmação mostra os exercícios e os treinos afetados. As cargas continuam guardadas; os exercícios removidos deixam de aparecer no plano e sessões presenciais já ajustadas permanecem como estavam. Outras alterações estruturais em mesociclos existentes continuam restritas.

@@ -2,6 +2,7 @@
 // Sem Cloudflare aqui: o KV e o OAuth chegam por parâmetro, então tudo roda no Vitest.
 import { b64u } from '../../push/src/b64'
 import { verificarIdToken } from '../../push/src/jwt'
+import { tokenAppCheck } from './appcheck'
 import { ErroConector, ErroRenovacaoRecusada, Firestore, RECONECTAR, trocarToken, type Buscar } from './firestore'
 
 export const VALIDADE_PEDIDO_MS = 10 * 60_000
@@ -43,6 +44,8 @@ export type Deps = {
   agora: number // ms
   projeto: string
   apiKey: string
+  appId?: string
+  debugToken?: string
   buscar: Buscar
   obterChave: (kid: string) => Promise<CryptoKey | null>
   // Conclui o OAuth e devolve a URL de volta ao claude.ai.
@@ -65,7 +68,8 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   const quem = await verificarIdToken(idToken, d.obterChave, agoraS, true)
   if (!quem || quem.projeto !== d.projeto) return nega(403, 'Entre com e-mail, senha e o código de 6 dígitos para conectar.')
   try {
-    const perfil = await new Firestore(d.projeto, idToken, d.buscar).doc(`usuarios/${quem.uid}`)
+    const appCheck = await tokenAppCheck({ projeto: d.projeto, appId: d.appId, apiKey: d.apiKey, debugToken: d.debugToken, buscar: d.buscar, agora: d.agora })
+    const perfil = await new Firestore(d.projeto, idToken, d.buscar, appCheck).doc(`usuarios/${quem.uid}`)
     if (perfil?.dados.papel !== 'coach') return nega(403, 'Só o coach pode conectar o assistente.')
   } catch (e) {
     return e instanceof ErroConector && e.message === RECONECTAR

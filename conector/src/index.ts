@@ -18,6 +18,8 @@ type Env = {
   APP_URL: string
   PROJETO: string
   FIREBASE_API_KEY: string
+  FIREBASE_APP_ID?: string
+  APPCHECK_DEBUG_TOKEN?: string
 }
 const E = ambiente as unknown as Env
 
@@ -27,7 +29,7 @@ const json = (v: unknown, status: number, origem: string | null) =>
 
 // ---- Ferramentas (MCP sem estado) ----
 const rodar = (leitura: Parameters<typeof executar>[1]) =>
-  executar({ refreshToken: getMcpAuthContext()?.props.refreshToken, apiKey: E.FIREBASE_API_KEY, projeto: E.PROJETO }, leitura)
+  executar({ refreshToken: getMcpAuthContext()?.props.refreshToken, apiKey: E.FIREBASE_API_KEY, projeto: E.PROJETO, appId: E.FIREBASE_APP_ID, debugToken: E.APPCHECK_DEBUG_TOKEN }, leitura)
 
 const mcp = createMcpHandler(() => criarServidor(rodar))
 
@@ -73,7 +75,7 @@ const loginHandler = {
       if (l.status) return json({ erro: 'Pedido inválido.' }, l.status, origem)
       const r = await concluirLogin(
         {
-          kv: pedidos(env), agora, projeto: env.PROJETO, apiKey: env.FIREBASE_API_KEY, buscar: fetch,
+          kv: pedidos(env), agora, projeto: env.PROJETO, apiKey: env.FIREBASE_API_KEY, appId: env.FIREBASE_APP_ID, debugToken: env.APPCHECK_DEBUG_TOKEN, buscar: fetch,
           obterChave: (kid) => chaveDoGoogle(kid),
           completar: async (req, uid, refreshToken) =>
             (await env.OAUTH_PROVIDER.completeAuthorization({ request: req as AuthRequest, userId: uid, metadata: {}, scope: (req as AuthRequest).scope, props: { refreshToken } })).redirectTo,

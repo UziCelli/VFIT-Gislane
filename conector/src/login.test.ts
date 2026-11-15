@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { b64u } from '../../push/src/b64'
+import { limparCacheAppCheck } from './appcheck'
 import { criarPedido, concluirLogin, lerPedido, VALIDADE_PEDIDO_MS, type Deps, type KV } from './login'
 
 const te = new TextEncoder()
@@ -48,6 +49,25 @@ describe('pedido', () => {
   it('id fora do formato nem consulta o KV', async () => {
     expect(await lerPedido(memoria(), '../x', AGORA)).toBeNull()
     expect(await lerPedido(memoria(), 42, AGORA)).toBeNull()
+  })
+})
+
+describe('concluirLogin com App Check', () => {
+  it('manda o token de App Check na consulta ao perfil', async () => {
+    limparCacheAppCheck()
+    const t = montar('coach', jwt())
+    const base = t.d.buscar
+    let ac: string | null = null
+    t.d.buscar = (async (url: string, init?: RequestInit) => {
+      if (String(url).includes('firebaseappcheck')) return resposta({ token: 'ac-login', ttl: '3600s' })
+      if (String(url).includes('firestore')) ac = new Headers(init?.headers).get('x-firebase-appcheck')
+      return base(url, init)
+    }) as typeof fetch
+    t.d.appId = '1:2:web:abc'
+    t.d.debugToken = 'dbg'
+    const id = await criarPedido(t.kv, { req: {}, cliente: 'Claude', host: 'claude.ai' }, AGORA)
+    expect((await concluirLogin(t.d, await corpo(id))).status).toBe(200)
+    expect(ac).toBe('ac-login')
   })
 })
 

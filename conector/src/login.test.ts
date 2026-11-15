@@ -96,6 +96,22 @@ describe('concluirLogin', () => {
       expect((await concluirLogin(t.d, await corpo(id))).status).toBe(403)
     }
   })
+  it('distingue token inválido, conta ou projeto diferente e falta de segundo fator', async () => {
+    const casos: [Promise<string>, string][] = [
+      [Promise.resolve('token-invalido-privado'), 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.'],
+      [jwt({ exp: AGORA / 1000 - 1 }), 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.'],
+      [jwt({ aud: 'projeto-desconhecido' }), 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.'],
+      [jwt({ sub: 'outra-pessoa-privada' }), 'O login renovado não corresponde à conta ou ao projeto da sessão. Saia do app e entre novamente para conectar.'],
+      [jwt({ aud: 'gislane-personal-trainer', iss: 'https://securetoken.google.com/gislane-personal-trainer' }), 'O login renovado não corresponde à conta ou ao projeto da sessão. Saia do app e entre novamente para conectar.'],
+      [jwt({}, false), 'Não foi possível confirmar a verificação em 2 etapas no login renovado. Saia do app e entre novamente com o código de 6 dígitos.'],
+    ]
+    for (const [renovado, erro] of casos) {
+      const t = montar('coach', renovado)
+      const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
+      expect(await concluirLogin(t.d, await corpo(id))).toEqual({ status: 403, erro })
+      expect(t.kv.m.size).toBe(1)
+    }
+  })
   it('token de outro projeto (Gislane) = recusa; corpo incompleto = 400', async () => {
     const t = montar('coach', jwt())
     const id = await criarPedido(t.kv, { req: {}, cliente: 'C', host: 'h' }, AGORA)
@@ -140,7 +156,7 @@ describe('diagnóstico seguro do login', () => {
       ? resposta({ error: { message: 'INVALID_REFRESH_TOKEN', detalhe: 'privado' } }, 400) : original(url, init)) as typeof fetch
     expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O Firebase recusou a renovação do login. Saia do app e entre novamente para conectar.' })
     t.d.buscar = original
-    expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'O login renovado não passou na verificação de segurança. Saia do app e entre novamente com o código de 6 dígitos.' })
+    expect(await concluirLogin(t.d, c)).toEqual({ status: 403, erro: 'Não foi possível confirmar a verificação em 2 etapas no login renovado. Saia do app e entre novamente com o código de 6 dígitos.' })
     expect(t.kv.m.size).toBe(1)
   })
   it('respostas desconhecidas ou malformadas do Firebase são falhas de serviço, sem expor detalhes', async () => {

@@ -74,8 +74,11 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   }
   try {
     // A renovação precisa manter o 2º fator, o projeto e a mesma pessoa.
-    const novo = await verificarIdToken(await trocarToken(refreshToken, d.apiKey, d.buscar), d.obterChave, agoraS, true)
-    if (novo?.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'O login renovado não passou na verificação de segurança. Saia do app e entre novamente com o código de 6 dígitos.')
+    const tokenRenovado = await trocarToken(refreshToken, d.apiKey, d.buscar)
+    const novo = await verificarIdToken(tokenRenovado, d.obterChave, agoraS, false)
+    if (!novo) return nega(403, 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.')
+    if (novo.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'O login renovado não corresponde à conta ou ao projeto da sessão. Saia do app e entre novamente para conectar.')
+    if (!(await verificarIdToken(tokenRenovado, d.obterChave, agoraS, true))) return nega(403, 'Não foi possível confirmar a verificação em 2 etapas no login renovado. Saia do app e entre novamente com o código de 6 dígitos.')
   } catch (e) {
     return e instanceof ErroRenovacaoRecusada
       ? nega(403, 'O Firebase recusou a renovação do login. Saia do app e entre novamente para conectar.')

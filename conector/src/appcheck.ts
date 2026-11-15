@@ -32,8 +32,8 @@ export async function tokenAppCheck(c: ConfigAppCheck): Promise<string | undefin
   }
   if (!r.ok) throw falha()
   const corpo = await r.json().catch(() => null) as { token?: unknown; ttl?: unknown } | null
-  const segundos = typeof corpo?.ttl === 'string' ? parseFloat(corpo.ttl) : NaN
-  if (typeof corpo?.token !== 'string' || !corpo.token || !(segundos > 0)) throw falha()
+  const segundos = typeof corpo?.ttl === 'string' && /^\d+(?:\.\d+)?s$/.test(corpo.ttl) ? Number(corpo.ttl.slice(0, -1)) : NaN
+  if (typeof corpo?.token !== 'string' || !corpo.token || !(Number.isFinite(segundos) && segundos > 0)) throw falha()
   cache.set(chave, { token: corpo.token, vence: agora + segundos * 1000 - MARGEM_MS })
   return corpo.token
 }

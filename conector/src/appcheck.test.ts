@@ -48,6 +48,9 @@ describe('tokenAppCheck', () => {
       expect(e.message).not.toContain(DEBUG)
     }
   })
+  it.each(['Infinitys', '3600garbage', '1e999s', '9'.repeat(400) + 's', '0s'])('recusa duração inválida: %s', async (ttl) => {
+    await expect(tokenAppCheck({ ...base, buscar: falso(ttl).buscar })).rejects.toThrow('validar o app')
+  })
   it('resposta sem token vira erro seguro', async () => {
     await expect(tokenAppCheck({ ...base, buscar: (async () => Response.json({})) as typeof fetch })).rejects.toThrow('validar o app')
   })

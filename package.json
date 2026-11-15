@@ -9,7 +9,7 @@
     "build": "tsc && vite build && node tools/verificar-build.mjs",
     "build:gislane": "tsc && vite build --mode gislane && node tools/verificar-build.mjs",
     "preview": "vite preview",
-    "typecheck": "tsc && tsc -p push",
+    "typecheck": "tsc && tsc -p push && tsc -p conector",
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only auth,firestore --project demo-forca 'vitest run --config vitest.rules.config.ts'",
     "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-forca 'playwright test'",

@@ -25,6 +25,7 @@ Comece por aqui para achar onde mexer.
 | Senha mínima (cadastro, nova senha, troca de senha fraca) | `src/lib/senha.ts` + `Entrar.tsx` + `AcaoEmail.tsx` + `SenhaSegura.tsx` + `RequisitosSenha.tsx` + `tools/mfa.mjs` (`senha-minima`) |
 | Offline/sync Firebase | `src/lib/firebase.ts` + `firestore.rules` |
 | Roteamento (hash, /aluno/123, etc.) | `src/rota.ts` + `src/App.tsx` |
+| Conector do Claude (MCP: o Claude lê alunos e treinos do coach) | `conector/` (Worker) + `src/features/conta/ConectarClaude.tsx` (tela `#/conectar-claude`) — plano em `docs/plano-conector-claude.md` |
 | Notificação "Descanso acabou" (push, app fechado) | `src/lib/push.ts` + `public/sw-push.js` + `push/` (Worker Cloudflare) — veja `docs/push.md` |
 | Painel de evolução, conquistas, ranking | `src/lib/evolucao.ts` + `src/features/evolucao/` + `src/features/coach/RankingAlunos.tsx` |
 | Relatório do fim do ciclo (tela, PDF, story) | `src/lib/relatorio.ts` + `src/features/relatorio/` |
@@ -76,6 +77,13 @@ Comece por aqui para achar onde mexer.
 - `src/jwt.ts` — confere o ID token do Firebase; `src/validar.ts` — inscrição e `fimEm`
 - `src/webpush.ts` — chaves VAPID, criptografia aes128gcm e envio; `src/b64.ts` — base64url
 - `src/*.test.ts` — testes (rodam com o `npm test` da raiz); tsconfig próprio (`npm run typecheck` confere)
+
+### `conector/` — Worker Cloudflare do conector do Claude (MCP)
+- `wrangler.toml` — Worker `vfit-conector`, KV `OAUTH_KV` (concessões do OAuth); `package.json` + lockfile próprios (`agents`, `@cloudflare/workers-oauth-provider`, `zod`)
+- `src/index.ts` — única entrada com pacotes do Worker: OAuth, `/mcp` (4 ferramentas) e as rotas do login (`/authorize`, `/pedido`, `/concluir`, `/cancelar`)
+- `src/login.ts` — pedido de uso único (KV, 10 min) e `concluirLogin` (2º fator + papel coach); `src/execucao.ts` — troca o refreshToken e roda cada ferramenta
+- `src/firestore.ts` — Firestore REST com o token do coach; `src/rest.ts` — valores REST <-> JS; `src/ferramentas.ts` — `listarAlunos`, `verAluno`, `verMesos`, `catalogoExercicios` (reusam `src/lib` e `src/engine` por caminho relativo, e `push/src/{jwt,cors,corpo}.ts`)
+- `src/*.test.ts` — rodam no `npm test` da raiz; `tsc -p conector` entra no `npm run typecheck` (o CI faz `npm ci --prefix conector` antes)
 
 ### `src/features/auth/` — Autenticação
 - `AcaoEmail.tsx` — rota pública `/acao`: destino dos links dos e-mails do Firebase (redefinir senha, confirmar/restaurar e-mail)
@@ -246,6 +254,7 @@ Comece por aqui para achar onde mexer.
 ### `.github/workflows/` — CI/CD
 - `ci.yml` — typecheck, lint, testes
 - `push.yml` — publica o Worker `push/` na Cloudflare (push em `push/**` ou manual) e mostra a URL
+- `conector.yml` — publica o Worker `conector/` (mudança em `conector/**`, `push/src/**` ou `src/**`) e confere `/mcp` sem token = 401
 - `deploy.yml` — build e deploy Firebase Hosting; job `deploy` (VFIT) e job `gislane` (separado, com trava no `dist/`, `--project gislane`)
 - `android.yml`, `apk.yml` — gera APK (TWA); `apk.yml` tem input `marca` (Gislane: reserva, release `apk-gislane`; no Android ela instala pelo Chrome, `marca.json` → `apk: ""`)
 - `importar-meso.yml` — workflow: `/importar` trigger (auth: token)
@@ -387,12 +396,19 @@ Comece por aqui para achar onde mexer.
 | `alterar-email.yml` | dispatch manual | altera e-mail de aluno (admin) |
 | `backup.yml` | schedule (diário) | backup Firestore → Cloud Storage |
 
+## Conector MCP (rascunho)
+
+O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `src/features/conta/ConectarClaude.tsx`. O conector ainda não foi publicado. A configuração e pendências estão em `docs/conector-revisao-codex.md`.
+
 ## Pontos sensíveis (leia antes de auditar ou mexer)
+
+O pedido OAuth precisa de consumo atômico no Durable Object e validação de segundo fator, usuário e projeto; nunca registrar credenciais ou dados dos alunos. A integração completa, o KV e a revogação ainda exigem validação antes de ativar.
 
 Onde já houve falha ou onde errar custa caro. Cada linha diz o que protege e como é testado. Quem corrigir um bug novo acrescenta uma linha aqui.
 
 | Área | Arquivo | Cuidado | Teste que protege |
 |---|---|---|---|
+| Conector do Claude (14/11/2026) | `conector/src/` (`login.ts`, `execucao.ts`, `firestore.ts`, `ferramentas.ts`), `ConectarClaude.tsx`, `Politica.tsx` | O conector age **como o coach**: guarda o refreshToken nas props do OAuth e usa o token dele; o `firestore.rules` decide, sem chave mestra nem conta de serviço. Só conecta com 2º fator (`verificarIdToken(..., true)`, também no token renovado) e `papel == 'coach'`; só o projeto `forca--app` (Gislane = PR 3). `pedido`: id aleatório no KV, 10 min, apagado ao concluir (KV não é atômico: uso único vale por boa-fé do navegador que tem o id); o app mostra o nome e o host do cliente (registro dinâmico deixa qualquer um se chamar "Claude"). Nada é logado (nem token, nem dado de aluno); erro desconhecido vira texto genérico. Leitura sem índice (um filtro `==` por consulta). Texto da Política mudou: `VERSAO_PRIVACIDADE` 2026-11-14. App Check em "Aplicar" quebra o conector. | `conector/src/*.test.ts`, e2e `conectar-claude.spec.ts` |
 | Corpo e respostas da API (14/11/2026) | `push/src/corpo.ts`, `push/src/index.ts` | Ler JSON por streaming com teto em bytes antes de alocar o corpo inteiro; `Content-Length` não é confiável. Respostas privadas usam no-store; VAPID continua público. | `push/src/corpo.test.ts` |
 | Artefatos de publicação (14/11/2026) | `tools/verificar-build.mjs`, `package.json`, `firebase.json` | Builds das duas marcas rejeitam mapas, arquivos internos e credenciais reconhecíveis; não publicar saídas pulando o comando build. Não substitui scanner do histórico. | Fixtures sintéticas e builds em `docs/security/VALIDATION.md` |
 | Visual/fluidez do treino (14/11/2026) | `features/aluno/treino.css`, `Treino.tsx` | Clareamento por mistura estática de cores da marca. Sem `filter`/`backdrop-filter`, fundos fixos, animação de sombras ou alterações no mecanismo de transição. Diagnóstico opt-in com `PERF_TREINO=1`: toque, rolagem, CPU 4x, relógio e cargas preservados; tempos de quadro são diagnóstico, sem limite de FPS no CI. | `e2e/treino-fluidez.spec.ts`; layout nas duas marcas |

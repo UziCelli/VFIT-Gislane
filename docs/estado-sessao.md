@@ -1,3 +1,6 @@
+## 14/11/2026 — Conector MCP (Codex)
+- Leitura para VFIT em Worker separado; detalhes e validações em `docs/conector-revisao-codex.md`.
+
 ## 14/11/2026 — Divisão: arrastar a ordem e excluir qualquer exercício; voz desligada (Claude)
 - Divisão: alça ⠿ em cada exercício para arrastar (a tela rola sozinha na borda); setas ↑↓ no teclado. Métodos e trocas vão junto com o exercício.
 - "Excluir" em qualquer posição (antes só o último). Os de baixo sobem; método em grupo que fica incompleto sai.

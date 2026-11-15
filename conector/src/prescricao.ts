@@ -16,7 +16,7 @@ const nome = z.string().trim().min(1).max(120)
 const inteiro = (min: number, max: number) => z.number().int().min(min).max(max)
 const slot = z.object({ slotId: id, nome, pausaS: inteiro(0, 3600).optional(), doisLados: z.boolean().optional() }).strict()
 const linha = z.array(z.array(inteiro(1, 600).nullable()).max(6)).min(1).max(12)
-const metodo = z.object({ ativo: z.boolean(), semana: inteiro(1, 12), treino: inteiro(1, 7), exercicio: inteiro(1, 10), metodo: z.enum(['Dropset', 'Biset', 'Triset', 'Superset', 'Circuito', 'Rest-pause', 'Clusterset']), escopo: z.enum(['Todas as séries', 'Série específica', 'Primeiras 2 séries', 'Últimas 2 séries', 'Primeiras 3 séries', 'Últimas 3 séries', 'Primeiras 4 séries', 'Últimas 4 séries']), serie: inteiro(1, 6).optional(), grupo: inteiro(1, 10).optional(), reducaoCarga: z.number().min(0).max(100).optional(), pausaInternaS: inteiro(0, 3600).optional(), blocos: inteiro(1, 20).optional(), repsPorBloco: inteiro(1, 600).optional(), adicional: inteiro(0, 600).optional(), etapas: inteiro(1, 6).optional(), cargaEtapa: z.array(z.number().min(0).max(10000).nullable()).max(6).optional(), repsPadrao: inteiro(1, 600).optional(), repsEtapa: z.array(inteiro(1, 600).nullable()).max(6).optional() }).strict()
+const metodo = z.object({ ativo: z.boolean(), semana: inteiro(1, 12), treino: inteiro(1, 7), exercicio: inteiro(1, 10), metodo: z.enum(['Dropset', 'Biset', 'Triset', 'Superset', 'Circuito', 'Rest-pause', 'Clusterset']), escopo: z.enum(['Todas as séries', 'Série específica', 'Primeiras 2 séries', 'Últimas 2 séries', 'Primeiras 3 séries', 'Últimas 3 séries', 'Primeiras 4 séries', 'Últimas 4 séries']), serie: inteiro(1, 6).optional(), grupo: inteiro(1, Number.MAX_SAFE_INTEGER).optional(), reducaoCarga: z.number().min(0).max(100).optional(), pausaInternaS: inteiro(0, 3600).optional(), blocos: inteiro(1, 20).optional(), repsPorBloco: inteiro(1, 600).optional(), adicional: inteiro(0, 600).optional(), etapas: inteiro(1, 6).optional(), cargaEtapa: z.array(z.number().min(0).max(10000).nullable()).max(6).optional(), repsPadrao: inteiro(1, 600).optional(), repsEtapa: z.array(inteiro(1, 600).nullable()).max(6).optional() }).strict()
 const mesoSchema = z.object({ frequencia: inteiro(1, 7), semanas: inteiro(1, 12), inicio: z.iso.date(), pausaS: inteiro(0, 3600), pausaPrincipaisS: inteiro(0, 3600).optional(), divisao: z.array(z.array(slot).max(10)).min(1).max(7), trocas: z.record(z.string().regex(/^\d+-\d+-\d+$/), slot).optional(), adicoes: z.record(z.string().regex(/^\d+-\d+$/), z.array(slot).max(10)).optional(), progressao: z.object({ principais: linha, auxiliares: linha, padrao: linha.optional() }).strict(), metodos: z.array(metodo).max(840), progressaoPct: z.number().min(0).max(100).optional(), limiteReps: inteiro(1, 600).optional(), tempoLimiteMin: inteiro(1, 600).optional(), dias: z.array(inteiro(0, 6)).max(7).optional(), progressaoExercicio: z.record(id, linha).optional() }).strict().superRefine((m, ctx) => {
   const erro = (message: string) => ctx.addIssue({ code: 'custom', message })
   if (m.divisao.length !== m.frequencia) erro('A divisão deve ter um treino por dia.')
@@ -109,7 +109,15 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   }
   // Para cópias de dados antigos, validação também ocorre antes da gravação.
   const { sessoes: _sessoes, ...semSessoes } = escolhido
-  const validado = mesoSchema.parse(semSessoes)
+  const analise = mesoSchema.safeParse(semSessoes)
+  if (!analise.success) {
+    // Nunca devolver caminhos dinâmicos ou valores dos dados do aluno.
+    const regioes: Record<string, string> = { metodos: 'métodos', progressao: 'progressão', progressaoExercicio: 'progressão', divisao: 'divisão', trocas: 'divisão', adicoes: 'divisão', inicio: 'data de início' }
+    const campo = analise.error.issues[0]?.path[0]
+    const regiao = typeof campo === 'string' ? regioes[campo] ?? 'configuração geral' : 'configuração geral'
+    throw new ErroConector(`Não foi possível preparar: confira ${regiao} do mesociclo no app.`)
+  }
+  const validado = analise.data
   const n = e.nome ?? titulo
   return { acao: e.acao, alunoId: e.alunoId, alunoNome: typeof aluno.dados.nome === 'string' ? aluno.dados.nome : 'Aluno', mesoId: e.mesoId, nome: n, resumo: `${n}: ${validado.frequencia} treinos por semana, ${validado.semanas} semanas, início ${validado.inicio}.${remocoes.length ? ` Remover: ${remocoes.map((r) => `${r.nome} (treino ${r.treino})`).join('; ')}.` : ''}`, dados: { nome: n, ...mesoParaDoc(validado) }, ...(e.acao === 'editar' ? { antes: { nome: titulo, ...mesoParaDoc(base), ...(sessoes ? { sessoes } : {}) }, previaDados: { nome: n, ...mesoParaDoc(validado), ...(sessoes ? { sessoes } : {}) } } : {}), ...(remocoes.length ? { remocoes, avisos: ['As cargas registradas continuam guardadas.', 'Os exercícios removidos deixam de aparecer no treino planejado.', 'As sessões presenciais já ajustadas permanecem como estão.'] } : {}), esperado, origem, criadaEm: agoraMs }
 }

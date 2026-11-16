@@ -37,7 +37,7 @@ Exemplo com IDs fictícios:
 
 `removerSlotIds` continua aceito para compatibilidade. A prescrição completa usa o contrato comum do editor: 1–7 treinos, 1–12 semanas, até dez exercícios efetivos por sessão e seis séries. Séries vazias ficam no fim; `[10,null,20]` é recusado. Exercícios legados existentes podem ser mantidos/copiados; identidades não podem ser reaproveitadas para outro exercício. Novos exercícios usam o catálogo.
 
-No editor, reduzir semanas ou dias retira métodos, trocas e adições do intervalo descartado antes de validar o salvamento. Sessões e cópias históricas permanecem preservadas.
+No editor, reduzir semanas ou dias retira métodos, trocas e adições do intervalo descartado antes de validar o salvamento. Sessões e cópias históricas permanecem preservadas. O estado “Salvo” aguarda a confirmação da gravação; enquanto ela estiver pendente, outro salvamento e o aviso ao aluno ficam desabilitados.
 
 ## Histórico e concorrência
 

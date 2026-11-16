@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { criarAluno, criarCoach, criarMeso, hojeSaoPaulo, limparEmuladores } from './seed'
+import { criarAluno, criarCoach, criarMeso, hojeSaoPaulo, lerDoc, limparEmuladores } from './seed'
 
 const COACH = { nome: 'Victor', email: 'victor.met@teste.com', senha: 'senha123' }
 
@@ -57,6 +57,8 @@ test('adicionar, juntar, editar e tirar métodos por exercício', async ({ page 
   // 5. Salvar, recarregar e conferir
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
   await expect(page.getByText('Salvo', { exact: true })).toBeVisible()
+  const metodosSalvos = (semanas: number) => ({ metodos: { arrayValue: { values: Array.from({ length: semanas }, (_, i) => ({ mapValue: { fields: { semana: { integerValue: String(i + 1) }, metodo: { stringValue: 'Dropset' } } } })) } } })
+  await expect.poll(async () => (await lerDoc(`mesos/${id}`))?.fields).toMatchObject(metodosSalvos(3))
   await page.reload()
   await page.getByRole('button', { name: 'Métodos', exact: true }).click()
   await expect(page.getByRole('button', { name: /^Dropset.*todas as semanas$/ })).toBeVisible()
@@ -68,6 +70,7 @@ test('adicionar, juntar, editar e tirar métodos por exercício', async ({ page 
   await page.getByLabel('Semanas', { exact: true }).blur()
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
   await expect(page.getByText('Salvo', { exact: true })).toBeVisible()
+  await expect.poll(async () => (await lerDoc(`mesos/${id}`))?.fields).toMatchObject({ ...metodosSalvos(2), semanas: { integerValue: '2' } })
   await page.reload()
   await expect(page.getByLabel('Semanas', { exact: true })).toHaveValue('2')
   await page.getByRole('button', { name: 'Métodos', exact: true }).click()

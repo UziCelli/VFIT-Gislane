@@ -3,7 +3,7 @@ import { proximoMesoId } from '../../src/lib/proximoMesoId'
 import { ErroConector, ErroCommitDesconhecido, Firestore } from './firestore'
 import { salvarPrescricao, type PropostaPrescricao } from './prescricao'
 
-const VALIDADE_MS = 15 * 60 * 1000
+const VALIDADE_MS = 24 * 60 * 60 * 1000
 const RETENCAO_MS = 24 * 60 * 60 * 1000
 export type ResultadoProposta = { status: 'proposta'; proposta: PropostaPrescricao } | { status: 'expirada' } | { status: 'resultado_pendente' } | { status: 'recusada'; mensagem: string } | { status: 'salva'; resultado: { mesoId: string } }
 type Registro = { id: string; uid: string; expira: number; resultado: ResultadoProposta; tentativa?: PropostaPrescricao }
@@ -18,7 +18,7 @@ export class PropostaTreino extends DurableObject {
     return resultado
   }
 
-  async guardar(id: string, uid: string, proposta: PropostaPrescricao, agora: number): Promise<void> {
+  async guardar(id: string, uid: string, proposta: PropostaPrescricao, agora: number): Promise<number> {
     if (new TextEncoder().encode(JSON.stringify(proposta)).byteLength > 1_800_000) throw new ErroConector('A proposta excede o limite seguro de armazenamento. Prepare um próximo ciclo.', 'TAMANHO', 'armazenamento', false)
     return this.serializar(async () => {
       await this.ctx.storage.transaction(async (tx) => {
@@ -26,6 +26,7 @@ export class PropostaTreino extends DurableObject {
         await tx.put('registro', { id, uid, expira: agora + VALIDADE_MS, resultado: { status: 'proposta', proposta } } satisfies Registro)
         await tx.setAlarm(agora + VALIDADE_MS)
       })
+      return agora + VALIDADE_MS
     })
   }
 

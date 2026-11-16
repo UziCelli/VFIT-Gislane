@@ -4,7 +4,7 @@
 
 O mesmo endpoint `https://vfit-conector.vfitcoach-site.workers.dev/mcp` atende ChatGPT e Claude por Streamable HTTP e OAuth com PKCE S256. O conector usa o login do coach, MFA e as regras do Firestore. Não recebe credencial administrativa.
 
-A IA consulta e prepara propostas; **só o botão Salvar treino no app confirma uma alteração**. Propostas expiram em 15 minutos. Consultar uma proposta, inclusive para recuperar uma resposta perdida, nunca confirma uma proposta ainda não aprovada.
+A IA consulta e prepara propostas; **só o botão Salvar treino no app confirma uma alteração**. Novas propostas expiram em 24 horas; propostas criadas antes da mudança conservam o prazo original. Consultar uma proposta, inclusive para recuperar uma resposta perdida, nunca confirma uma proposta ainda não aprovada.
 
 A autorização OAuth v2 existente continua válida. Concessões antigas de leitura precisam de novo consentimento para preparar. Não reconectar por rotina: `verificar_conexao` separa autorização, dependências, versão publicada e preparação habilitada. O Worker só prepara quando `EDICAO_COMPLETA=1`; desligar essa variável mantém as consultas disponíveis.
 

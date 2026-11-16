@@ -79,7 +79,7 @@ jobs:
       - name: Data
         id: data
         run: echo "d=$(date -u +%F)" >> "$GITHUB_OUTPUT"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.marca == 'vfit' && 'backup-firestore' || format('backup-{0}-firestore', matrix.marca) }}-${{ steps.data.outputs.d }}
           path: backup.json.enc

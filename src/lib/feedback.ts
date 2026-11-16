@@ -65,6 +65,31 @@ export function convidarAgora(agoraMs = Date.now()): boolean {
   }
 }
 
+// Card grande na Início: aparece até o aluno responder; depois de enviar, volta a faixa pequena por 30 dias.
+// Guarda a hora do último envio neste aparelho (separado do convite, que também conta o convite mostrado).
+export const CHAVE_ENVIADO = 'forca-feedback-enviado'
+export const DIAS_CARD = 30
+
+export const cardEvidente = (agoraMs: number, enviadoMs: number | null) =>
+  enviadoMs == null || agoraMs - enviadoMs >= DIAS_CARD * 86_400_000
+
+export function mostrarCardEvidente(agoraMs = Date.now()): boolean {
+  try {
+    const v = Number(localStorage.getItem(CHAVE_ENVIADO))
+    return cardEvidente(agoraMs, v > 0 ? v : null)
+  } catch {
+    return true
+  }
+}
+
+export function marcarEnviado(agoraMs = Date.now()) {
+  try {
+    localStorage.setItem(CHAVE_ENVIADO, String(agoraMs))
+  } catch {
+    // sem localStorage (modo privado): o card grande pode voltar, sem problema
+  }
+}
+
 export function marcarConvite(agoraMs = Date.now()) {
   try {
     localStorage.setItem(CHAVE_CONVITE, String(agoraMs))

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assinaturaMarca, filtrar, montarFeedback, podeConvidar, resumoNotas, textoDepoimento, textoParaCopiar, type Entrada } from './feedback'
+import { assinaturaMarca, cardEvidente, filtrar, montarFeedback, podeConvidar, resumoNotas, textoDepoimento, textoParaCopiar, type Entrada } from './feedback'
 
 const base: Entrada = { nota: 5, assunto: 'app', texto: '', anonimo: false, depoimento: false }
 
@@ -34,6 +34,15 @@ describe('podeConvidar', () => {
   it('6 dias: não; 7 dias: sim', () => {
     expect(podeConvidar(1e12, 1e12 - 6 * DIA)).toBe(false)
     expect(podeConvidar(1e12, 1e12 - 7 * DIA)).toBe(true)
+  })
+})
+
+describe('cardEvidente', () => {
+  const DIA = 86_400_000
+  it('nunca respondeu: card grande', () => expect(cardEvidente(1e12, null)).toBe(true))
+  it('respondeu há 29 dias: faixa pequena; há 30: card grande de novo', () => {
+    expect(cardEvidente(1e12, 1e12 - 29 * DIA)).toBe(false)
+    expect(cardEvidente(1e12, 1e12 - 30 * DIA)).toBe(true)
   })
 })
 

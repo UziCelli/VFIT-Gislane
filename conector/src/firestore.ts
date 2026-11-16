@@ -12,7 +12,8 @@ export class ErroConector extends Error {
 export class ErroPrescricaoRecusada extends ErroConector {
   constructor(mensagem: string, codigo = 'GRAVACAO_RECUSADA') { super(mensagem, codigo, 'confirmacao', false) }
 }
-export type Condicao = { caminho: string; updateTime?: string }
+// updateTime = exatamente esta versão; existe = só precisa existir; nenhum dos dois = precisa não existir.
+export type Condicao = { caminho: string; updateTime?: string; existe?: true }
 export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e conectar o assistente de novo (precisa do login com o código de 6 dígitos).'
 export class ErroRenovacaoRecusada extends ErroConector {}
 export class ErroCommitDesconhecido extends ErroConector {}
@@ -117,7 +118,7 @@ export class Firestore {
       currentDocument: esperado ? { updateTime: esperado } : { exists: false },
       updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }, ...(esperado ? [] : [{ fieldPath: 'criadoEm', setToServerValue: 'REQUEST_TIME' }])],
     }, ...(origem ? [{ verify: `projects/${this.projeto}/databases/(default)/documents/mesos/${origem.id}`, currentDocument: { updateTime: origem.updateTime } }] : []), ...(protecao ? [
-      ...protecao.condicoes.map((c) => ({ verify: `projects/${this.projeto}/databases/(default)/documents/${c.caminho}`, currentDocument: c.updateTime ? { updateTime: c.updateTime } : { exists: false } })),
+      ...protecao.condicoes.map((c) => ({ verify: `projects/${this.projeto}/databases/(default)/documents/${c.caminho}`, currentDocument: c.updateTime ? { updateTime: c.updateTime } : c.existe ? { exists: true } : { exists: false } })),
       { update: { name: `projects/${this.projeto}/databases/(default)/documents/mcpOperacoes/${protecao.operacao}`, fields: { uid: paraRest(protecao.uid), mesoId: paraRest(id) } }, currentDocument: { exists: false }, updateTransforms: [{ fieldPath: 'em', setToServerValue: 'REQUEST_TIME' }] },
     ] : [])] }, true)
     await r.body?.cancel()

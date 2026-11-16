@@ -3,8 +3,50 @@ import { entradaPrescricaoSchema } from './prescricao'
 import { mesoPadrao } from '../../src/features/coach/meso/mesoPadrao'
 import { aplicarAdicao, removerGrupo } from '../../src/features/coach/meso/util'
 import { aplicarAlteracoes } from './edicao'
+import { linhaPrescrita, prescreverSessao } from '../../src/engine/sessao'
 
 describe('edição completa pelo MCP', () => {
+  it('preserva contagens do método numa troca semanal cujo exercício não foi substituído', () => {
+    const base = { ...mesoPadrao(), divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []], trocas: { '1-1-1': { slotId: 'rem', nome: 'Remada Curvada com Barra' } }, metodos: [{ ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Clusterset' as const, escopo: 'Todas as séries' as const, repsPorBloco: 4 }] }
+    const r = aplicarAlteracoes(base, [{ tipo: 'substituir', slotId: 'sup', nome: 'Prancha Frontal Isométrica (cotovelos)' }])
+    expect(r.metodos).toEqual(base.metodos)
+    expect(prescreverSessao(r, 1, 1)!.exercicios[0]).toMatchObject({ slot: { slotId: 'rem' }, reps: [4, 4, 4] })
+  })
+  it.each([
+    ['Supino Reto Barra', 'Prancha Frontal Isométrica (cotovelos)'],
+    ['Prancha Frontal Isométrica (cotovelos)', 'Supino Reto Barra'],
+  ])('reinicia também contagens dos métodos ao mudar de %s para %s', (de, para) => {
+    const base = { ...mesoPadrao(), divisao: [[{ slotId: 'a', nome: de }], [], []], metodos: [{ ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Clusterset' as const, escopo: 'Todas as séries' as const, repsPorBloco: 4, repsPadrao: 4, repsEtapa: [4], adicional: 4, pausaInternaS: 20, blocos: 3 }] }
+    const r = aplicarAlteracoes(base, [{ tipo: 'substituir', slotId: 'a', nome: para }])
+    const ex = prescreverSessao(r, 1, 1)!.exercicios[0]
+    expect(ex.reps).toEqual(ex.repsBase)
+    expect(r.metodos[0]).toEqual({ ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Clusterset', escopo: 'Todas as séries', pausaInternaS: 20, blocos: 3 })
+  })
+  it('mantém referências no lote após substituir repetidamente um exercício', () => {
+    const r = aplicarAlteracoes(mesoPadrao(), [
+      { tipo: 'adicionar', treino: 1, nome: 'Supino Reto Barra', referencia: 'novo' },
+      { tipo: 'substituir', slotId: 'novo', nome: 'Supino Reto Halter' },
+      { tipo: 'substituir', slotId: 'novo', nome: 'Remada Curvada com Barra' },
+      { tipo: 'prescricao', slotId: 'novo', semanas: [1], reps: [12, 10], pausaS: 90 },
+      { tipo: 'metodo', slotIds: ['novo'], semanas: [1], metodo: 'Rest-pause' },
+    ])
+    expect(r.divisao[0][0]).toMatchObject({ nome: 'Remada Curvada com Barra', pausaS: 90 })
+    expect(linhaPrescrita(r, 1, 1, 1)).toEqual([12, 10])
+    expect(r.metodos[0].metodo).toBe('Rest-pause')
+  })
+  it('não converte segundos em repetições ao substituir e aceita o ID original nas operações seguintes', () => {
+    const iso = { ...mesoPadrao(), divisao: [[{ slotId: 'iso', nome: 'Prancha Frontal Isométrica (cotovelos)' }], [], []], progressaoExercicio: { iso: Array.from({ length: 4 }, () => [45, 45, 45]) } }
+    const dinamico = aplicarAlteracoes(iso, [{ tipo: 'substituir', slotId: 'iso', nome: 'Supino Reto Barra' }])
+    expect(linhaPrescrita(dinamico, 1, 1, 1)).toEqual(iso.progressao.principais[0])
+    const r = aplicarAlteracoes(iso, [{ tipo: 'substituir', slotId: 'iso', nome: 'Supino Reto Barra' }, { tipo: 'prescricao', slotId: 'iso', semanas: [1], reps: [12, 12] }])
+    expect(linhaPrescrita(r, 1, 1, 1)).toEqual([12, 12])
+  })
+  it('inicializa segundos ao substituir um dinâmico e ao estender a duração', () => {
+    const base = { ...mesoPadrao(), divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []], progressaoExercicio: { sup: Array.from({ length: 4 }, () => [12, 12]) } }
+    const r = aplicarAlteracoes(base, [{ tipo: 'substituir', slotId: 'sup', nome: 'Prancha Frontal Isométrica (cotovelos)' }, { tipo: 'configurar', semanas: 5 }])
+    expect(linhaPrescrita(r, 1, 1, 1)).toEqual([30, 30, 30, null, null, null])
+    expect(linhaPrescrita(r, 5, 1, 1)).toEqual([30, 30, 30, null, null, null])
+  })
   it('aceita adição do editor que muda de posição entre semanas', () => {
     let m = mesoPadrao()
     m.adicoes = aplicarAdicao(m, 1, 1, 2, { slotId: 'a', nome: 'Supino Reto Barra' })

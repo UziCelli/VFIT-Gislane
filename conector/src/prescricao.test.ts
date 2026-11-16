@@ -11,6 +11,12 @@ const documento = { id: 'ciclo', updateTime: '2026-11-15T00:00:00Z', dados: { al
 const banco = () => ({ doc: vi.fn(async (p: string): Promise<Doc | null> => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? documento : null), consulta: vi.fn(async () => [documento]), lote: vi.fn(async (caminhos: string[]): Promise<{ caminho: string; doc: Doc | null }[]> => caminhos.map((caminho) => ({ caminho, doc: null }))), gravarMeso: vi.fn(async (_id: string, _dados: Record<string, unknown>, _esperado: string | null, _origem?: { id: string; updateTime: string }) => {}) })
 
 describe('prescrições do conector', () => {
+  it('recusa antecipar o próximo ciclo por operação e aceita adiar sem sobreposição', async () => {
+    const fs = banco()
+    await expect(prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno', alteracoes: [{ tipo: 'configurar', inicio: '2026-11-15' }] }, agora)).rejects.toThrow('após o ciclo atual')
+    const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno', alteracoes: [{ tipo: 'configurar', inicio: '2026-12-01' }] }, agora)
+    expect(p.dados.inicio).toBe('2026-12-01')
+  })
   it('prepara próximo com data do app e grava no ID compartilhado com condição de versão', async () => {
     const fs = banco()
     const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno' }, agora)

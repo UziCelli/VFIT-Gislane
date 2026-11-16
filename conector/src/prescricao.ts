@@ -49,6 +49,7 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   } else { base = { ...mesoPadrao(), inicio: hoje }; titulo = `Mesociclo ${docs.length + 1}` }
   let escolhido: Meso = e.acao === 'proximo' ? { ...(e.meso ?? base), inicio: base.inicio } : e.meso ?? base
   if (e.alteracoes) escolhido = aplicarAlteracoes(escolhido, e.alteracoes)
+  if (e.acao === 'proximo' && escolhido.inicio < base.inicio) throw new ErroConector('O próximo ciclo deve começar após o ciclo atual. Confira a data de início.', 'CALENDARIO', 'validacao', false)
   if (e.acao === 'editar' && base.inicio <= hoje && (escolhido.inicio !== base.inicio || escolhido.semanas < base.semanas || escolhido.frequencia < base.frequencia)) throw new ErroConector('Em ciclo já iniciado, não reduza duração/frequência nem mude o início: pode haver registros offline. Prepare um próximo ciclo.', 'HISTORICO_OFFLINE', 'validacao', false)
   const remocoes: NonNullable<PropostaPrescricao['remocoes']> = []
   if (e.removerSlotIds) {

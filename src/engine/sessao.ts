@@ -54,7 +54,7 @@ export function linhaPrescrita(meso: Meso, semana: number, treino: number, pos: 
 // e, no fim, as adições daquela semana (sem `de`: exercício novo).
 export function slotsDaSessao(meso: Meso, semana: number, treino: number): SlotSessao[] {
   const preservada = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
-  if (preservada) return preservada.sessao.exercicios.map((e) => ({ ...e.slot, repsRegistradas: e.reps.slice(0, e.n), origemIsometrica: isometrico(e.slot), pausaRegistradaS: e.pausaS }))
+  if (preservada) return preservada.sessao.exercicios.map((e) => ({ ...e.slot, repsRegistradas: e.repsBase ?? e.reps.slice(0, e.n), origemIsometrica: isometrico(e.slot), pausaRegistradaS: e.pausaS }))
   const editada = meso.sessoes?.[`${semana}-${treino}`]
   if (editada) return editada.exercicios
   return [
@@ -134,7 +134,7 @@ export function prescreverSessao(meso: Meso, semana: number, treino: number): Se
     if (iso) for (let k = 0; k < reps.length; k++) reps[k] = Math.min(LIMITE_ISOMETRIA_S, Math.max(1, reps[k]))
     const rotulo = linhas.map((m) => `${m.metodo} [${sufixo(m)}]`).join('; ')
     const pausaS = pausaRegistradaS ?? slot.pausaS ?? (de != null && de <= 2 ? (meso.pausaPrincipaisS ?? meso.pausaS) : meso.pausaS)
-    return { pos, slot, n, reps, rotulo, cargaSugerida, pausaS, drops }
+    return { pos, slot, n, reps, repsBase: Array.from({ length: n }, (_, k) => base(k + 1)), rotulo, cargaSugerida, pausaS, drops }
   })
 
   // §8 — tempo

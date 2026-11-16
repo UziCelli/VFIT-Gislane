@@ -29,6 +29,8 @@ Prefira `alteracoes` para pedidos pontuais. Não combine esse campo com `meso` o
 
 `referencia` identifica localmente um exercício recém-adicionado no mesmo lote; operações seguintes podem usá-la como `slotId`. IDs locais devem ser distintos dos IDs existentes. As operações de slot atuam na divisão planejada; trocas/adições semanais podem ser ajustadas pela prescrição completa em `meso`. Mudanças são validadas integralmente: uma operação inválida recusa o lote todo.
 
+Após `substituir`, o ID original ou a referência local continua válido para as operações seguintes do lote. A progressão só é copiada entre exercícios da mesma modalidade: mudar entre isometria e movimento dinâmico reinicia a linha na unidade correta e limpa contagens antigas dos métodos, preservando grupos, pausas e blocos. O lote pode definir as contagens novas depois da substituição. A extensão de semanas também conserva o padrão em segundos para isométricos.
+
 Exemplo com IDs fictícios:
 
 ```json
@@ -43,10 +45,11 @@ No editor, reduzir semanas ou dias retira métodos, trocas e adições do interv
 
 - Qualquer documento de registro protege a sessão, inclusive registro parcial, carga zero, reps e carga por lado. A prescrição resolvida é guardada em `prescricoesRegistradas`; o plano futuro pode mudar sem alterar esses exercícios, séries, métodos e pausas.
 - O conector nunca grava cargas/reps nem regrava `sessoes` presenciais. Ajustes presenciais continuam prevalecendo; a prévia mostra as sessões protegidas e os treinos antes/depois.
-- Edição presencial explícita conserva séries e pausas congeladas nas posições não alteradas. Salvar essa edição ou voltar ao planejado marca somente aquela cópia como invalidada; uma futura edição MCP captura a prescrição então vigente.
+- Edição presencial explícita conserva séries e pausas congeladas nas posições não alteradas. As cópias novas incluem as repetições antes dos métodos: remover um Clusterset restaura essa prescrição-base. Cópias legadas sem esse campo conservam as repetições resolvidas; não é possível reconstruir uma base ausente. Salvar essa edição ou voltar ao planejado marca somente aquela cópia como invalidada; uma futura edição MCP captura a prescrição então vigente.
 - App novo guarda uma cópia limitada e imutável no início do registro. Isso permite reconhecer a prescrição quando a fila offline chegar depois da edição. A gravação de cargas continua independente dessa cópia.
 - Clientes antigos podem sincronizar sem versão. `prescricoesAnteriores` guarda referências anteriores das sessões alteradas; quando aplicáveis, elas são exibidas com aviso de histórico incerto. Referência anterior não comprova qual prescrição foi usada. Dados brutos permanecem guardados; não se inventa uma confirmação histórica.
 - Em ciclo já iniciado, MCP não reduz duração/frequência nem muda o início, mesmo sem registros visíveis: pode haver fila offline. Prepare o próximo ciclo nesses casos. Mudanças nos dias também não podem deslocar sessões já registradas.
+- O início do próximo ciclo é validado após todas as operações: pode ser adiado, mas não antecipado para sobrepor o ciclo atual.
 - A confirmação exige as versões do mesociclo, do perfil do aluno, da origem da cópia e dos registros existentes/ausentes conferidos na preparação. Registro ou edição concorrente exige outra proposta.
 - Alteração e comprovante privado `mcpOperacoes` são gravados em um commit. Uma resposta perdida é reconciliada pelo comprovante, mesmo que outro ajuste tenha substituído o marcador do mesociclo. Comprovantes não contêm treino, são imutáveis e a limpeza diária os remove após 30 dias.
 - Há limites explícitos de tamanho: documento até 900 KB de JSON e proposta até 1,8 MB. Histórico nunca é truncado para caber. Use um próximo ciclo se o limite impedir a proposta.
@@ -81,7 +84,7 @@ Erros MCP preservam texto compatível e acrescentam `codigo`, `etapa`, `podeTent
 | Autorização somente leitura/incompleta | Novo consentimento apenas quando necessário; manter MFA |
 | `IDENTIDADE_MFA` | Login renovado não corresponde à identidade/projeto/MFA |
 | `APPCHECK` / `CONFIG_APPCHECK` | Conferir registro, segredo, app ID e APIs permitidas |
-| `VALIDACAO`, `VERSAO`, `HISTORICO`, `HISTORICO_OFFLINE` | Corrigir parâmetros, consultar novamente ou preparar próximo ciclo |
+| `VALIDACAO`, `VERSAO`, `HISTORICO`, `HISTORICO_OFFLINE`, `CALENDARIO` | Corrigir parâmetros, consultar novamente ou preparar próximo ciclo |
 | `FIRESTORE_401/403` na confirmação | Recusa definitiva; conferir login/App Check/regras; não deixar pendente |
 | Conflito, dados inválidos ou quota com recusa explícita | Recusar sem aplicar parcialmente; preparar novamente após resolver |
 | `RESULTADO_DESCONHECIDO` | Consultar comprovante; não repetir cegamente a gravação |

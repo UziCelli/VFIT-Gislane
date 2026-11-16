@@ -3,7 +3,28 @@ import { mesoPadrao } from '../features/coach/meso/mesoPadrao'
 import { prescreverSessao, metodosDaSessao } from '../engine/sessao'
 import { mesoParaDoc, docParaMeso } from './conversores'
 import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from './prescricaoRegistrada'
-import { iniciarEdicao, adicionarMetodo } from '../engine/editarSessao'
+import { iniciarEdicao, adicionarMetodo, removerMetodo } from '../engine/editarSessao'
+
+it('valida o número de séries-base e continua lendo cópias antigas sem esse campo', () => {
+  const m = { ...mesoPadrao(), divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []] }
+  const sessao = prescreverSessao(m, 1, 1)!
+  const copia = { versao: 1, sessao, metodos: [] }
+  const { repsBase: _base, ...antigo } = sessao.exercicios[0]
+  expect(lerPrescricaoRegistrada(JSON.stringify({ ...copia, sessao: { ...sessao, exercicios: [antigo] } }))).not.toBeNull()
+  expect(lerPrescricaoRegistrada(JSON.stringify({ ...copia, sessao: { ...sessao, exercicios: [{ ...antigo, repsBase: [10] }] } }))).toBeNull()
+})
+
+it('remover método no presencial restaura a base congelada, mesmo após mudança do plano', () => {
+  const base = { ...mesoPadrao(), divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []], progressaoExercicio: { sup: Array.from({ length: 4 }, () => [12, 12, 12]) }, metodos: [{ ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Clusterset' as const, escopo: 'Todas as séries' as const, repsPorBloco: 4 }] }
+  const sessao = prescreverSessao(base, 1, 1)!
+  expect(sessao.exercicios[0].reps).toEqual([4, 4, 4])
+  const texto = JSON.stringify({ versao: 1, sessao, metodos: base.metodos })
+  const depois = comPrescricoesRegistradas({ ...base, progressaoExercicio: { sup: Array.from({ length: 4 }, () => [20]) } }, [{ semana: 1, treino: 1, prescricaoRegistrada: texto }])
+  expect(depois.prescricoesRegistradas?.['1-1']?.sessao.exercicios[0].repsBase).toEqual([12, 12, 12])
+  const editada = removerMetodo(iniciarEdicao(depois, 1, 1), 1, 'Clusterset')
+  const r = prescreverSessao({ ...depois, sessoes: { '1-1': editada }, prescricoesRegistradas: { '1-1': null } }, 1, 1)!
+  expect(r.exercicios[0].reps).toEqual([12, 12, 12])
+})
 
 it('mantém séries e exercícios de uma sessão que sincronizou depois da mudança do plano', () => {
   const antes = { ...mesoPadrao(), divisao: [[{ slotId: 'face', nome: 'Facepull' }], [], []] }

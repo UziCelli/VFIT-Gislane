@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import catalogo from '../../src/data/exercicios.json'
-import { METODOS, emGrupo, linhaPrescrita, migrarProgressao, padraoMetodo, salvarLinha, totalCerto, type Meso } from '../../src/engine'
+import { METODOS, emGrupo, isometrico, linhaIsometrica, linhaPrescrita, migrarProgressao, padraoMetodo, progressaoIsometrica, salvarLinha, totalCerto, type Meso } from '../../src/engine'
 import { moverExercicio, removerExercicio, redimensionar } from '../../src/features/coach/meso/util'
 import { idSchema as id, nomeSchema as nome, metodoSchema, repsSchema } from '../../src/lib/prescricaoSchema'
 import { ErroConector } from './firestore'
@@ -37,8 +37,8 @@ export function aplicarAlteracoes(base: Meso, alteracoes: Alteracao[]): Meso {
     if (a.tipo === 'configurar') {
       const { tipo: _tipo, ...config } = a
       const n = a.semanas ?? m.semanas, f = a.frequencia ?? m.frequencia
-      const linhas = (l: (number | null)[][]) => redimensionar(l, n, () => [8, 8, 8, null, null, null])
-      m = { ...m, ...config, divisao: redimensionar(m.divisao, f, () => []), progressao: { principais: linhas(m.progressao.principais), auxiliares: linhas(m.progressao.auxiliares), ...(m.progressao.padrao && { padrao: linhas(m.progressao.padrao) }) }, progressaoExercicio: Object.fromEntries(Object.entries(m.progressaoExercicio ?? {}).map(([k, l]) => [k, linhas(l)])), metodos: m.metodos.filter((x) => x.semana <= n && x.treino <= f), trocas: Object.fromEntries(Object.entries(m.trocas ?? {}).filter(([k]) => { const [w, t] = k.split('-').map(Number); return w <= n && t <= f })), adicoes: Object.fromEntries(Object.entries(m.adicoes ?? {}).filter(([k]) => { const [w, t] = k.split('-').map(Number); return w <= n && t <= f })) }
+      const linhas = (l: (number | null)[][], iso = false) => redimensionar(l, n, () => iso ? linhaIsometrica() : [8, 8, 8, null, null, null])
+      m = { ...m, ...config, divisao: redimensionar(m.divisao, f, () => []), progressao: { principais: linhas(m.progressao.principais), auxiliares: linhas(m.progressao.auxiliares), ...(m.progressao.padrao && { padrao: linhas(m.progressao.padrao) }) }, progressaoExercicio: Object.fromEntries(Object.entries(m.progressaoExercicio ?? {}).map(([k, l]) => [k, linhas(l, m.divisao.flat().some((s) => s.slotId === k && isometrico(s)))])), metodos: m.metodos.filter((x) => x.semana <= n && x.treino <= f), trocas: Object.fromEntries(Object.entries(m.trocas ?? {}).filter(([k]) => { const [w, t] = k.split('-').map(Number); return w <= n && t <= f })), adicoes: Object.fromEntries(Object.entries(m.adicoes ?? {}).filter(([k]) => { const [w, t] = k.split('-').map(Number); return w <= n && t <= f })) }
       continue
     }
     if (a.tipo === 'adicionar') {
@@ -80,7 +80,21 @@ export function aplicarAlteracoes(base: Meso, alteracoes: Alteracao[]): Meso {
       if (!nomes.has(a.nome)) erro('Use um exercício do catálogo.')
       const novo = { ...slot, nome: a.nome, slotId: crypto.randomUUID() }
       m.divisao[t][p] = novo
-      if (m.progressaoExercicio?.[slot.slotId]) m.progressaoExercicio[novo.slotId] = structuredClone(m.progressaoExercicio[slot.slotId])
+      for (const [ref, atual] of referencias) if (atual === slot.slotId) referencias.set(ref, novo.slotId)
+      referencias.set(slot.slotId, novo.slotId)
+      if (isometrico(slot) === isometrico(novo)) {
+        if (m.progressaoExercicio?.[slot.slotId]) m.progressaoExercicio[novo.slotId] = structuredClone(m.progressaoExercicio[slot.slotId])
+      } else {
+        if (isometrico(novo)) {
+          m.progressaoExercicio ??= {}
+          m.progressaoExercicio[novo.slotId] = progressaoIsometrica(m.semanas)
+        }
+        m.metodos = m.metodos.map((metodo) => {
+          if (metodo.treino !== t + 1 || metodo.exercicio !== p + 1 || m.trocas?.[`${metodo.semana}-${t + 1}-${p + 1}`]) return metodo
+          const { repsPadrao: _padrao, repsPorBloco: _bloco, repsEtapa: _etapa, adicional: _adicional, ...semContagens } = metodo
+          return semContagens
+        })
+      }
     }
     if (a.tipo === 'prescricao') {
       m.progressaoExercicio ??= {}

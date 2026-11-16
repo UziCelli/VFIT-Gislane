@@ -98,6 +98,7 @@ export interface ExercicioPrescrito {
   slot: Slot
   n: number // séries da progressão
   reps: number[] // n séries + etapas do dropset
+  repsBase?: number[] // séries antes dos métodos; preservadas para edição presencial de sessão registrada
   rotulo: string // '' sem método
   cargaSugerida: (number | null)[] // null nas séries; carga da etapa nas etapas do dropset
   pausaS: number // pausa resolvida: slot > principais (pos 1–2) > meso

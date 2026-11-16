@@ -14,7 +14,7 @@ test('adicionar, juntar, editar e tirar métodos por exercício', async ({ page 
   const slots = ['Supino Reto Barra', 'Remada Curvada com Barra', 'Agachamento Livre'].map((nome, i) => ({ slotId: `a${i}`, nome }))
   const id = await criarMeso({
     alunoId, nome: 'Meso Met', frequencia: 2, semanas: 3, inicio: hojeSaoPaulo(), pausaS: 60,
-    divisao: { t1: slots, t2: slots }, progressao: { principais: linha, auxiliares: linha },
+    divisao: { t1: slots, t2: slots.map((s) => ({ ...s, slotId: `b${s.slotId}` })) }, progressao: { principais: linha, auxiliares: linha },
     metodos: [],
   })
 
@@ -56,14 +56,26 @@ test('adicionar, juntar, editar e tirar métodos por exercício', async ({ page 
 
   // 5. Salvar, recarregar e conferir
   await page.getByRole('button', { name: 'Salvar', exact: true }).click()
-  await page.waitForTimeout(1500)
+  await expect(page.getByText('Salvo', { exact: true })).toBeVisible()
   await page.reload()
   await page.getByRole('button', { name: 'Métodos', exact: true }).click()
   await expect(page.getByRole('button', { name: /^Dropset.*todas as semanas$/ })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Biset/ })).toHaveCount(0)
+
+  // Encurtar o ciclo também retira os métodos das semanas descartadas antes de validar.
+  await page.getByRole('button', { name: 'Config', exact: true }).click()
+  await page.getByLabel('Semanas', { exact: true }).fill('2')
+  await page.getByLabel('Semanas', { exact: true }).blur()
+  await page.getByRole('button', { name: 'Salvar', exact: true }).click()
+  await expect(page.getByText('Salvo', { exact: true })).toBeVisible()
+  await page.reload()
+  await expect(page.getByLabel('Semanas', { exact: true })).toHaveValue('2')
+  await page.getByRole('button', { name: 'Métodos', exact: true }).click()
+  await expect(page.getByRole('button', { name: /^Dropset.*todas as semanas$/ })).toBeVisible()
 })
 
 test('coach abre o guia de fisioterapia pelo seletor; aluno não vê o seletor e tem a aba Físio', async ({ page, browser }) => {
+  await criarAluno('Bia Guia', 'bia.guia@teste.com', 'senha123')
   await page.goto('/')
   await page.getByLabel('E-mail').fill(COACH.email)
   await page.getByLabel('Senha').fill(COACH.senha)
@@ -83,9 +95,10 @@ test('coach abre o guia de fisioterapia pelo seletor; aluno não vê o seletor e
   const ctx = await browser.newContext()
   const aluno = await ctx.newPage()
   await aluno.goto('/')
-  await aluno.getByLabel('E-mail').fill('bia.met@teste.com')
+  await aluno.getByLabel('E-mail').fill('bia.guia@teste.com')
   await aluno.getByLabel('Senha').fill('senha123')
   await aluno.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await expect(aluno.getByRole('heading', { name: 'Início' })).toBeVisible()
   await aluno.goto('/#/metodos')
   await expect(aluno.getByRole('heading', { name: 'Guia de métodos' })).toBeVisible()
   await expect(aluno.getByRole('link', { name: 'Físio', exact: true })).toHaveCount(1) // só a aba da barra

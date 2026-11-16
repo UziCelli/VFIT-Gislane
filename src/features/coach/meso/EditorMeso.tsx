@@ -23,7 +23,7 @@ import TabDivisao from './TabDivisao'
 import TabMetodos from './TabMetodos'
 import TabProgressao from './TabProgressao'
 import { lerProposta } from '../../fisio/propostaEditor'
-import { redimensionar } from './util'
+import { limitarPlanejamento, redimensionar } from './util'
 import { mesoSchema } from '../../../lib/prescricaoSchema'
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -105,6 +105,7 @@ export default function EditorMeso({ id }: { id: string }) {
       if (temCargas((_, t) => t > entrada.frequencia) && !confirm(`Os treinos removidos ${AVISO_CORTE}`)) return
       novo = { ...novo, divisao: novo.divisao.slice(0, novo.frequencia) }
     }
+    novo = limitarPlanejamento(novo)
     if (novo !== meso) setMeso(novo)
     const { sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, historicoIncerto: _i, ...prescricao } = novo
     if (!mesoSchema.safeParse(prescricao).success) {

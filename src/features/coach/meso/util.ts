@@ -27,6 +27,20 @@ export function redimensionar<T>(arr: T[], n: number, fabrica: () => T): T[] {
   return [...arr, ...Array.from({ length: n - arr.length }, fabrica)]
 }
 
+// Ao cortar semanas ou treinos, retire só o planejamento fora dos limites; preserve o histórico.
+export function limitarPlanejamento(meso: Meso): Meso {
+  const dentro = (chave: string) => {
+    const [w, t] = chave.split('-').map(Number)
+    return w <= meso.semanas && t <= meso.frequencia
+  }
+  return {
+    ...meso,
+    metodos: meso.metodos.filter((m) => m.semana <= meso.semanas && m.treino <= meso.frequencia),
+    ...(meso.trocas && { trocas: Object.fromEntries(Object.entries(meso.trocas).filter(([k]) => dentro(k))) }),
+    ...(meso.adicoes && { adicoes: Object.fromEntries(Object.entries(meso.adicoes).filter(([k]) => dentro(k))) }),
+  }
+}
+
 // Semanas (1..meso.semanas) em que a posição `pos` do treino `t` tem alguma carga registrada,
 // considerando o slotId vigente naquela semana (troca pontual, se houver).
 export function semanasComHistorico(

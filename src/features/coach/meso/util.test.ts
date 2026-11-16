@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Meso } from '../../../engine'
-import { agruparTrocas, aplicarAcoes, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, moverExercicio, nomeImportado, posicoesAdicionadas, removerExercicio, removerGrupo, trocarExercicio } from './util'
+import { agruparTrocas, aplicarAcoes, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, limitarPlanejamento, moverExercicio, nomeImportado, posicoesAdicionadas, removerExercicio, removerGrupo, trocarExercicio } from './util'
+import { mesoSchema } from '../../../lib/prescricaoSchema'
 
 const meso = {
   frequencia: 3,
@@ -20,6 +21,34 @@ const meso = {
   ],
   progressaoExercicio: { a1: [[10, 8]], b1: [[5]] },
 } as unknown as Meso
+
+describe('limitarPlanejamento', () => {
+  it('permite salvar após cortar semanas e frequência sem apagar histórico ou alterar a origem', () => {
+    const metodo = { ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Dropset' as const, escopo: 'Todas as séries' as const }
+    const slot = { slotId: 'troca', nome: 'Supino' }
+    const entrada: Meso = {
+      ...meso, semanas: 2, frequencia: 1, divisao: [meso.divisao[0]],
+      progressao: { principais: [[10], [10]], auxiliares: [[10], [10]] },
+      progressaoExercicio: undefined,
+      metodos: [metodo, { ...metodo, semana: 3 }, { ...metodo, treino: 2 }],
+      trocas: { '1-1-1': slot, '3-1-1': slot, '1-2-1': slot },
+      adicoes: { '2-1': [{ ...slot, slotId: 'extra' }], '3-1': [slot], '1-2': [slot] },
+      sessoes: { '3-2': { semana: 3, treino: 2, exercicios: [slot], metodos: [] } },
+      prescricoesRegistradas: { '3-2': null }, prescricoesAnteriores: { '3-2': [] },
+    }
+    expect(mesoSchema.safeParse(entrada).success).toBe(false)
+    const resultado = limitarPlanejamento(entrada)
+    expect(resultado.metodos).toEqual([metodo])
+    expect(Object.keys(resultado.trocas!)).toEqual(['1-1-1'])
+    expect(Object.keys(resultado.adicoes!)).toEqual(['2-1'])
+    expect(resultado.sessoes).toBe(entrada.sessoes)
+    expect(resultado.prescricoesRegistradas).toBe(entrada.prescricoesRegistradas)
+    expect(resultado.prescricoesAnteriores).toBe(entrada.prescricoesAnteriores)
+    expect(entrada.metodos).toHaveLength(3)
+    const { sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, ...prescricao } = resultado
+    expect(mesoSchema.safeParse(prescricao).success).toBe(true)
+  })
+})
 
 describe('copiarTreino', () => {
   it('copia slots com ids novos, métodos e progressão; não mexe na origem nem nas trocas', () => {

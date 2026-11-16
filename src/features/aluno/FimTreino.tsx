@@ -193,14 +193,16 @@ export default function FimTreino({
           aoErro={foto ? () => { setErro(true); setFoto(undefined) } : undefined}
         />
         {foto && (
-          <div className="flex gap-2">
-            <Botao tipo="vidro" className="flex-1" onClick={() => camera.current?.click()}>
-              <IcCamera className="mr-1.5 inline size-5 align-[-4px]" /> Nova foto
-            </Botao>
-            <Botao tipo="vidro" className="flex-1" onClick={() => entrada.current?.click()}>
-              Trocar foto
-            </Botao>
-            <Botao tipo="fantasma" className="flex-1" onClick={() => { setFoto(undefined); setPrevia(undefined) }}>
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <Botao tipo="vidro" className="flex-1" onClick={() => camera.current?.click()}>
+                Nova foto
+              </Botao>
+              <Botao tipo="vidro" className="flex-1" onClick={() => entrada.current?.click()}>
+                Trocar foto
+              </Botao>
+            </div>
+            <Botao tipo="fantasma" className="w-full" onClick={() => { setFoto(undefined); setPrevia(undefined) }}>
               Remover foto
             </Botao>
           </div>

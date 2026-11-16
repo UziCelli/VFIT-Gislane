@@ -49,12 +49,21 @@ test('OAuth PKCE → MCP HTTP → RPC/SQLite → prévia → confirmação com r
         if (u.hostname === 'firebaseappcheck.googleapis.com') return Response.json({ token: 'appcheck-fixture', ttl: '3600s' })
         assert.equal(u.hostname, 'firestore.googleapis.com', 'Saída desconhecida deve falhar fechada')
         const headers = new Headers(request.headers)
+        // O corpo é reconstruído pelo proxy; não encaminhar framing/compressão do outro salto.
+        for (const nome of ['Host', 'Content-Length', 'Transfer-Encoding', 'Connection', 'Accept-Encoding']) headers.delete(nome)
         headers.set('Authorization', `Bearer ${b64({ alg: 'none', typ: 'JWT' })}.${b64(claims('runtimeCoach', 'demo-forca'))}.`)
         headers.delete('X-Firebase-AppCheck')
         const resposta = await fetch(`http://${process.env.FIRESTORE_EMULATOR_HOST}${u.pathname.replace('/projects/forca--app/', '/projects/demo-forca/')}${u.search}`, { method: request.method, headers, ...(request.method !== 'GET' && { body: (await request.text()).replaceAll('projects/forca--app/', 'projects/demo-forca/') }) })
         const body = await resposta.text()
+        if (!resposta.ok && resposta.status !== 404) {
+          let codigo = 'desconhecido'
+          try { codigo = JSON.parse(body).error?.status ?? codigo } catch { /* Resposta sem JSON. */ }
+          console.error(JSON.stringify({ fixture: 'firestore-emulado', metodo: request.method, caminho: u.pathname, status: resposta.status, codigo }))
+        }
         if (u.pathname.endsWith(':commit') && perderResposta && resposta.ok) { perderResposta = false; return new Response('falha simulada após commit', { status: 503 }) }
-        return new Response(body.replaceAll('projects/demo-forca/', 'projects/forca--app/'), { status: resposta.status, headers: resposta.headers })
+        const respostaHeaders = new Headers(resposta.headers)
+        for (const nome of ['Content-Length', 'Content-Encoding', 'Transfer-Encoding', 'Connection']) respostaHeaders.delete(nome)
+        return new Response(body.replaceAll('projects/demo-forca/', 'projects/forca--app/'), { status: resposta.status, headers: respostaHeaders })
       },
     }))
     const worker = await mf.getWorker()

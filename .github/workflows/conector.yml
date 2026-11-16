@@ -34,10 +34,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: conector/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            conector/package-lock.json
+      - name: Instalar dependências compartilhadas com o app
+        run: npm ci
       - name: Instalar dependências do conector
         working-directory: conector
         run: npm ci
+      - name: Conferir o bundle antes de acessar serviços externos
+        working-directory: conector
+        run: npx wrangler deploy --dry-run
       - name: Validar App Check antes da publicação
         env:
           APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN }}

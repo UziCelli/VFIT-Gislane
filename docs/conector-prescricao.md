@@ -47,7 +47,7 @@ O app do coach mostra sozinho as propostas aguardando: aviso no topo de qualquer
 
 - **Índice por coach:** ao preparar, o Worker grava um resumo (id, aluno, nome, ação, prazo; nunca o treino) na instância `__indice:<uid>` da própria classe `PropostaTreino` (sem nova migração). Máximo de 20, remove vencidas há mais de 24 h. Falha ao indexar não falha a proposta: o link continua valendo.
 - **`GET /prescricao/pendentes`:** mesmo login do coach com 2 etapas e App Check das demais rotas `/prescricao`. Devolve `{ propostas: [{ id, nome, alunoNome, acao, resumo, expiraEm, status }] }` só com `proposta` e `resultado_pendente`, na ordem de criação (mais nova primeiro). Salva, recusada, vencida ou inexistente saem da lista e do índice.
-- **Atualização:** o app consulta a cada 15 s com a tela visível, ao voltar para a aba, ao recuperar a internet e logo após salvar. Sem o app aberto não há aviso (notificação push fora de escopo).
+- **Atualização:** sem consulta periódica (poupa Worker, Firestore e App Check). O app consulta ao abrir, ao voltar para ele depois de 30 s ou mais, ao recuperar a internet, após salvar e no botão **Verificar agora** (tela Treinos do assistente, atalho no Início). Aviso automático na hora exigiria notificação push ou marcador em tempo real no Firestore (fora de escopo).
 - **Decisões:** lista geral (todos os alunos), só pendentes (sem histórico). O Worker é único (`APP_URL` fixo), então a lista não é separada por marca.
 
 ## Histórico e concorrência

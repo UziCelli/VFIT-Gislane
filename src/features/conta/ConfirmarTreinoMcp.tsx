@@ -11,25 +11,26 @@ type Visualizacao = { status: string; mensagem?: string; proposta?: { nome: stri
 const ACAO = { editar: 'Alterar treino existente', proximo: 'Criar próximo treino', criar: 'Criar treino' } as const
 
 // Sem id (aberto pelo aviso do app): lista o que o assistente preparou e ainda não foi salvo.
-function ListaPropostas({ pendentes }: { pendentes: PropostaPendente[] }) {
+function ListaPropostas({ pendentes, verificando }: { pendentes: PropostaPendente[]; verificando: boolean }) {
   return (
     <Pagina titulo="Treinos do assistente">
       <Cartao className="max-w-2xl space-y-3">
-        {pendentes.length === 0 && <p>Nenhum treino aguardando. Quando o assistente preparar um, ele aparece aqui sozinho.</p>}
+        {pendentes.length === 0 && <p>{verificando ? 'Verificando…' : 'Nenhum treino aguardando. Depois de pedir um treino ao assistente, toque em Verificar agora.'}</p>}
         {pendentes.map((p) => (
           <a key={p.id} href={`#${rotaDaProposta(p.id)}`} className="block rounded-xl border border-slate-600 p-3 hover:border-slate-500">
             <strong>{p.alunoNome}</strong> · {ACAO[p.acao as keyof typeof ACAO] ?? 'Treino'}
             <span className="block text-sm text-slate-400">{p.nome}{p.status === 'resultado_pendente' ? ' · confirmar se foi salvo' : ''}</span>
           </a>
         ))}
+        <Botao disabled={verificando} carregando={verificando} onClick={atualizarPropostasMcp}>Verificar agora</Botao>
       </Cartao>
     </Pagina>
   )
 }
 
 // O link só identifica a proposta; o servidor exige o login do coach que a criou.
-export default function ConfirmarTreinoMcp({ id, pendentes = [] }: { id: string | null; pendentes?: PropostaPendente[] }) {
-  if (!id) return <ListaPropostas pendentes={pendentes} />
+export default function ConfirmarTreinoMcp({ id, pendentes = [], verificando = false }: { id: string | null; pendentes?: PropostaPendente[]; verificando?: boolean }) {
+  if (!id) return <ListaPropostas pendentes={pendentes} verificando={verificando} />
   return <ConferirProposta id={id} />
 }
 

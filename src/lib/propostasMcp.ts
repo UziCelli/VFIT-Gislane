@@ -3,7 +3,6 @@ import { auth } from './firebase'
 
 export const CONECTOR_URL = import.meta.env.VITE_CONECTOR_URL as string | undefined
 const EVENTO = 'vfit:propostas-mcp'
-const INTERVALO_MS = 15_000
 
 export type PropostaPendente = { id: string; nome: string; alunoNome: string; acao: string; resumo: string; expiraEm: string; status: 'proposta' | 'resultado_pendente' }
 
@@ -15,39 +14,45 @@ export async function buscarPendentes(base: string, token: string, buscar: typeo
   return (Array.isArray(corpo.propostas) ? corpo.propostas : []).filter((p): p is PropostaPendente => !!p && typeof (p as PropostaPendente).id === 'string' && typeof (p as PropostaPendente).nome === 'string')
 }
 
-// Pede para o app conferir de novo agora (ex.: depois de salvar uma proposta).
+// Pede para o app conferir de novo agora (botão "Verificar agora", depois de salvar uma proposta).
 export const atualizarPropostasMcp = () => window.dispatchEvent(new Event(EVENTO))
 
-// Confere sozinho enquanto o app está aberto: a cada 15 s, ao voltar para a aba e ao recuperar a internet.
-// Falha de rede mantém a última lista (o aviso não some por um solavanco de conexão).
-export function usePropostasMcp(ativo: boolean): PropostaPendente[] {
+// Sem consulta periódica (poupa Worker, Firestore e App Check). Confere em poucos momentos:
+// ao abrir o app, ao voltar para ele depois de um tempo fora, e quando o coach pede ("Verificar agora").
+// Falha de rede mantém a última lista.
+const INTERVALO_MINIMO_MS = 30_000
+export function usePropostasMcp(ativo: boolean): { lista: PropostaPendente[]; verificando: boolean } {
   const [lista, setLista] = useState<PropostaPendente[]>([])
+  const [verificando, setVerificando] = useState(false)
   useEffect(() => {
     if (!ativo || !CONECTOR_URL) return
     let vivo = true
     let ocupado = false
-    async function conferir() {
-      if (ocupado || document.visibilityState !== 'visible' || !auth.currentUser) return
+    let ultima = 0
+    async function conferir(manual: boolean) {
+      if (ocupado || !auth.currentUser) return
+      if (!manual && (document.visibilityState !== 'visible' || Date.now() - ultima < INTERVALO_MINIMO_MS)) return
       ocupado = true
+      ultima = Date.now()
+      if (vivo) setVerificando(true)
       try {
         const token = await auth.currentUser.getIdToken()
         const novas = await buscarPendentes(CONECTOR_URL!, token)
         if (vivo) setLista((antes) => (JSON.stringify(antes) === JSON.stringify(novas) ? antes : novas))
-      } catch { /* mantém a lista anterior */ } finally { ocupado = false }
+      } catch { /* mantém a lista anterior */ } finally { ocupado = false; if (vivo) setVerificando(false) }
     }
-    void conferir()
-    const timer = setInterval(() => void conferir(), INTERVALO_MS)
-    const agora = () => void conferir()
-    document.addEventListener('visibilitychange', agora)
-    window.addEventListener('online', agora)
-    window.addEventListener(EVENTO, agora)
+    void conferir(true)
+    const voltou = () => void conferir(false)
+    const pedido = () => void conferir(true)
+    document.addEventListener('visibilitychange', voltou)
+    window.addEventListener('online', voltou)
+    window.addEventListener(EVENTO, pedido)
     return () => {
       vivo = false
-      clearInterval(timer)
-      document.removeEventListener('visibilitychange', agora)
-      window.removeEventListener('online', agora)
-      window.removeEventListener(EVENTO, agora)
+      document.removeEventListener('visibilitychange', voltou)
+      window.removeEventListener('online', voltou)
+      window.removeEventListener(EVENTO, pedido)
     }
   }, [ativo])
-  return lista
+  return { lista, verificando }
 }

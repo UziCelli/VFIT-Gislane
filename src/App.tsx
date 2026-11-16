@@ -259,7 +259,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   const rota = useRota()
   const [semFator, setSemFator] = useState(false)
   const [tutorial, setTutorial] = useState(tutorialCoachNaoVisto)
-  const propostasMcp = usePropostasMcp(true) // treinos que o assistente (Claude, ChatGPT…) preparou e aguardam o coach
+  const { lista: propostasMcp, verificando: verificandoMcp } = usePropostasMcp(true) // treinos que o assistente (Claude, ChatGPT…) preparou e aguardam o coach
   useEffect(() => {
     // O token vale até o próximo login: quem acabou de ativar o 2º fator precisa sair e entrar de novo.
     auth.currentUser?.getIdTokenResult().then((t) => setSemFator(faltaSegundoFator(t.claims))).catch(() => {})
@@ -288,7 +288,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />
   else if (rota === '/metodos') tela = <GuiaMetodos coach />
   else if (rota === '/fisio') tela = <GuiaFisio />
-  else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} pendentes={propostasMcp} />
+  else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} pendentes={propostasMcp} verificando={verificandoMcp} />
   else if (rota.startsWith('/conectar-claude')) tela = <ConectarClaude pedido={new URLSearchParams(rota.split('?')[1]).get('pedido')} />
   else if (rota === '/conta') tela = <MinhaConta uid={uid} email={email} abrirTutorial={() => setTutorial(true)} />
   return (

@@ -21,5 +21,6 @@ Instruções comuns: Codex lê CODEX.md; Claude Code lê CLAUDE.md; cada agente 
 ## Economia sem perder proteção
 
 - Faça validação proporcional: testes afetados, ampliando por risco ou falha; não repita testes aprovados sem mudança relevante. Preserve o CI obrigatório. PR em rascunho adia o CI pesado existente até ficar pronta.
+- **Minutos do Actions são limitados (repositório privado, plano grátis, vários repositórios do dono). Não rode teste à toa.** Durante o trabalho: nenhum teste, ou só o do arquivo afetado quando indispensável. Nunca e2e nem regras com emuladores por rotina. A PR fica em rascunho até a revisão cruzada (`@codex review` em comentário) terminar e não haver ajuste pendente; só então sai do rascunho, para uma única rodada completa de CI. Falha de instabilidade: reexecute só o job que falhou. Não reexecute verificação verde sem mudança. Mudança só de documentação não pede teste. Publicação só no merge.
 - Sem delegação automática para tarefas simples. Use ferramentas determinísticas para operações simples; não prometa economia exata ou troca de modelo indisponível.
 - Atualize documentação só quando comportamento, regra ou pendência mudar. Uma fonte por assunto; links nos demais lugares. Não acumule diário de entregas no contexto inicial.

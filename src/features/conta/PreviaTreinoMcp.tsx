@@ -17,6 +17,7 @@ function detalheMetodo(m: AplicacaoMetodo) {
 export function PreviaTreinoMcp({ dados }: { dados: MesoDoc }) {
   const meso = docParaMeso(dados)
   return <div className="space-y-3 text-sm text-slate-200">
+    {Object.values(meso.prescricoesRegistradas ?? {}).some((p) => p?.referenciaHistorica) && <p role="status" className="text-amber-200">Há registros antigos sem versão: a prescrição anterior é uma referência. Confira cargas e repetições registradas.</p>}
     <p>{meso.frequencia} treinos por semana · {meso.semanas} semanas · {data(meso.inicio)} a {data(fimISO(meso))}</p>
     <p>{meso.dias?.length ? `Dias: ${meso.dias.map((d) => DIAS[d]).join(', ')}` : 'Dias livres: o app sugere o próximo treino.'}</p>
     <p>Pausa padrão: {meso.pausaS} s{meso.pausaPrincipaisS != null && ` · Pausa dos principais: ${meso.pausaPrincipaisS} s`}</p>

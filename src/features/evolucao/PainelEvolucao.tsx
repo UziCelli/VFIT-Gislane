@@ -13,6 +13,7 @@ import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../lib/
 import { ir } from '../../rota'
 import { campoBase, Cartao, cascata, Centro, Contar, item } from '../../ui'
 import { BotaoVoltar } from '../../voltar'
+import { comPrescricoesRegistradas } from '../../lib/prescricaoRegistrada'
 import { mesoAtual } from '../aluno/mesoAtual'
 import { fmt } from '../coach/semana/format'
 import BotaoCompartilhar from './BotaoCompartilhar'
@@ -48,7 +49,7 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
   const [soMeso, setSoMeso] = useState(false)
   const [exercicio, setExercicio] = useState('')
 
-  const mesos = useMemo(() => mesosL.dados.map((d) => ({ id: d.id, meso: docParaMeso(d), nome: d.nome })), [mesosL.dados])
+  const mesos = useMemo(() => mesosL.dados.map((d) => ({ id: d.id, meso: comPrescricoesRegistradas(docParaMeso(d), regsL.dados.filter((r) => r.mesoId === d.id)), nome: d.nome })), [mesosL.dados, regsL.dados])
   const atual = useMemo(() => mesoAtual(mesosL.dados), [mesosL.dados])
   const mesoId = soMeso ? atual?.doc.id : undefined
   const agora = new Date()

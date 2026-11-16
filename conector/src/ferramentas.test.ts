@@ -5,6 +5,7 @@ import { executar } from './execucao'
 import { catalogoExercicios, listarAlunos, resumirCargas, verAluno, verMesos } from './ferramentas'
 import { Firestore } from './firestore'
 import { paraRest, Ts } from './rest'
+import { entradaPrescricaoSchema } from './prescricao'
 
 const HOJE = new Date('2026-11-12T15:00:00Z')
 const SLOT = { slotId: 'sx1', nome: 'Supino Reto Barra' }
@@ -139,6 +140,12 @@ describe('ver_mesos', () => {
     const r = await verMesos(banco({ ...dados, mesos: { m1, m2: meso('2026-12-01') }, registros }).fs, 'al1', 'm2', HOJE)
     expect(r.map((m) => m.id)).toEqual(['m2'])
   })
+  it('prescrição completa usa exatamente o formato aceito por preparar_treino', async () => {
+    const [r] = await verMesos(banco({ ...dados, mesos: { m1 } }).fs, 'al1', 'm1', HOJE, true)
+    expect(Array.isArray(r.prescricao?.divisao)).toBe(true)
+    expect(entradaPrescricaoSchema.safeParse({ acao: 'editar', alunoId: 'al1', mesoId: 'm1', meso: r.prescricao }).success).toBe(true)
+    expect(r.prescricao).not.toHaveProperty('sessoes')
+  })
 })
 
 describe('resumirCargas', () => {
@@ -164,7 +171,7 @@ describe('executar (formato da resposta)', () => {
     const urls: string[] = []
     const buscar = (async (u: string) => (urls.push(u), Response.json({ id_token: 'novo' }))) as typeof fetch
     const r = await executar(cfg(buscar), async (fs) => ({ ok: fs instanceof Firestore }))
-    expect(r).toEqual({ content: [{ type: 'text', text: '{"ok":true}' }] })
+    expect(r).toMatchObject({ content: [{ type: 'text', text: '{"ok":true}' }] })
     expect(urls[0]).toContain('securetoken.googleapis.com')
   })
   it('refresh recusado ou sem refreshToken = pede para conectar de novo', async () => {

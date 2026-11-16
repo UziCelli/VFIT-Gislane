@@ -24,7 +24,7 @@ const deMapa = <T>(m: Linhas<T>, p: string): T[][] => Object.keys(m).map((_, i) 
 
 // `sessoes` (treinos ajustados no presencial) nunca sai daqui: o editor do meso grava com updateDoc e não pode
 // apagar nem regravar um ajuste feito no celular do coach. Só salvarSessaoEditada/voltarAoPlanejado mexem nelas.
-export function mesoParaDoc({ sessoes: _s, ...meso }: Meso): MesoDoc {
+export function mesoParaDoc({ sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, historicoIncerto: _i, ...meso }: Meso): MesoDoc {
   return {
     ...meso,
     // Sempre presente: ao editar (updateDoc), trocas removidas não podem sobrar no documento.
@@ -49,6 +49,8 @@ export function mesoParaDoc({ sessoes: _s, ...meso }: Meso): MesoDoc {
 export function docParaMeso(d: MesoDoc): Meso {
   return {
     frequencia: d.frequencia,
+    ...(d.prescricoesRegistradas && { prescricoesRegistradas: d.prescricoesRegistradas }),
+    ...(d.prescricoesAnteriores && { prescricoesAnteriores: d.prescricoesAnteriores }),
     semanas: d.semanas,
     inicio: d.inicio,
     pausaS: d.pausaS,
@@ -84,6 +86,7 @@ export const caminhoCarga = (slotId: string, coluna: number) => `cargas.${slotId
 
 type CargasDoc = Record<string, Record<string, number | null>>
 export interface RegistroDoc {
+  prescricaoRegistrada?: string
   semana: number
   treino: number
   cargas?: CargasDoc

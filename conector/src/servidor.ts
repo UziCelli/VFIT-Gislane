@@ -8,11 +8,11 @@ import { catalogoExercicios, listarAlunos, verAluno, verMesos } from './ferramen
 
 type Rodar = (leitura: Parameters<typeof executar>[1]) => ReturnType<typeof executar>
 
-export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: EntradaPrescricao) => Promise<Resposta>; consultar: (id: string) => Promise<Resposta> }, diagnostico: () => unknown = () => undefined) {
-  const s = new McpServer({ name: 'vfit-conector', version: '1.0.0' })
+export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: EntradaPrescricao) => Promise<Resposta>; consultar: (id: string) => Promise<Resposta> }, diagnostico: () => unknown = () => undefined, verificar?: () => Promise<Resposta>) {
+  const s = new McpServer({ name: 'vfit-conector', version: '2.0.0' }, { instructions: 'Consulte verificar_conexao e ver_mesos antes de editar. Identifique exercícios por slotId; prefira alteracoes para pedidos pontuais. Cada lote é integral e requer confirmação no app. Sessões registradas e ajustes presenciais são preservados. Uma proposta não é um treino salvo. Em resultado pendente, consulte antes de preparar outra proposta.' })
   const annotations = { readOnlyHint: true, destructiveHint: false, openWorldHint: true }
   const alunoId = z.string().describe('id do aluno (vem de listar_alunos)')
-  s.registerTool('verificar_conexao', { annotations, description: 'Verifica as permissões da conexão atual e se pode preparar propostas de treino.' }, async () => ({ content: [{ type: 'text' as const, text: JSON.stringify(statusDeConexao(diagnostico())) }] }))
+  s.registerTool('verificar_conexao', { annotations, description: 'Verifica autorização e dependências reais do conector antes de preparar propostas.' }, verificar ?? (async () => ({ content: [{ type: 'text' as const, text: JSON.stringify(statusDeConexao(diagnostico())) }] })))
   s.registerTool('listar_alunos', { annotations, description: 'Lista os alunos: nome, status, pago até, meso atual (semana e fim) e se já tem próximo meso.' }, () => rodar((fs) => listarAlunos(fs)))
   s.registerTool(
     'ver_aluno',
@@ -24,15 +24,15 @@ export function criarServidor(rodar: Rodar, propostas?: { preparar: (entrada: En
     {
       annotations,
       description: 'Mesos do aluno (atual, próximo e anteriores): treinos, exercícios, séries e reps prescritas por semana e as cargas × reps que o aluno registrou. Para remover exercícios, use os slotId da divisaoPlanejada, não os exercícios de sessões ajustadas.',
-      inputSchema: z.object({ alunoId, mesoId: z.string().optional().describe('só este meso (opcional)') }),
+      inputSchema: z.object({ alunoId, mesoId: z.string().optional().describe('só este meso (opcional)'), incluirPrescricao: z.boolean().optional().describe('Retorna configuração completa e versão; exige mesoId.') }),
     },
-    ({ alunoId, mesoId }) => rodar((fs) => verMesos(fs, alunoId, mesoId)),
+    ({ alunoId, mesoId, incluirPrescricao }) => rodar((fs) => verMesos(fs, alunoId, mesoId, new Date(), incluirPrescricao)),
   )
   s.registerTool('catalogo_exercicios', { annotations, description: 'Nomes dos exercícios do catálogo (use exatamente estes) e os métodos disponíveis.' }, () => rodar(async () => catalogoExercicios()))
   if (propostas) {
     s.registerTool('preparar_treino', {
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
-      description: 'Prepara uma proposta de treino. Para remover exercícios da divisão, use acao editar com mesoId e removerSlotIds obtidos em ver_mesos.divisaoPlanejada; omita meso. Registros e sessões são preservados. Nenhum mesociclo é salvo até o coach revisar e confirmar no app.',
+      description: 'Prepara criação, próximo ciclo ou edição por alteracoes: adicionar, substituir, remover, mover, prescricao, metodo e configurar. Use slotId e versao de ver_mesos; novos exercícios podem usar referencia local no lote. Não combine alteracoes com meso ou removerSlotIds. Sessões registradas e presenciais são preservadas. Nenhum treino é salvo até o coach revisar e confirmar no app.',
       inputSchema: entradaPrescricaoSchema,
     }, (entrada) => propostas.preparar(entrada))
     s.registerTool('consultar_proposta', {

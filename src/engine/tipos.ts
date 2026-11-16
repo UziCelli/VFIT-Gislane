@@ -40,7 +40,7 @@ export interface Slot {
 // Exercício de uma sessão editada na hora. `de` = posição do treino planejado cuja progressão (séries/reps)
 // e pausa ele segue; sem `de` (exercício novo) = progressão padrão (ou auxiliares) e pausa do meso.
 // Origem estável das novas edições: permanece nas trocas presenciais, mesmo se o plano mudar offline.
-export type SlotSessao = Slot & { de?: number; origemSlotId?: string; origemIsometrica?: boolean }
+export type SlotSessao = Slot & { de?: number; origemSlotId?: string; origemIsometrica?: boolean; repsRegistradas?: number[]; pausaRegistradaS?: number }
 
 // Treino de um dia (semana + treino) ajustado pelo coach no presencial. Substitui só aquela sessão:
 // a lista de exercícios (divisão + trocas) e os métodos dela. Posições dos métodos = índice + 1 nesta lista.
@@ -52,6 +52,9 @@ export interface SessaoEditada {
 }
 
 export interface Meso {
+  prescricoesRegistradas?: Record<string, { versao: 1; sessao: Sessao; metodos: AplicacaoMetodo[]; referenciaHistorica?: boolean } | null>
+  prescricoesAnteriores?: Record<string, { versao: 1; sessao: Sessao; metodos: AplicacaoMetodo[] }[]>
+  historicoIncerto?: string[]
   frequencia: number
   semanas: number
   inicio: string // YYYY-MM-DD
@@ -95,6 +98,7 @@ export interface ExercicioPrescrito {
   slot: Slot
   n: number // séries da progressão
   reps: number[] // n séries + etapas do dropset
+  repsBase?: number[] // séries antes dos métodos; preservadas para edição presencial de sessão registrada
   rotulo: string // '' sem método
   cargaSugerida: (number | null)[] // null nas séries; carga da etapa nas etapas do dropset
   pausaS: number // pausa resolvida: slot > principais (pos 1–2) > meso

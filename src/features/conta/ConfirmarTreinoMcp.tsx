@@ -6,7 +6,7 @@ import { PreviaTreinoMcp } from './PreviaTreinoMcp'
 
 const BASE = import.meta.env.VITE_CONECTOR_URL as string | undefined
 
-type Visualizacao = { status: string; proposta?: { nome: string; alunoNome: string; acao: string; resumo: string; dados: MesoDoc; previaDados?: MesoDoc; antes?: MesoDoc & { nome?: string }; remocoes?: { nome: string; treino: number }[]; avisos?: string[] } }
+type Visualizacao = { status: string; mensagem?: string; proposta?: { nome: string; alunoNome: string; acao: string; resumo: string; dados: MesoDoc; previaDados?: MesoDoc; antes?: MesoDoc & { nome?: string }; remocoes?: { nome: string; treino: number }[]; avisos?: string[]; sessoesPreservadas?: string[] } }
 
 // O link só identifica a proposta; o servidor exige o login do coach que a criou.
 export default function ConfirmarTreinoMcp({ id }: { id: string | null }) {
@@ -60,12 +60,13 @@ export default function ConfirmarTreinoMcp({ id }: { id: string | null }) {
           </section>}
           {!dados.proposta.remocoes?.length && (dados.proposta.avisos?.length ?? 0) > 0 && <div className="space-y-2">{dados.proposta.avisos!.map((aviso, i) => <Aviso key={i}>{aviso}</Aviso>)}</div>}
           <p className="text-sm">Confira os detalhes de todas as semanas antes de salvar.</p>
+          {!!dados.proposta.sessoesPreservadas?.length && <Aviso>Sessões com registros preservadas (semana-treino): {dados.proposta.sessoesPreservadas.join(', ')}. As alterações valem para as demais sessões planejadas.</Aviso>}
           {dados.proposta.antes && <details className="rounded-xl border border-slate-600 p-3"><summary className="cursor-pointer font-semibold">Treino atual antes da alteração</summary><p className="my-2">{dados.proposta.antes.nome}</p><PreviaTreinoMcp dados={dados.proposta.antes} /></details>}
           <h3 className="font-semibold">{dados.proposta.acao === 'editar' ? 'Treino proposto após a alteração' : 'Treino proposto'}</h3>
           <PreviaTreinoMcp dados={dados.proposta.previaDados ?? dados.proposta.dados} />
         </>}
         {dados?.status === 'resultado_pendente' && <><Aviso>Não foi possível confirmar se o treino foi salvo. Confira no app antes de preparar outra proposta.</Aviso><Botao disabled={ocupado} carregando={ocupado} onClick={salvar}>Consultar resultado</Botao></>}
-        {dados?.status === 'recusada' && <Aviso>O treino não foi salvo porque os dados mudaram ou a gravação foi recusada. Peça uma nova proposta ao assistente.</Aviso>}
+        {dados?.status === 'recusada' && <Aviso>{dados.mensagem ?? 'O treino não foi salvo porque os dados mudaram ou a gravação foi recusada. Peça uma nova proposta ao assistente.'}</Aviso>}
         {dados?.status === 'expirada' && <Aviso>Esta proposta venceu. Peça uma nova ao assistente.</Aviso>}
         {dados?.status === 'salva' ? <p>Treino salvo no app.</p> : dados?.status === 'proposta' && dados?.proposta && <Botao tipo="primario" tamanho="lg" disabled={ocupado} carregando={ocupado} onClick={salvar}>Salvar treino</Botao>}
       </Cartao>

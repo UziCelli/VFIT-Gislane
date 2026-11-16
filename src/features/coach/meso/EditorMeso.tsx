@@ -23,7 +23,8 @@ import TabDivisao from './TabDivisao'
 import TabMetodos from './TabMetodos'
 import TabProgressao from './TabProgressao'
 import { lerProposta } from '../../fisio/propostaEditor'
-import { redimensionar } from './util'
+import { limitarPlanejamento, redimensionar } from './util'
+import { mesoSchema } from '../../../lib/prescricaoSchema'
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -51,6 +52,7 @@ export default function EditorMeso({ id }: { id: string }) {
   const [nome, setNome] = useState('')
   const [alunoId, setAlunoId] = useState('')
   const [dirty, setDirty] = useState(false)
+  const [salvando, setSalvando] = useState(false)
   // Proposta Físio (A1): chega de Alertas/ficha pelo sessionStorage; abre a aba Progressão com o polimento montado.
   const [proposta] = useState(() => lerProposta(id))
   const [aba, setAba] = useState<Aba>(proposta ? 'progressao' : 'config')
@@ -98,18 +100,26 @@ export default function EditorMeso({ id }: { id: string }) {
   }
 
   function salvar(entrada = meso, adaptou = false) {
-    if (!entrada) return
+    if (!entrada || salvando) return
     let novo: Meso = entrada
     if (novo.divisao.length > novo.frequencia) {
       if (temCargas((_, t) => t > entrada.frequencia) && !confirm(`Os treinos removidos ${AVISO_CORTE}`)) return
       novo = { ...novo, divisao: novo.divisao.slice(0, novo.frequencia) }
     }
+    novo = limitarPlanejamento(novo)
     if (novo !== meso) setMeso(novo)
+    const { sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, historicoIncerto: _i, ...prescricao } = novo
+    if (!mesoSchema.safeParse(prescricao).success) {
+      setErro('Confira divisão, progressão, dias e métodos antes de salvar. A prescrição está incompleta ou inválida.')
+      return
+    }
+    setSalvando(true)
     setDirty(false)
     setErro(null)
     const g = salvarMeso(id, alunoId, nome, novo).gravado
     if (adaptou) g.then(() => marcarAdaptado(id)).catch(() => {})
-    g.catch((e) => {
+    g.then(() => setSalvando(false)).catch((e) => {
+      setSalvando(false)
       registrarErro('gravacao', `salvar meso: ${e?.code ?? e}`, e)
       // Gravação recusada: o snapshot volta à versão do servidor; devolve a edição para tentar de novo.
       setMeso(novo)
@@ -159,7 +169,7 @@ export default function EditorMeso({ id }: { id: string }) {
   }
 
   const acima = treinosAcima(meso)
-  const status = dirty ? 'Alterações não salvas' : mesoDoc.pendente ? 'Salvando… será enviado quando houver internet' : 'Salvo'
+  const status = dirty ? 'Alterações não salvas' : salvando || mesoDoc.pendente ? 'Salvando… será enviado quando houver internet' : 'Salvo'
 
   return (
     <Pagina
@@ -177,12 +187,12 @@ export default function EditorMeso({ id }: { id: string }) {
       acoes={
         <>
           <span className="self-center text-sm text-slate-400">{status}</span>
-          <Botao tipo="primario" disabled={!dirty || !nome.trim() || !meso.inicio} onClick={() => salvar()}>
+          <Botao tipo="primario" disabled={salvando || !dirty || !nome.trim() || !meso.inicio} onClick={() => salvar()}>
             Salvar
           </Botao>
           <Botao onClick={() => ir(`/meso/${id}/semana/1`)}>Ver semanas</Botao>
           <Botao
-            disabled={dirty || mesoDoc.pendente || !alunoId || aviso === 'Enviando…'}
+            disabled={dirty || salvando || mesoDoc.pendente || !alunoId || aviso === 'Enviando…'}
             onClick={async () => {
               setAviso('Enviando…')
               const r = await avisarTreinoPronto(alunoId)

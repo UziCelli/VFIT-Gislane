@@ -5,11 +5,17 @@ export type Buscar = typeof fetch
 export type Doc = { id: string; dados: Record<string, unknown>; updateTime?: string }
 
 // Mensagens seguras para o assistente repetir ao coach.
-export class ErroConector extends Error {}
+export class ErroConector extends Error {
+  constructor(mensagem: string, readonly codigo = 'CONECTOR', readonly etapa = 'firestore', readonly podeTentarNovamente = true) { super(mensagem) }
+}
 // Resposta explícita do servidor confirma que o commit não aconteceu.
-export class ErroPrescricaoRecusada extends ErroConector {}
+export class ErroPrescricaoRecusada extends ErroConector {
+  constructor(mensagem: string, codigo = 'GRAVACAO_RECUSADA') { super(mensagem, codigo, 'confirmacao', false) }
+}
+export type Condicao = { caminho: string; updateTime?: string }
 export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e conectar o assistente de novo (precisa do login com o código de 6 dígitos).'
 export class ErroRenovacaoRecusada extends ErroConector {}
+export class ErroCommitDesconhecido extends ErroConector {}
 
 export async function trocarToken(refreshToken: string, apiKey: string, buscar: Buscar = fetch): Promise<string> {
   let r: Response
@@ -20,6 +26,7 @@ export async function trocarToken(refreshToken: string, apiKey: string, buscar: 
       // precisa identificar essa origem para que o Google aceite a chave pública.
       headers: { 'Content-Type': 'application/x-www-form-urlencoded', Referer: 'https://app.vfitcoachapp.com/' },
       body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken }),
+      signal: AbortSignal.timeout(10_000),
     })
   } catch {
     throw new ErroConector('Não deu para falar com o Firebase. Tente de novo.')
@@ -44,7 +51,7 @@ export class Firestore {
 
   private base = () => `https://firestore.googleapis.com/v1/projects/${this.projeto}/databases/(default)/documents`
 
-  private async chamar(url: string, corpo?: unknown): Promise<Response> {
+  private async chamar(url: string, corpo?: unknown, commit = false): Promise<Response> {
     let r: Response
     try {
       // No Cloudflare, fetch rejeita receber o Firestore como `this`.
@@ -53,12 +60,28 @@ export class Firestore {
         method: corpo === undefined ? 'GET' : 'POST',
         headers: { Authorization: `Bearer ${this.token}`, ...(this.appCheck && { 'X-Firebase-AppCheck': this.appCheck }), ...(corpo === undefined ? {} : { 'Content-Type': 'application/json' }) },
         ...(corpo === undefined ? {} : { body: JSON.stringify(corpo) }),
+        signal: AbortSignal.timeout(15_000),
       })
     } catch {
+      if (commit) throw new ErroCommitDesconhecido('A resposta da gravação não chegou. Consulte o resultado antes de tentar novamente.', 'RESULTADO_DESCONHECIDO', 'confirmacao', false)
       throw new ErroConector('Não deu para falar com o Firestore. Tente de novo.')
     }
-    if (r.status === 401 || r.status === 403) throw new ErroConector(RECONECTAR)
+    if (commit && !r.ok && r.status < 500 && r.status !== 408) {
+      await r.body?.cancel()
+      throw new ErroPrescricaoRecusada(r.status === 401 || r.status === 403 ? 'O Firebase recusou a gravação. Confira login, App Check e regras antes de preparar novamente.' : r.status === 429 ? 'Limite do Firebase atingido. Aguarde e prepare novamente.' : 'O mesociclo mudou ou a gravação foi recusada. Prepare e confirme novamente.', `FIRESTORE_${r.status}`)
+    }
+    if (r.status === 401 || r.status === 403) { await r.body?.cancel(); throw new ErroConector(RECONECTAR, `FIRESTORE_${r.status}`, 'firestore', false) }
     return r
+  }
+
+  async lote(caminhos: string[]): Promise<{ caminho: string; doc: Doc | null }[]> {
+    const prefixo = `projects/${this.projeto}/databases/(default)/documents/`
+    const r = await this.chamar(`${this.base()}:batchGet`, { documents: caminhos.map((c) => prefixo + c) })
+    if (!r.ok) throw new ErroConector('Não foi possível conferir os registros do treino.')
+    const linhas = await r.json() as { found?: { name: string; fields?: Record<string, unknown>; updateTime: string }; missing?: string }[]
+    const resultado = linhas.map((l) => ({ caminho: (l.found?.name ?? l.missing ?? '').replace(prefixo, ''), doc: l.found ? { id: idDeRest(l.found.name), dados: docDeRest(l.found.fields), updateTime: l.found.updateTime } : null }))
+    if (resultado.length !== caminhos.length || new Set(resultado.map((x) => x.caminho)).size !== caminhos.length || resultado.some((x) => !caminhos.includes(x.caminho))) throw new ErroConector('Resposta incompleta ao conferir os registros.')
+    return resultado
   }
 
   // null = não existe.
@@ -81,10 +104,11 @@ export class Firestore {
     })
     if (!r.ok) throw new ErroConector('O Firestore não respondeu direito. Tente de novo.')
     const linhas = (await r.json()) as { document?: { name: string; fields?: Record<string, unknown>; updateTime?: string } }[]
+    if (linhas.filter((l) => l.document).length >= 5000) throw new ErroConector('A consulta excedeu o limite seguro. Consulte um mesociclo específico.', 'LIMITE_CONSULTA', 'firestore', false)
     return linhas.flatMap((l) => (l.document ? [{ id: idDeRest(l.document.name), dados: docDeRest(l.document.fields), updateTime: l.document.updateTime }] : []))
   }
   // Um único commit, com pré-condição do documento e carimbo do servidor.
-  async gravarMeso(id: string, dados: Record<string, unknown>, esperado: string | null, origem?: { id: string; updateTime: string }): Promise<void> {
+  async gravarMeso(id: string, dados: Record<string, unknown>, esperado: string | null, origem?: { id: string; updateTime: string }, protecao?: { condicoes: Condicao[]; operacao: string; uid: string }): Promise<void> {
     const nome = `projects/${this.projeto}/databases/(default)/documents/mesos/${id}`
     const campos = Object.fromEntries(Object.entries(dados).map(([k, v]) => [k, paraRest(v)]))
     const r = await this.chamar(`${this.base()}:commit`, { writes: [{
@@ -92,9 +116,12 @@ export class Firestore {
       ...(esperado ? { updateMask: { fieldPaths: [...new Set([...Object.keys(campos), 'pausaPrincipaisS', 'progressaoPct', 'limiteReps', 'tempoLimiteMin'])] } } : {}),
       currentDocument: esperado ? { updateTime: esperado } : { exists: false },
       updateTransforms: [{ fieldPath: 'atualizadoEm', setToServerValue: 'REQUEST_TIME' }, ...(esperado ? [] : [{ fieldPath: 'criadoEm', setToServerValue: 'REQUEST_TIME' }])],
-    }, ...(origem ? [{ verify: `projects/${this.projeto}/databases/(default)/documents/mesos/${origem.id}`, currentDocument: { updateTime: origem.updateTime } }] : [])] })
-    if (r.status === 409 || r.status === 400 || r.status === 412) throw new ErroPrescricaoRecusada('O mesociclo mudou. Prepare e confirme novamente.')
-    if (!r.ok) throw new ErroConector('Não foi possível salvar o mesociclo. Confira o resultado antes de tentar de novo.')
+    }, ...(origem ? [{ verify: `projects/${this.projeto}/databases/(default)/documents/mesos/${origem.id}`, currentDocument: { updateTime: origem.updateTime } }] : []), ...(protecao ? [
+      ...protecao.condicoes.map((c) => ({ verify: `projects/${this.projeto}/databases/(default)/documents/${c.caminho}`, currentDocument: c.updateTime ? { updateTime: c.updateTime } : { exists: false } })),
+      { update: { name: `projects/${this.projeto}/databases/(default)/documents/mcpOperacoes/${protecao.operacao}`, fields: { uid: paraRest(protecao.uid), mesoId: paraRest(id) } }, currentDocument: { exists: false }, updateTransforms: [{ fieldPath: 'em', setToServerValue: 'REQUEST_TIME' }] },
+    ] : [])] }, true)
+    await r.body?.cancel()
+    if (!r.ok) throw new ErroCommitDesconhecido('Não foi possível confirmar o resultado da gravação.', 'RESULTADO_DESCONHECIDO', 'confirmacao', false)
   }
 
 }

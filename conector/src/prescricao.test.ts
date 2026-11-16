@@ -4,19 +4,26 @@ import type { Doc, Firestore } from './firestore'
 import { proximoMesoId } from '../../src/lib/proximoMesoId'
 import { mesoPadrao } from '../../src/features/coach/meso/mesoPadrao'
 import { mesoParaDoc } from '../../src/lib/conversores'
+import { prescreverSessao } from '../../src/engine/sessao'
 
 const agora = Date.parse('2026-11-15T15:00:00Z')
 const documento = { id: 'ciclo', updateTime: '2026-11-15T00:00:00Z', dados: { alunoId: 'aluno', nome: 'Ciclo 1', ...mesoParaDoc({ ...mesoPadrao(), inicio: '2026-11-01' }) } }
-const banco = () => ({ doc: vi.fn(async (p: string): Promise<Doc | null> => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? documento : null), consulta: vi.fn(async () => [documento]), gravarMeso: vi.fn(async (_id: string, _dados: Record<string, unknown>, _esperado: string | null, _origem?: { id: string; updateTime: string }) => {}) })
+const banco = () => ({ doc: vi.fn(async (p: string): Promise<Doc | null> => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? documento : null), consulta: vi.fn(async () => [documento]), lote: vi.fn(async (caminhos: string[]): Promise<{ caminho: string; doc: Doc | null }[]> => caminhos.map((caminho) => ({ caminho, doc: null }))), gravarMeso: vi.fn(async (_id: string, _dados: Record<string, unknown>, _esperado: string | null, _origem?: { id: string; updateTime: string }) => {}) })
 
 describe('prescrições do conector', () => {
+  it('recusa antecipar o próximo ciclo por operação e aceita adiar sem sobreposição', async () => {
+    const fs = banco()
+    await expect(prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno', alteracoes: [{ tipo: 'configurar', inicio: '2026-11-15' }] }, agora)).rejects.toThrow('após o ciclo atual')
+    const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno', alteracoes: [{ tipo: 'configurar', inicio: '2026-12-01' }] }, agora)
+    expect(p.dados.inicio).toBe('2026-12-01')
+  })
   it('prepara próximo com data do app e grava no ID compartilhado com condição de versão', async () => {
     const fs = banco()
     const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'proximo', alunoId: 'aluno' }, agora)
     expect(p.dados.inicio).toBe('2026-11-29')
     const id = await proximoMesoId('ciclo')
     expect(await salvarPrescricao(fs as unknown as Firestore, p, 'abc', agora)).toEqual({ mesoId: id })
-    expect(fs.gravarMeso).toHaveBeenCalledWith(id, expect.objectContaining({ alunoId: 'aluno', mcpOperacao: 'abc' }), null, { id: 'ciclo', updateTime: documento.updateTime })
+    expect(fs.gravarMeso).toHaveBeenCalledWith(id, expect.objectContaining({ alunoId: 'aluno', mcpOperacao: 'abc' }), null, { id: 'ciclo', updateTime: documento.updateTime }, undefined)
   })
   it('edição protege divisão e não envia sessões ou alunoId', async () => {
     const fs = banco()
@@ -27,7 +34,7 @@ describe('prescrições do conector', () => {
     expect(dados).not.toHaveProperty('alunoId')
     expect(dados).not.toHaveProperty('sessoes')
     expect(fs.gravarMeso.mock.calls[0][2]).toBe(documento.updateTime)
-    await expect(prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', meso: { ...m, inicio: '2026-11-02' } }, agora)).rejects.toThrow('proteger o histórico')
+    await expect(prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', meso: { ...m, inicio: '2026-11-02' } }, agora)).rejects.toThrow('offline')
   })
   it('recusa dados inesperados e retorna resultado idempotente', async () => {
     expect(entradaPrescricaoSchema.safeParse({ acao: 'criar', alunoId: 'aluno', cargas: {} }).success).toBe(false)
@@ -46,6 +53,22 @@ describe('identidade das cargas', () => {
     expect(entrada({ ...base, trocas: { '1-1-2': { slotId: 'sup', nome: 'Supino Reto Barra' } } })).toContain('slotId')
     expect(entrada({ ...base, adicoes: { '1-1': [{ slotId: 'sup', nome: 'Supino Reto Barra' }] } })).toContain('slotId')
     expect(entrada({ ...base, trocas: { '1-1-1': { slotId: 'sup', nome: 'Remada Curvada Barra' } } })).toContain('slotId')
+  })
+  it('não permite reaproveitar a identidade de um exercício arquivado', async () => {
+    const fs = banco()
+    const antigo = { ...mesoPadrao(), divisao: [[{ slotId: 'arquivado', nome: 'Facepull' }], [], []] }
+    const atual = { ...mesoPadrao(), inicio: '2026-11-01' }
+    const d = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(atual), prescricoesAnteriores: { '1-1': [{ versao: 1, sessao: prescreverSessao(antigo, 1, 1), metodos: [] }] } } }
+    fs.doc.mockImplementation(async (p) => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? d : null)
+    await expect(prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', meso: { ...atual, divisao: [[{ slotId: 'arquivado', nome: 'Supino Reto Barra' }], [], []] } }, agora)).rejects.toThrow('identidade nova')
+  })
+  it('aceita agenda explícita equivalente aos dias livres para uma sessão registrada', async () => {
+    const fs = banco()
+    const m = { ...mesoPadrao(), inicio: '2026-11-01' }
+    const d = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(m) } }
+    fs.doc.mockImplementation(async (p) => p === 'usuarios/aluno' ? { id: 'aluno', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? d : null)
+    fs.lote.mockImplementation(async (caminhos) => caminhos.map((caminho) => ({ caminho, doc: caminho === 'registros/ciclo_s01_t1' ? { id: 'ciclo_s01_t1', updateTime: documento.updateTime, dados: { alunoId: 'aluno', mesoId: 'ciclo', semana: 1, treino: 1 } } : null })))
+    await expect(prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', alteracoes: [{ tipo: 'configurar', dias: [0, 2, 4] }] }, agora)).resolves.toBeDefined()
   })
 })
 

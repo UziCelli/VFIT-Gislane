@@ -26,6 +26,7 @@ async function chamada(m: Meso) {
     if (u.includes('securetoken')) return Response.json({ id_token: 'falso' })
     if (u.endsWith('/usuarios/aluno')) return Response.json({ name: 'usuarios/aluno', fields: fields({ papel: 'aluno' }) })
     if (u.endsWith('/mesos/ciclo')) return Response.json({ name: 'mesos/ciclo', updateTime: '2026-11-15T00:00:00Z', fields: fields(meso) })
+    if (u.endsWith(':batchGet')) return Response.json(Array.from({ length: 12 }, (_, i) => ({ missing: `projects/falso/databases/(default)/documents/registros/ciclo_s${String(Math.floor(i / 3) + 1).padStart(2, '0')}_t${i % 3 + 1}` })))
     if (u.endsWith(':runQuery')) return Response.json([{ document: { name: 'mesos/ciclo', updateTime: '2026-11-15T00:00:00Z', fields: fields(meso) } }])
     throw new Error('URL inesperada')
   }

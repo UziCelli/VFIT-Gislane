@@ -80,7 +80,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 
 ### `conector/` — Worker Cloudflare do conector do Claude (MCP)
 - `wrangler.toml` — Worker `vfit-conector`, KV `OAUTH_KV` (concessões do OAuth); `package.json` + lockfile próprios (`agents`, `@cloudflare/workers-oauth-provider`, `zod`)
-- `src/index.ts` — única entrada com pacotes do Worker: OAuth, `/mcp` (4 ferramentas) e as rotas do login (`/authorize`, `/pedido`, `/concluir`, `/cancelar`)
+- `src/index.ts` — única entrada com pacotes do Worker: OAuth, `/mcp` (leitura, diagnóstico e propostas) e as rotas do login (`/authorize`, `/pedido`, `/concluir`, `/cancelar`)
 - `src/login.ts` — pedido de uso único (KV, 10 min) e `concluirLogin` (2º fator + papel coach); `src/execucao.ts` — troca o refreshToken e roda cada ferramenta
 - `src/firestore.ts` — Firestore REST com o token do coach; `src/rest.ts` — valores REST <-> JS; `src/ferramentas.ts` — `listarAlunos`, `verAluno`, `verMesos`, `catalogoExercicios` (reusam `src/lib` e `src/engine` por caminho relativo, e `push/src/{jwt,cors,corpo}.ts`)
 - `src/prescricao.ts` — valida proposta de mesociclo e persiste pelo fluxo normal, sem tocar em registros/cargas; `src/proposta.ts` — ciclo de vida da proposta aguardando aprovação explícita do coach (isolada por conta, expira em 15 min, confirmação concorrente serializada)
@@ -397,9 +397,9 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 | `alterar-email.yml` | dispatch manual | altera e-mail de aluno (admin) |
 | `backup.yml` | schedule (diário) | backup Firestore → Cloud Storage |
 
-## Conector MCP (rascunho)
+## Conector MCP VFIT
 
-O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `src/features/conta/ConectarClaude.tsx`. O conector ainda não foi publicado. A configuração e pendências estão em `docs/conector-revisao-codex.md`.
+O Worker separado, OAuth e ferramentas estão em `conector/src/`, com tela em `src/features/conta/ConectarClaude.tsx`. O contrato ativo, o roteiro de configuração e os limites estão em `docs/conector-prescricao.md`. Histórico de revisão não comprova a versão publicada; consultar `verificar_conexao`.
 
 ## Pontos sensíveis (leia antes de auditar ou mexer)
 
@@ -413,7 +413,7 @@ Onde já houve falha ou onde errar custa caro. Cada linha diz o que protege e co
 
 | Área | Arquivo | Cuidado | Teste que protege |
 |---|---|---|---|
-| Conector MCP e prescrição (15/11/2026) | `conector/src/` (`login.ts`, `statusConexao.ts`, `execucao.ts`, `firestore.ts`, `ferramentas.ts`, `prescricao.ts`, `proposta.ts`), `src/features/conta/ConectarClaude.tsx`, `ConfirmarTreinoMcp.tsx` | OAuth legado permanece somente leitura; consentimento v2 é rejeitado se o app não confirmar que mostrou as permissões, com orientação explícita para atualizar/reabrir o pedido. `verificar_conexao` expõe somente estado de autorização, sem UID ou tokens. A prescrição continua exigindo aprovação explícita na sessão do coach com MFA. | `conector/src/*.test.ts`, testes do fluxo de confirmação MCP |
+| Conector MCP e prescrição (15/11/2026) | `conector/src/` (`login.ts`, `statusConexao.ts`, `execucao.ts`, `firestore.ts`, `ferramentas.ts`, `prescricao.ts`, `proposta.ts`), `src/features/conta/ConectarClaude.tsx`, `ConfirmarTreinoMcp.tsx` | Edição por operações, contrato comum do editor, cópias históricas e recibos atômicos: ver `docs/conector-prescricao.md`. OAuth legado permanece somente leitura; consentimento v2 é rejeitado se o app não confirmar que mostrou as permissões, com orientação explícita para atualizar/reabrir o pedido. `verificar_conexao` expõe somente estado de autorização, sem UID ou tokens. A prescrição continua exigindo aprovação explícita na sessão do coach com MFA. | `conector/src/*.test.ts`, testes do fluxo de confirmação MCP |
 | Corpo e respostas da API (14/11/2026) | `push/src/corpo.ts`, `push/src/index.ts` | Ler JSON por streaming com teto em bytes antes de alocar o corpo inteiro; `Content-Length` não é confiável. Respostas privadas usam no-store; VAPID continua público. | `push/src/corpo.test.ts` |
 | Artefatos de publicação (14/11/2026) | `tools/verificar-build.mjs`, `package.json`, `firebase.json` | Builds das duas marcas rejeitam mapas, arquivos internos e credenciais reconhecíveis; não publicar saídas pulando o comando build. Não substitui scanner do histórico. | Fixtures sintéticas e builds em `docs/security/VALIDATION.md` |
 | Visual/fluidez do treino (14/11/2026) | `features/aluno/treino.css`, `Treino.tsx` | Clareamento por mistura estática de cores da marca. Sem `filter`/`backdrop-filter`, fundos fixos, animação de sombras ou alterações no mecanismo de transição. Diagnóstico opt-in com `PERF_TREINO=1`: toque, rolagem, CPU 4x, relógio e cargas preservados; tempos de quadro são diagnóstico, sem limite de FPS no CI. | `e2e/treino-fluidez.spec.ts`; layout nas duas marcas |

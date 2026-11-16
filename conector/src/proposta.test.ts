@@ -92,6 +92,24 @@ describe('propostas pendentes', () => {
     expect(salvarPrescricao).toHaveBeenCalledTimes(1)
   })
 
+  it('não deixa recusa explícita 403 permanentemente pendente', async () => {
+    const { instancia } = criar()
+    await instancia.guardar('op', 'coach', proposta, 1000)
+    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new ErroPrescricaoRecusada('O Firebase recusou a gravação.', 'FIRESTORE_403'))
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'recusada', mensagem: 'O Firebase recusou a gravação.' })
+  })
+
+  it('reconcilia pelo recibo mesmo depois de outra edição do mesociclo', async () => {
+    const { instancia } = criar()
+    await instancia.guardar('op', 'coach', { ...proposta, condicoes: [] }, 1000)
+    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new Error('resposta perdida'))
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'resultado_pendente' })
+    const doc = vi.spyOn(Firestore.prototype, 'doc').mockResolvedValue({ id: 'op', dados: { uid: 'coach', mesoId: 'mcp_op' } })
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'salva', resultado: { mesoId: 'mcp_op' } })
+    expect(doc).toHaveBeenCalledWith('mcpOperacoes/op')
+    expect(salvarPrescricao).toHaveBeenCalledTimes(1)
+  })
+
   it('reconcilia próximo ciclo pelo mesmo identificador derivado do app', async () => {
     const { instancia } = criar()
     await instancia.guardar('op', 'coach', { ...proposta, acao: 'proximo', origem: { id: 'origem', updateTime: 'versao' } }, 1000)

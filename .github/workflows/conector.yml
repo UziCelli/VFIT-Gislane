@@ -10,6 +10,8 @@ on:
       - 'conector/**'
       - 'push/src/**'
       - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/conector.yml'
       - 'tools/conector-appcheck-check.mjs'
   workflow_dispatch:
@@ -20,6 +22,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   deploy:
@@ -31,10 +34,17 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: conector/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            conector/package-lock.json
+      - name: Instalar dependências compartilhadas com o app
+        run: npm ci
       - name: Instalar dependências do conector
         working-directory: conector
         run: npm ci
+      - name: Conferir o bundle antes de acessar serviços externos
+        working-directory: conector
+        run: npx wrangler deploy --dry-run
       - name: Validar App Check antes da publicação
         env:
           APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN }}
@@ -48,6 +58,24 @@ jobs:
           export FIREBASE_API_KEY=$(grep '^VITE_FIREBASE_API_KEY=' .env.production | cut -d= -f2)
           export FIREBASE_APP_ID=$(grep '^VITE_FIREBASE_APP_ID=' .env.production | cut -d= -f2)
           node tools/conector-appcheck-check.mjs
+      - name: Aguardar app e regras compatíveis antes de habilitar a edição
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          COMMIT: ${{ github.sha }}
+        run: |
+          for tentativa in $(seq 1 120); do
+            run_id=$(gh api "repos/$GH_REPO/actions/runs?head_sha=$COMMIT&per_page=100" --jq '.workflow_runs[] | select(.name == "Publicar") | .id' | head -1)
+            if [ -n "$run_id" ]; then
+              estado=$(gh api "repos/$GH_REPO/actions/runs/$run_id/jobs" --jq '.jobs[] | select(.name == "deploy") | .conclusion // .status' | tail -1)
+              if [ "$estado" = success ]; then exit 0; fi
+              case "$estado" in failure|cancelled|timed_out|skipped) echo "::error::App ou regras não publicados; conector preservado."; exit 1;; esac
+            fi
+            echo "Aguardando publicação compatível ($tentativa/120)."
+            sleep 10
+          done
+          echo "::error::Publicação compatível não confirmada; conector preservado."
+          exit 1
       - name: Atualizar segredo e publicar o Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -58,7 +86,7 @@ jobs:
           chave=$(grep '^VITE_FIREBASE_API_KEY=' ../.env.production | cut -d= -f2)
           appid=$(grep '^VITE_FIREBASE_APP_ID=' ../.env.production | cut -d= -f2)
           printf %s "$APPCHECK_DEBUG_TOKEN" | npx --yes --package=wrangler@4.161.0 wrangler secret put APPCHECK_DEBUG_TOKEN
-          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid"
+          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid" --var "BUILD_ID:$GITHUB_SHA" --var 'EDICAO_COMPLETA:1'
       - name: Conferir o Worker no ar
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

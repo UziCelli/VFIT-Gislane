@@ -43,6 +43,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix conector
       - run: npm run test:rules
 
   e2e:
@@ -59,7 +60,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix conector
       - run: npx playwright install --with-deps chromium
+      - name: MCP completo com OAuth, RPC, Firestore e navegador
+        run: npx firebase emulators:exec --only auth,firestore --project demo-forca 'npm --prefix conector run test:runtime'
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()

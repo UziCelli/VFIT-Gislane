@@ -19,7 +19,7 @@ import { idSchema as id, nomeSchema as nome, mesoSchema } from '../../src/lib/pr
 import { alteracaoSchema, aplicarAlteracoes } from './edicao'
 export const entradaPrescricaoSchema = z.object({ acao: z.enum(['criar', 'proximo', 'editar']), alunoId: id, mesoId: id.optional(), nome: nome.optional(), meso: mesoSchema.optional(), versao: z.string().max(100).optional(), alteracoes: z.array(alteracaoSchema).min(1).max(100).optional(), removerSlotIds: z.array(id).min(1).max(70).optional().describe('Somente para acao editar com mesoId: use os slotId de ver_mesos.divisaoPlanejada e omita meso. Remove da divisão preservando registros e sessões.') }).strict().superRefine((v, c) => { if (v.alteracoes && (v.meso || v.removerSlotIds)) c.addIssue({ code: 'custom', message: 'Envie alterações ou mesociclo completo, sem combiná-los.' }); if (v.removerSlotIds && (v.acao !== 'editar' || !v.mesoId || v.meso || new Set(v.removerSlotIds).size !== v.removerSlotIds.length)) c.addIssue({ code: 'custom', message: 'Para remover exercícios informe IDs distintos, em edição, sem enviar outro mesociclo.' }); if (v.acao === 'editar' && !v.mesoId) c.addIssue({ code: 'custom', message: 'Informe mesoId para editar.' }); if (v.acao !== 'editar' && v.mesoId) c.addIssue({ code: 'custom', message: 'mesoId só pode ser usado para editar.' }); if (v.meso && v.acao !== 'editar') { const nomes = new Set(catalogo.flatMap((g) => g.exercicios.map((e) => e.nome))); const slots = [...v.meso.divisao.flat(), ...Object.values(v.meso.trocas ?? {}), ...Object.values(v.meso.adicoes ?? {}).flat()]; if (slots.some((s) => !nomes.has(s.nome))) c.addIssue({ code: 'custom', message: 'Use exercícios do catálogo.' }) } })
 export type EntradaPrescricao = z.infer<typeof entradaPrescricaoSchema>
-export type PropostaPrescricao = { acao: EntradaPrescricao['acao']; alunoId: string; alunoNome: string; mesoId?: string; nome: string; resumo: string; dados: Record<string, unknown>; antes?: Record<string, unknown>; previaDados?: Record<string, unknown>; remocoes?: { slotId: string; nome: string; treino: number; posicao: number }[]; avisos?: string[]; esperado?: string; origem?: { id: string; updateTime: string }; criadaEm: number; condicoes?: Condicao[]; sessoesPreservadas?: string[] }
+export type PropostaPrescricao = { acao: EntradaPrescricao['acao']; alunoId: string; alunoNome: string; mesoId?: string; nome: string; resumo: string; dados: Record<string, unknown>; antes?: Record<string, unknown>; previaDados?: Record<string, unknown>; remocoes?: { slotId: string; nome: string; treino: number; posicao: number }[]; diferencas?: { tipo: 'retirado' | 'incluido'; nome: string; treino: number }[]; avisos?: string[]; esperado?: string; origem?: { id: string; updateTime: string }; criadaEm: number; condicoes?: Condicao[]; sessoesPreservadas?: string[] }
 
 export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescricao, agoraMs: number): Promise<PropostaPrescricao> {
   const analiseEntrada = entradaPrescricaoSchema.safeParse(entrada)
@@ -27,7 +27,7 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   const e = analiseEntrada.data
   const aluno = await fs.doc(`usuarios/${e.alunoId}`)
   if (!aluno || aluno.dados.papel !== 'aluno') throw new ErroConector('Aluno não encontrado.')
-  const docs = await fs.consulta('mesos', 'alunoId', e.alunoId)
+  const docs = e.acao === 'editar' ? [] : await fs.consulta('mesos', 'alunoId', e.alunoId)
   const hoje = dataSP(new Date(agoraMs))
   let base: Meso, titulo: string, esperado: string | undefined, sessoes: unknown, origem: PropostaPrescricao['origem']
   if (e.acao === 'editar') {
@@ -92,7 +92,8 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
     }
   }
   validarIdentidades()
-  const condicoes: Condicao[] = aluno.updateTime ? [{ caminho: `usuarios/${e.alunoId}`, updateTime: aluno.updateTime }] : []
+  // O perfil do aluno muda por ações dele (peso, aceite, pagamento) e não afeta o mesociclo: não entra nas condições.
+  const condicoes: Condicao[] = []
   const preservadas = { ...base.prescricoesRegistradas }
   const anteriores = structuredClone(base.prescricoesAnteriores ?? {})
   if (e.acao === 'editar') {
@@ -108,9 +109,12 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
       const data = (m: Meso) => m.dias?.length ? diasDaSemana(m, w).find((d) => d.treino === t)?.data : somarDias(m.inicio, 7 * (w - 1) + DIAS_AUTO[m.frequencia - 1][t - 1])
       if (data(base) !== data(escolhido)) throw new ErroConector('Os dias propostos deslocariam uma sessão registrada.', 'HISTORICO', 'validacao', false)
       const chave = `${w}-${t}`
-      const registrada = lerPrescricaoRegistrada(r.doc.dados.prescricaoRegistrada)
-      if (registrada) identificar(registrada.sessao.exercicios.map((x) => x.slot))
-      const baseRegistrada = comPrescricoesRegistradas(base, [{ ...r.doc.dados, semana: w, treino: t }])
+      // A cópia vem do aluno: se contradiz as identidades do plano ou do histórico, é ignorada (nunca trava a edição).
+      let registrada = lerPrescricaoRegistrada(r.doc.dados.prescricaoRegistrada)
+      const slotsCopia = registrada?.sessao.exercicios.map((x) => x.slot) ?? []
+      if (registrada && slotsCopia.some((x) => antigos.has(x.slotId) && antigos.get(x.slotId) !== x.nome)) registrada = null
+      else if (registrada) identificar(slotsCopia)
+      const baseRegistrada = comPrescricoesRegistradas(base, [{ ...r.doc.dados, semana: w, treino: t, ...(registrada ? {} : { prescricaoRegistrada: undefined }) }])
       const sessao = prescreverSessao(baseRegistrada, w, t)
       if (!sessao) throw new ErroConector('Sessão registrada fora do mesociclo.', 'HISTORICO', 'validacao', false)
       preservadas[chave] ??= base.prescricoesRegistradas?.[chave] !== null && registrada && registrada.sessao.semana === w && registrada.sessao.treino === t ? registrada : { versao: 1, sessao, metodos: metodosDaSessao(baseRegistrada, w, t), ...(baseRegistrada.historicoIncerto?.includes(chave) && { referenciaHistorica: true }) }
@@ -140,13 +144,21 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   }
   const validado = analise.data
   const n = e.nome ?? titulo
+  // Calculado no servidor a partir do dado real (não do texto do assistente): o coach vê cada exercício retirado ou incluído.
+  const diferencas: NonNullable<PropostaPrescricao['diferencas']> = []
+  if (e.acao === 'editar') {
+    const mapa = (m: Meso) => new Map(m.divisao.flatMap((slots, t) => slots.map((x) => [x.slotId, { nome: x.nome, treino: t + 1 }] as const)))
+    const antes = mapa(base), depois = mapa(validado)
+    for (const [slotId, x] of antes) if (!depois.has(slotId)) diferencas.push({ tipo: 'retirado', ...x })
+    for (const [slotId, x] of depois) if (!antes.has(slotId)) diferencas.push({ tipo: 'incluido', ...x })
+  }
   const historico = e.acao === 'editar' ? { ...(Object.keys(preservadas).length && { prescricoesRegistradas: preservadas }), ...(Object.keys(anteriores).length && { prescricoesAnteriores: anteriores }) } : {}
   const tamanho = new TextEncoder().encode(JSON.stringify({ ...mesoParaDoc(validado), ...historico })).byteLength
   if (tamanho > 900_000) throw new ErroConector('A prescrição e seu histórico excedem o limite seguro. Prepare um próximo ciclo.', 'TAMANHO', 'validacao', false)
-  return { acao: e.acao, alunoId: e.alunoId, alunoNome: typeof aluno.dados.nome === 'string' ? aluno.dados.nome : 'Aluno', mesoId: e.mesoId, nome: n, resumo: `${n}: ${validado.frequencia} treinos por semana, ${validado.semanas} semanas, início ${validado.inicio}.${remocoes.length ? ` Remover: ${remocoes.map((r) => `${r.nome} (treino ${r.treino})`).join('; ')}.` : ''}`, dados: { nome: n, ...mesoParaDoc(validado), ...historico }, ...(e.acao === 'editar' ? { antes: { nome: titulo, ...mesoParaDoc(base), ...(base.prescricoesRegistradas && { prescricoesRegistradas: base.prescricoesRegistradas }), ...(sessoes ? { sessoes } : {}) }, previaDados: { nome: n, ...mesoParaDoc(validado), ...historico, ...(sessoes ? { sessoes } : {}) } } : {}), ...(remocoes.length ? { remocoes, avisos: ['As cargas registradas continuam guardadas.', 'Os exercícios removidos deixam de aparecer no treino planejado.', 'As sessões presenciais já ajustadas permanecem como estão.'] } : {}), esperado, origem, criadaEm: agoraMs, condicoes, sessoesPreservadas: Object.keys(historico.prescricoesRegistradas ?? {}) }
+  return { acao: e.acao, alunoId: e.alunoId, alunoNome: typeof aluno.dados.nome === 'string' ? aluno.dados.nome : 'Aluno', mesoId: e.mesoId, nome: n, resumo: `${n}: ${validado.frequencia} treinos por semana, ${validado.semanas} semanas, início ${validado.inicio}.${diferencas.length ? ` Retirar/incluir: ${diferencas.map((d) => `${d.tipo === 'retirado' ? '−' : '+'} ${d.nome} (treino ${d.treino})`).join('; ')}.` : ''}`, dados: { nome: n, ...mesoParaDoc(validado), ...historico }, ...(e.acao === 'editar' ? { antes: { nome: titulo, ...mesoParaDoc(base), ...(base.prescricoesRegistradas && { prescricoesRegistradas: base.prescricoesRegistradas }), ...(sessoes ? { sessoes } : {}) }, previaDados: { nome: n, ...mesoParaDoc(validado), ...historico, ...(sessoes ? { sessoes } : {}) } } : {}), ...(remocoes.length ? { remocoes, avisos: ['As cargas registradas continuam guardadas.', 'Os exercícios removidos deixam de aparecer no treino planejado.', 'As sessões presenciais já ajustadas permanecem como estão.'] } : {}), ...(diferencas.length ? { diferencas } : {}), esperado, origem, criadaEm: agoraMs, condicoes, sessoesPreservadas: Object.keys(historico.prescricoesRegistradas ?? {}) }
 }
 
-export async function salvarPrescricao(fs: Firestore, proposta: PropostaPrescricao, idOperacao: string, _agoraMs: number, uid?: string): Promise<{ mesoId: string }> {
+export async function salvarPrescricao(fs: Firestore, proposta: PropostaPrescricao, idOperacao: string, _agoraMs: number, uid?: string, antesDoCommit?: () => Promise<void>): Promise<{ mesoId: string }> {
   if (!/^[A-Za-z0-9_-]{1,100}$/.test(idOperacao)) throw new ErroConector('Operação inválida.')
   const mesoId = proposta.mesoId ?? (proposta.acao === 'proximo' && proposta.origem ? await proximoMesoId(proposta.origem.id) : `mcp_${idOperacao}`)
   const existente = await fs.doc(`mesos/${mesoId}`)
@@ -156,6 +168,8 @@ export async function salvarPrescricao(fs: Firestore, proposta: PropostaPrescric
     if (proximoMeso(mesos, new Date(_agoraMs))) throw new ErroPrescricaoRecusada('Este aluno já tem um próximo mesociclo. Prepare e confirme novamente.')
   }
   if (new TextEncoder().encode(JSON.stringify(proposta.dados)).byteLength > 900_000) throw new ErroPrescricaoRecusada('O histórico excede o limite seguro do documento. Nenhuma alteração foi salva.', 'TAMANHO')
+  // A partir daqui a gravação pode ter acontecido: o chamador marca o resultado como pendente.
+  await antesDoCommit?.()
   await fs.gravarMeso(mesoId, { ...proposta.dados, ...(proposta.esperado ? {} : { alunoId: proposta.alunoId }), mcpOperacao: idOperacao }, proposta.esperado ?? null, proposta.origem, uid ? { condicoes: proposta.condicoes ?? [], operacao: idOperacao, uid } : undefined)
   return { mesoId }
 }

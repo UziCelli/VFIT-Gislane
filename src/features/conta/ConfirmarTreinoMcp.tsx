@@ -6,7 +6,7 @@ import { PreviaTreinoMcp } from './PreviaTreinoMcp'
 
 const BASE = import.meta.env.VITE_CONECTOR_URL as string | undefined
 
-type Visualizacao = { status: string; mensagem?: string; proposta?: { nome: string; alunoNome: string; acao: string; resumo: string; dados: MesoDoc; previaDados?: MesoDoc; antes?: MesoDoc & { nome?: string }; remocoes?: { nome: string; treino: number }[]; avisos?: string[]; sessoesPreservadas?: string[] } }
+type Visualizacao = { status: string; mensagem?: string; proposta?: { nome: string; alunoNome: string; acao: string; resumo: string; dados: MesoDoc; previaDados?: MesoDoc; antes?: MesoDoc & { nome?: string }; remocoes?: { nome: string; treino: number }[]; diferencas?: { tipo: 'retirado' | 'incluido'; nome: string; treino: number }[]; avisos?: string[]; sessoesPreservadas?: string[] } }
 
 // O link só identifica a proposta; o servidor exige o login do coach que a criou.
 export default function ConfirmarTreinoMcp({ id }: { id: string | null }) {
@@ -47,7 +47,7 @@ export default function ConfirmarTreinoMcp({ id }: { id: string | null }) {
         {erro && <Aviso>{erro}</Aviso>}
         {!dados && !erro && <p>Carregando proposta…</p>}
         {dados?.proposta && <>
-          <h2 className="text-lg font-semibold">{dados.proposta.nome}</h2>
+          <h2 className="text-lg font-semibold"><span className="text-sm font-normal">Nome proposto: </span>{dados.proposta.nome}</h2>
           <p className="text-sm">Aluno: {dados.proposta.alunoNome} · {dados.proposta.acao === 'editar' ? 'Alterar treino existente' : dados.proposta.acao === 'proximo' ? 'Criar próximo treino' : 'Criar treino'}</p>
           {(dados.proposta.remocoes?.length ?? 0) > 0 && <section className="space-y-2 rounded-xl border border-amber-600 p-3 text-sm">
             <h3 className="font-semibold">Exercícios a retirar da divisão planejada</h3>
@@ -57,6 +57,11 @@ export default function ConfirmarTreinoMcp({ id }: { id: string | null }) {
               <p>Sessões presenciais ajustadas continuam como estão.</p>
             </>}
             <p>Uma sessão presencial ajustada pode manter o exercício retirado.</p>
+          </section>}
+          {!dados.proposta.remocoes?.length && (dados.proposta.diferencas?.length ?? 0) > 0 && <section className="space-y-2 rounded-xl border border-amber-600 p-3 text-sm">
+            <h3 className="font-semibold">Exercícios que mudam na divisão planejada</h3>
+            <ul className="list-disc space-y-1 pl-5">{dados.proposta.diferencas!.map((d, i) => <li key={i}>{d.tipo === 'retirado' ? 'Retirar' : 'Incluir'}: {d.nome} · Treino {d.treino}</li>)}</ul>
+            <p>As cargas já registradas não serão apagadas.</p>
           </section>}
           {!dados.proposta.remocoes?.length && (dados.proposta.avisos?.length ?? 0) > 0 && <div className="space-y-2">{dados.proposta.avisos!.map((aviso, i) => <Aviso key={i}>{aviso}</Aviso>)}</div>}
           <p className="text-sm">Confira os detalhes de todas as semanas antes de salvar.</p>

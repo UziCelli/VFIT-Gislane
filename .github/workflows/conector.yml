@@ -44,7 +44,7 @@ jobs:
         run: npm ci
       - name: Conferir o bundle antes de acessar serviços externos
         working-directory: conector
-        run: npx wrangler deploy --dry-run
+        run: npx --yes --package=wrangler@4.161.0 wrangler deploy --dry-run
       - name: Validar App Check antes da publicação
         env:
           APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN }}
@@ -81,12 +81,14 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN }}
+          # Desligamento de emergência: variável do repositório EDICAO_COMPLETA=0 (Settings → Variables). Sem valor = ligada.
+          EDICAO_COMPLETA: ${{ vars.EDICAO_COMPLETA }}
         working-directory: conector
         run: |
           chave=$(grep '^VITE_FIREBASE_API_KEY=' ../.env.production | cut -d= -f2)
           appid=$(grep '^VITE_FIREBASE_APP_ID=' ../.env.production | cut -d= -f2)
           printf %s "$APPCHECK_DEBUG_TOKEN" | npx --yes --package=wrangler@4.161.0 wrangler secret put APPCHECK_DEBUG_TOKEN
-          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid" --var "BUILD_ID:$GITHUB_SHA" --var 'EDICAO_COMPLETA:1'
+          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid" --var "BUILD_ID:$GITHUB_SHA" --var "EDICAO_COMPLETA:${EDICAO_COMPLETA:-1}"
       - name: Conferir o Worker no ar
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

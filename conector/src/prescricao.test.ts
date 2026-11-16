@@ -128,7 +128,8 @@ describe('remoção de exercícios por ID', () => {
     const { fs, meso } = montar()
     const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', removerSlotIds: ['face1', 'face5'] }, agora)
     expect(p.remocoes).toEqual([{ slotId: 'face1', nome: 'Facepull', treino: 1, posicao: 1 }, { slotId: 'face5', nome: 'Facepull', treino: 5, posicao: 1 }])
-    expect(p.resumo).toContain('Facepull (treino 1); Facepull (treino 5)')
+    expect(p.resumo).toContain('− Facepull (treino 1); − Facepull (treino 5)')
+    expect(p.diferencas).toEqual([{ tipo: 'retirado', nome: 'Facepull', treino: 1 }, { tipo: 'retirado', nome: 'Facepull', treino: 5 }])
     expect(p.avisos).toHaveLength(3)
     expect(p.dados.divisao).toMatchObject({ t1: [{ slotId: 'sup' }, { slotId: 'rem' }], t5: [{ slotId: 'perna' }] })
     expect(p.dados.metodos).toEqual([expect.objectContaining({ metodo: 'Dropset', exercicio: 2 })])
@@ -149,5 +150,21 @@ describe('remoção de exercícios por ID', () => {
     expect(entradaPrescricaoSchema.safeParse({ ...entrada, removerSlotIds: ['face1'], meso }).success).toBe(false)
     expect(entradaPrescricaoSchema.safeParse({ acao: 'criar', alunoId: 'aluno', removerSlotIds: ['face1'] }).success).toBe(false)
     await expect(prepararPrescricao(fs as unknown as Firestore, { ...entrada, removerSlotIds: ['antigo'] }, agora)).rejects.toThrow('não encontrado')
+  })
+})
+
+describe('cópia da prescrição enviada pelo aluno', () => {
+  it('cópia que contradiz o plano é ignorada e não trava a edição; o perfil do aluno não entra nas condições', async () => {
+    const fs = banco()
+    const meso = { ...mesoPadrao(), inicio: '2026-11-01', divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []] }
+    const d = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(meso) } }
+    fs.doc.mockImplementation(async (p) => p === 'usuarios/aluno' ? { id: 'aluno', updateTime: '2026-11-15T01:00:00Z', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? d : null)
+    const sessao = prescreverSessao(meso, 1, 1)!
+    const slot = sessao.exercicios[0].slot
+    const falsa = JSON.stringify({ versao: 1, metodos: [], sessao: { ...sessao, exercicios: sessao.exercicios.map((x, i) => i === 0 ? { ...x, slot: { ...slot, nome: 'Outro Exercício' } } : x) } })
+    fs.lote.mockImplementation(async (caminhos: string[]) => caminhos.map((caminho) => ({ caminho, doc: caminho === 'registros/ciclo_s01_t1' ? { id: 'ciclo_s01_t1', updateTime: '2026-11-15T02:00:00Z', dados: { mesoId: 'ciclo', alunoId: 'aluno', semana: 1, treino: 1, prescricaoRegistrada: falsa } } : null })))
+    const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', nome: 'Renomeado' }, agora)
+    expect(JSON.stringify(p.dados.prescricoesRegistradas)).not.toContain('Outro Exercício')
+    expect(p.condicoes?.some((c) => c.caminho.startsWith('usuarios/'))).toBe(false)
   })
 })

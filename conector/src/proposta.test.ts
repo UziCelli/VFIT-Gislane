@@ -4,9 +4,11 @@ vi.mock('cloudflare:workers', () => ({ DurableObject: class { ctx: unknown; cons
 vi.mock('./prescricao', () => ({ salvarPrescricao: vi.fn(async () => ({ mesoId: 'meso' })) }))
 import { PropostaTreino } from './proposta'
 import { salvarPrescricao, type PropostaPrescricao } from './prescricao'
-import { ErroPrescricaoRecusada, Firestore } from './firestore'
+import { ErroConector, ErroPrescricaoRecusada, Firestore } from './firestore'
 import { proximoMesoId } from '../../src/lib/proximoMesoId'
 
+// Simula falha DEPOIS de o conector iniciar o commit (o 6º argumento marca o resultado como pendente).
+const falhaNoCommit = (erro: Error) => async (...a: unknown[]): Promise<never> => { await (a[5] as () => Promise<void>)(); throw erro }
 const proposta = { acao: 'criar', alunoId: 'aluno', nome: 'Treino', resumo: 'Resumo', dados: {}, criadaEm: 1000 } as PropostaPrescricao
 function criar() {
   const mapa = new Map<string, unknown>()
@@ -59,12 +61,12 @@ describe('propostas pendentes', () => {
     await instancia.guardar('id', 'coach', proposta, 1000)
     let liberar!: () => void
     const espera = new Promise<void>((resolve) => { liberar = resolve })
-    vi.mocked(salvarPrescricao).mockImplementationOnce(async () => { await espera; throw new Error('falha') })
+    vi.mocked(salvarPrescricao).mockImplementationOnce(async (...a: unknown[]) => { await (a[5] as () => Promise<void>)(); await espera; throw new Error('falha') })
     const primeira = instancia.confirmar('coach', 'token', 'projeto', undefined, 1001).catch(() => null)
     await vi.waitFor(() => expect(salvarPrescricao).toHaveBeenCalledTimes(1))
     vi.spyOn(Firestore.prototype, 'doc').mockResolvedValue(null)
     const segunda = instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)
-    vi.mocked(Date.now).mockReturnValue(901000)
+    vi.mocked(Date.now).mockReturnValue(301000)
     liberar()
     await primeira
     expect(await segunda).toEqual({ status: 'resultado_pendente' })
@@ -74,7 +76,7 @@ describe('propostas pendentes', () => {
   it('reconcilia resposta perdida após o prazo sem gravar novamente', async () => {
     const { instancia } = criar()
     await instancia.guardar('op', 'coach', proposta, 1000)
-    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new Error('resposta perdida'))
+    vi.mocked(salvarPrescricao).mockImplementationOnce(falhaNoCommit(new Error('resposta perdida')) as never)
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'resultado_pendente' })
     vi.mocked(Date.now).mockReturnValue(901000)
     const doc = vi.spyOn(Firestore.prototype, 'doc').mockResolvedValue({ id: 'mcp_op', dados: { mcpOperacao: 'op' } })
@@ -86,7 +88,7 @@ describe('propostas pendentes', () => {
   it('informa recusa definitiva e remove a proposta privada', async () => {
     const { instancia, mapa } = criar()
     await instancia.guardar('op', 'coach', proposta, 1000)
-    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new ErroPrescricaoRecusada('versão mudou'))
+    vi.mocked(salvarPrescricao).mockImplementationOnce(falhaNoCommit(new ErroPrescricaoRecusada('versão mudou')) as never)
     const esperado = { status: 'recusada', mensagem: 'O treino não foi salvo porque mudou. Prepare uma nova proposta.' }
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual(esperado)
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual(esperado)
@@ -97,14 +99,14 @@ describe('propostas pendentes', () => {
   it('não deixa recusa explícita 403 permanentemente pendente', async () => {
     const { instancia } = criar()
     await instancia.guardar('op', 'coach', proposta, 1000)
-    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new ErroPrescricaoRecusada('O Firebase recusou a gravação.', 'FIRESTORE_403'))
+    vi.mocked(salvarPrescricao).mockImplementationOnce(falhaNoCommit(new ErroPrescricaoRecusada('O Firebase recusou a gravação.', 'FIRESTORE_403')) as never)
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'recusada', mensagem: 'O Firebase recusou a gravação.' })
   })
 
   it('reconcilia pelo recibo mesmo depois de outra edição do mesociclo', async () => {
     const { instancia } = criar()
     await instancia.guardar('op', 'coach', { ...proposta, condicoes: [] }, 1000)
-    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new Error('resposta perdida'))
+    vi.mocked(salvarPrescricao).mockImplementationOnce(falhaNoCommit(new Error('resposta perdida')) as never)
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'resultado_pendente' })
     const doc = vi.spyOn(Firestore.prototype, 'doc').mockResolvedValue({ id: 'op', dados: { uid: 'coach', mesoId: 'mcp_op' } })
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'salva', resultado: { mesoId: 'mcp_op' } })
@@ -115,12 +117,36 @@ describe('propostas pendentes', () => {
   it('reconcilia próximo ciclo pelo mesmo identificador derivado do app', async () => {
     const { instancia } = criar()
     await instancia.guardar('op', 'coach', { ...proposta, acao: 'proximo', origem: { id: 'origem', updateTime: 'versao' } }, 1000)
-    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new Error('resposta perdida'))
+    vi.mocked(salvarPrescricao).mockImplementationOnce(falhaNoCommit(new Error('resposta perdida')) as never)
     await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)
     const id = await proximoMesoId('origem')
     const doc = vi.spyOn(Firestore.prototype, 'doc').mockResolvedValue({ id, dados: { mcpOperacao: 'op' } })
     expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'salva', resultado: { mesoId: id } })
     expect(doc).toHaveBeenCalledWith(`mesos/${id}`)
+    expect(salvarPrescricao).toHaveBeenCalledTimes(1)
+  })
+
+  it('falha antes do commit não deixa a proposta pendente nem recusada', async () => {
+    const { instancia } = criar()
+    await instancia.guardar('op', 'coach', proposta, 1000)
+    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new Error('JSON inválido'))
+    await expect(instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).rejects.toThrow('Nada foi alterado')
+    vi.mocked(salvarPrescricao).mockRejectedValueOnce(new ErroConector('Não deu para falar com o Firestore. Tente de novo.'))
+    await expect(instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).rejects.toThrow('Firestore')
+    expect(await instancia.ler('coach', 1001)).toEqual({ status: 'proposta', proposta })
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'salva', resultado: { mesoId: 'meso' } })
+  })
+
+  it('sem comprovante depois do prazo, a resposta perdida vira não salva', async () => {
+    const { instancia } = criar()
+    await instancia.guardar('op', 'coach', { ...proposta, condicoes: [] }, 1000)
+    vi.mocked(salvarPrescricao).mockImplementationOnce(falhaNoCommit(new Error('resposta perdida')) as never)
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'resultado_pendente' })
+    vi.spyOn(Firestore.prototype, 'doc').mockResolvedValue(null)
+    vi.mocked(Date.now).mockReturnValue(1001 + 9 * 60_000)
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toEqual({ status: 'resultado_pendente' })
+    vi.mocked(Date.now).mockReturnValue(1001 + 11 * 60_000)
+    expect(await instancia.confirmar('coach', 'token', 'projeto', undefined, 1001)).toMatchObject({ status: 'recusada' })
     expect(salvarPrescricao).toHaveBeenCalledTimes(1)
   })
 

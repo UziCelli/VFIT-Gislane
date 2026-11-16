@@ -98,7 +98,7 @@ test('coach abre o guia de fisioterapia pelo seletor; aluno não vê o seletor e
   await aluno.getByLabel('E-mail').fill('bia.guia@teste.com')
   await aluno.getByLabel('Senha').fill('senha123')
   await aluno.getByRole('button', { name: 'Entrar', exact: true }).click()
-  await expect(aluno.getByRole('heading', { name: 'Início' })).toBeVisible()
+  await expect(aluno.getByRole('heading', { name: 'Olá, Bia' })).toBeVisible()
   await aluno.goto('/#/metodos')
   await expect(aluno.getByRole('heading', { name: 'Guia de métodos' })).toBeVisible()
   await expect(aluno.getByRole('link', { name: 'Físio', exact: true })).toHaveCount(1) // só a aba da barra

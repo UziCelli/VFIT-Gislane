@@ -92,8 +92,8 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
     }
   }
   validarIdentidades()
-  // O perfil do aluno muda por ações dele (peso, aceite, pagamento) e não afeta o mesociclo: não entra nas condições.
-  const condicoes: Condicao[] = []
+  // O perfil muda por ações do aluno (peso, aceite, pagamento): não exige a versão exata, mas o aluno precisa continuar existindo (exclusão LGPD não pode deixar mesociclo órfão).
+  const condicoes: Condicao[] = [{ caminho: `usuarios/${e.alunoId}`, existe: true }]
   const preservadas = { ...base.prescricoesRegistradas }
   const anteriores = structuredClone(base.prescricoesAnteriores ?? {})
   if (e.acao === 'editar') {

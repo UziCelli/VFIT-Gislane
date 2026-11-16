@@ -154,7 +154,7 @@ describe('remoção de exercícios por ID', () => {
 })
 
 describe('cópia da prescrição enviada pelo aluno', () => {
-  it('cópia que contradiz o plano é ignorada e não trava a edição; o perfil do aluno não entra nas condições', async () => {
+  it('cópia que contradiz o plano é ignorada e não trava a edição; o perfil do aluno só precisa existir (sem versão exata)', async () => {
     const fs = banco()
     const meso = { ...mesoPadrao(), inicio: '2026-11-01', divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []] }
     const d = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(meso) } }
@@ -165,6 +165,7 @@ describe('cópia da prescrição enviada pelo aluno', () => {
     fs.lote.mockImplementation(async (caminhos: string[]) => caminhos.map((caminho) => ({ caminho, doc: caminho === 'registros/ciclo_s01_t1' ? { id: 'ciclo_s01_t1', updateTime: '2026-11-15T02:00:00Z', dados: { mesoId: 'ciclo', alunoId: 'aluno', semana: 1, treino: 1, prescricaoRegistrada: falsa } } : null })))
     const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', nome: 'Renomeado' }, agora)
     expect(JSON.stringify(p.dados.prescricoesRegistradas)).not.toContain('Outro Exercício')
-    expect(p.condicoes?.some((c) => c.caminho.startsWith('usuarios/'))).toBe(false)
+    expect(p.condicoes).toContainEqual({ caminho: 'usuarios/aluno', existe: true })
+    expect(p.condicoes?.some((c) => c.caminho.startsWith('usuarios/') && c.updateTime)).toBe(false)
   })
 })

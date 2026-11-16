@@ -53,7 +53,7 @@ import PagarPix, { PIX } from './features/aluno/PagarPix'
 import Aceite from './features/privacidade/Aceite'
 import SenhaSegura from './features/auth/SenhaSegura'
 import marca from '@marca/marca.json'
-import { IcBalao, IcCasa, IcGrupo, IcLivro, IcPessoa, IcSair, IcSino, IcTrofeu } from './icones'
+import { IcBalao, IcCasa, IcGrupo, IcLivro, IcPessoa, IcPrancheta, IcSair, IcSino, IcTrofeu } from './icones'
 import { BarraAbas, Bolha, Brilho } from './vidro'
 
 // /instalar, /privacidade e /acao (links dos e-mails do Firebase) são públicas (link enviado pelo WhatsApp): não depende de login.
@@ -188,13 +188,14 @@ function Vigia({ papel }: { papel: 'coach' | 'aluno' }) {
 }
 
 const ativaAba = (rota: string) =>
-  rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
+  rota.startsWith('/confirmar-treino-mcp') ? 'propostas'
+  : rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
   : rota === '/fisio' ? 'metodos'
   : rota === '/alunos' || rota.startsWith('/alunos/') || rota.startsWith('/aluno/') || rota.startsWith('/meso/') ? 'alunos'
   : 'inicio' // '/' e rotas desconhecidas (a tela padrão é o Início)
 
 // Menu do coach: abas embaixo no celular, menu lateral fixo no computador (≥ lg).
-function Menu({ rota }: { rota: string }) {
+function Menu({ rota, propostas }: { rota: string; propostas: number }) {
   const [saindo, sairAgora] = useSair()
   const at = ativaAba(rota)
   // Mesmas 4 consultas do Início (com os arquivados): o Firestore junta as iguais (sem leitura extra). Menu não existe no presencial.
@@ -215,6 +216,8 @@ function Menu({ rota }: { rota: string }) {
     { id: 'alertas', rotulo: 'Alertas', href: '#/alertas', Icone: IcSino, selo },
     { id: 'ranking', rotulo: 'Ranking', href: '#/ranking', Icone: IcTrofeu },
     { id: 'feedbacks', rotulo: 'Feedbacks', href: '#/feedbacks', Icone: IcBalao, selo: naoLidos },
+    // Só aparece quando o assistente deixou treino aguardando (ou na própria tela): evita aba morta para quem não usa o conector.
+    ...(propostas > 0 || at === 'propostas' ? [{ id: 'propostas', rotulo: 'Propostas de treino', href: '#/confirmar-treino-mcp', Icone: IcPrancheta, selo: propostas }] : []),
     { id: 'metodos', rotulo: 'Métodos', href: '#/metodos', Icone: IcLivro },
     { id: 'conta', rotulo: 'Minha conta', href: '#/conta', Icone: IcPessoa },
   ]
@@ -246,7 +249,7 @@ function Menu({ rota }: { rota: string }) {
         className="lg:hidden"
         abas={itens
           .filter((i) => i.id !== 'ranking')
-          .map((i) => ({ rotulo: i.id === 'conta' ? 'Conta' : i.id === 'feedbacks' ? 'Opiniões' : i.rotulo, href: i.href, Icone: i.Icone, ativo: (at === 'ranking' ? 'inicio' : at) === i.id, selo: i.selo }))}
+          .map((i) => ({ rotulo: i.id === 'conta' ? 'Conta' : i.id === 'feedbacks' ? 'Opiniões' : i.id === 'propostas' ? 'Propostas' : i.rotulo, href: i.href, Icone: i.Icone, ativo: (at === 'ranking' ? 'inicio' : at) === i.id, selo: i.selo }))}
       />
     </>
   )
@@ -292,7 +295,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
     <div className="lg:flex">
       <Brilho />
       <AnimatePresence>{tutorial && <TutorialCoach nome={nome} fechar={() => setTutorial(false)} />}</AnimatePresence>
-      {!presencial && <Menu rota={rota} />}
+      {!presencial && <Menu rota={rota} propostas={propostasMcp.length} />}
       <div className={`min-w-0 flex-1 min-h-lvh ${presencial ? '' : 'pb-barra lg:pb-0'}`}>
         <header hidden={presencial} className="pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] pt-topo lg:hidden">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 pb-3">

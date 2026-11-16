@@ -83,7 +83,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 - `src/index.ts` — única entrada com pacotes do Worker: OAuth, `/mcp` (leitura, diagnóstico e propostas) e as rotas do login (`/authorize`, `/pedido`, `/concluir`, `/cancelar`)
 - `src/login.ts` — pedido de uso único (KV, 10 min) e `concluirLogin` (2º fator + papel coach); `src/execucao.ts` — troca o refreshToken e roda cada ferramenta
 - `src/firestore.ts` — Firestore REST com o token do coach; `src/rest.ts` — valores REST <-> JS; `src/ferramentas.ts` — `listarAlunos`, `verAluno`, `verMesos`, `catalogoExercicios` (reusam `src/lib` e `src/engine` por caminho relativo, e `push/src/{jwt,cors,corpo}.ts`)
-- `src/prescricao.ts` — valida proposta de mesociclo e persiste pelo fluxo normal, sem tocar em registros/cargas; `src/proposta.ts` — ciclo de vida da proposta aguardando aprovação explícita do coach (isolada por conta, expira em 15 min, confirmação concorrente serializada)
+- `src/prescricao.ts` — valida proposta de mesociclo e persiste pelo fluxo normal, sem tocar em registros/cargas; `src/proposta.ts` — ciclo de vida da proposta aguardando aprovação explícita do coach (isolada por conta, expira em 24 h, confirmação concorrente serializada; índice por coach em `conector/src/pendentes.ts` + rota `/prescricao/pendentes`; no app, `src/lib/propostasMcp.ts` e `AvisoPropostaMcp.tsx`)
 - `src/*.test.ts` — rodam no `npm test` da raiz; `tsc -p conector` entra no `npm run typecheck` (o CI faz `npm ci --prefix conector` antes)
 
 ### `src/features/auth/` — Autenticação

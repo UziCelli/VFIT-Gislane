@@ -13,6 +13,8 @@ import { semanaAtual } from '../../src/lib/treino'
 import { ErroConector, type Doc, type Firestore } from './firestore'
 import { Ts } from './rest'
 
+import { comPrescricoesRegistradas } from '../../src/lib/prescricaoRegistrada'
+
 const isoMs = (v: unknown): string | null => (v instanceof Ts ? new Date(v.ms).toISOString() : null)
 const dia = (v: unknown): string | null => (v instanceof Ts ? dataSP(new Date(v.ms)) : null)
 const texto = (v: unknown) => (typeof v === 'string' ? v : '')
@@ -98,13 +100,14 @@ export function resumirCargas(cargas: (number | null)[] | undefined, reps: (numb
   return Array.from({ length: total }, (_, j) => `${j >= n ? 'D' : ''}${cargas?.[j] ?? '-'}×${reps?.[j] ?? '-'}${sufixo}`).join(' ')
 }
 
-export async function verMesos(fs: Firestore, alunoId: string, mesoId?: string, agora = new Date()) {
+export async function verMesos(fs: Firestore, alunoId: string, mesoId?: string, agora = new Date(), incluirPrescricao = false) {
+  if (incluirPrescricao && !mesoId) throw new ErroConector('Informe mesoId para obter a prescrição completa.', 'VALIDACAO', 'validacao', false)
   await aluno(fs, alunoId)
-  const [docsMesos, docsRegs] = await Promise.all([fs.consulta('mesos', 'alunoId', alunoId), fs.consulta('registros', 'alunoId', alunoId)])
+  const [docsMesos, docsRegs] = await Promise.all([mesoId ? fs.doc(`mesos/${mesoId}`).then((d) => d && d.dados.alunoId === alunoId ? [d] : []) : fs.consulta('mesos', 'alunoId', alunoId), fs.consulta('registros', mesoId ? 'mesoId' : 'alunoId', mesoId ?? alunoId)])
   const mesos = docsMesos.flatMap((d) => lerMeso(d) ?? []).filter((m) => !mesoId || m.id === mesoId).sort((a, b) => b.inicio.localeCompare(a.inicio))
   return mesos.map((md) => {
-    const meso: Meso = docParaMeso(md)
     const regs = docsRegs.filter((d) => d.dados.mesoId === md.id).map((d) => d.dados as unknown as RegistroDoc)
+    const meso: Meso = comPrescricoesRegistradas(docParaMeso(md), regs)
     const cargas = docsParaRegistros(regs, meso)
     const reps = docsParaRegistrosReps(regs)
     const estado = semanaAtual(meso, agora)
@@ -118,6 +121,8 @@ export async function verMesos(fs: Firestore, alunoId: string, mesoId?: string, 
           const feito = resumirCargas(cargas[`${s}-${t + 1}`]?.[e.slot.slotId], reps[`${s}-${t + 1}`]?.[e.slot.slotId], e.n, sufixo)
           linha.semanas.push({
             s,
+            slotId: e.slot.slotId,
+            origem: meso.prescricoesRegistradas?.[`${s}-${t + 1}`] ? 'registrada' : meso.sessoes?.[`${s}-${t + 1}`] ? 'presencial' : meso.adicoes?.[`${s}-${t + 1}`]?.some((x) => x.slotId === e.slot.slotId) ? 'adicao' : meso.trocas?.[`${s}-${t + 1}-${e.pos}`] ? 'troca' : 'divisao',
             ...(e.slot.nome !== linha.nome && { nome: e.slot.nome }),
             prescrito: `${e.n}x ${e.reps.slice(0, e.n).join('/')}${sufixo}`,
             ...(e.rotulo && { metodo: e.rotulo }),
@@ -127,8 +132,10 @@ export async function verMesos(fs: Firestore, alunoId: string, mesoId?: string, 
       }
       return { treino: t + 1, exercicios: porPos }
     })
+    const { sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, historicoIncerto: _i, ...prescricao } = docParaMeso(md)
     return {
       id: md.id,
+      ...(incluirPrescricao && { versao: docsMesos.find((d) => d.id === md.id)?.updateTime, prescricao }),
       nome: md.nome,
       situacao: estado.estado === 'durante' ? 'atual' : estado.estado === 'antes' ? 'proximo' : 'anterior',
       inicio: md.inicio.slice(0, 10),
@@ -137,6 +144,7 @@ export async function verMesos(fs: Firestore, alunoId: string, mesoId?: string, 
       frequencia: meso.frequencia,
       dias: meso.dias ?? null,
       divisaoPlanejada: meso.divisao.map((exercicios, t) => ({ treino: t + 1, exercicios: exercicios.map((slot, i) => ({ pos: i + 1, slotId: slot.slotId, nome: slot.nome })) })),
+      ...(meso.historicoIncerto?.length && { avisoHistorico: 'Registros antigos sem versão: a prescrição anterior é uma referência, não uma comprovação do que foi utilizado.', sessoesSemVersao: meso.historicoIncerto }),
       treinosConcluidos: regs.filter((r) => r.realizado).map((r) => `${r.semana}-${r.treino}`),
       treinos,
     }

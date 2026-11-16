@@ -27,6 +27,8 @@ type Env = {
   FIREBASE_API_KEY: string
   FIREBASE_APP_ID?: string
   APPCHECK_DEBUG_TOKEN?: string
+  BUILD_ID?: string
+  EDICAO_COMPLETA?: string
 }
 const E = ambiente as unknown as Env
 
@@ -47,21 +49,37 @@ const mcp = createMcpHandler(() => criarServidor(rodar, {
     if (!statusDeConexao(props).podePrepararTreinos || typeof props?.uid !== 'string') return negado()
     const uid = props.uid
     return rodar(async (fs) => {
+      if (E.EDICAO_COMPLETA !== '1') throw new ErroConector('A edição completa aguarda a publicação compatível do app e das regras.', 'ATUALIZACAO', 'configuracao', false)
       const proposta = await prepararPrescricao(fs, entrada, Date.now())
       const id = crypto.randomUUID()
       // O RPC só aceita objetos simples; a leitura REST pode conter timestamps como instâncias Ts.
-      await propostaObjeto(E, id).guardar(id, uid, structuredClone(proposta), Date.now())
-      return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, mensagem: 'O coach precisa conferir e salvar no app.' }
+      try { await propostaObjeto(E, id).guardar(id, uid, structuredClone(proposta), Date.now()) }
+      catch { throw new ErroConector('Não foi possível armazenar a proposta. Nenhum treino foi alterado. Confira os limites e os bindings de PROPOSTAS na Cloudflare.', 'ARMAZENAMENTO', 'armazenamento') }
+      return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, expiraEm: new Date(Date.now() + 15 * 60_000).toISOString(), mensagem: 'O coach precisa conferir e salvar no app.' }
     }, uid)
   },
   consultar: async (id: string) => {
     const props = getMcpAuthContext()?.props
     if (!statusDeConexao(props).podePrepararTreinos || typeof props?.uid !== 'string') return negado()
     if (!idValido(id)) return { isError: true as const, content: [{ type: 'text' as const, text: 'Proposta inválida.' }] }
-    const resultado = await propostaObjeto(E, id).ler(props.uid, Date.now())
-    return { content: [{ type: 'text' as const, text: JSON.stringify(resultado ? { status: resultado.status, ...(resultado.status === 'salva' && { resultado: resultado.resultado }) } : { status: 'não encontrada' }) }] }
+    const uid = props.uid
+    return rodar(async (_fs, token, appCheck) => {
+      const resultado = await propostaObjeto(E, id).consultar(uid, token, E.PROJETO, appCheck, Date.now())
+      return resultado ? { status: resultado.status, ...(resultado.status === 'salva' && { resultado: resultado.resultado }), ...(resultado.status === 'recusada' && { mensagem: resultado.mensagem }) } : { status: 'não encontrada' }
+    }, props.uid)
   },
-}, () => getMcpAuthContext()?.props))
+}, () => getMcpAuthContext()?.props, async () => {
+  const props = getMcpAuthContext()?.props
+  const autorizacao = statusDeConexao(props)
+  return rodar(async (fs) => {
+    if (!E.FIREBASE_APP_ID || !E.APPCHECK_DEBUG_TOKEN) throw new ErroConector('Falta configurar App Check no Worker.', 'CONFIG_APPCHECK', 'configuracao', false)
+    if (typeof props?.uid !== 'string') throw new ErroConector('Reconecte para completar a identificação da conta.', 'AUTORIZACAO', 'autenticacao', false)
+    const perfil = await fs.doc(`usuarios/${props.uid}`)
+    if (perfil?.dados.papel !== 'coach') throw new ErroConector('A conta não tem papel de coach.', 'PAPEL', 'autenticacao', false)
+    await propostaObjeto(E, '__diagnostico').saude()
+    return { ...autorizacao, podePrepararTreinos: autorizacao.podePrepararTreinos && E.EDICAO_COMPLETA === '1', dependencias: 'disponiveis', build: E.BUILD_ID ?? 'sem-identificador', edicaoCompleta: E.EDICAO_COMPLETA === '1' }
+  }, typeof props?.uid === 'string' ? props.uid : undefined)
+}))
 
 // Cada pedido usa uma instância própria do Durable Object deste Worker.
 // KV continua exclusivo para concessões OAuth; não garante consumo único de pedidos.

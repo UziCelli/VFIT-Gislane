@@ -1,6 +1,7 @@
 // Painel de evolução do aluno e ranking do coach. Funções puras: tudo sai de mesos e registros
 // (definições em docs/plano-evolucao.md). Cargas sempre via docsParaRegistros (peso do corpo).
 import type { Timestamp } from 'firebase/firestore'
+import { comPrescricoesRegistradas } from './prescricaoRegistrada'
 import { isometrico, metricasExercicio, prescreverSessao, repsEfetivas, type Meso, type Registros } from '../engine'
 import { diaSP } from './acesso'
 import { docsParaRegistros, docsParaRegistrosReps, type RegistroDoc } from './conversores'
@@ -92,8 +93,9 @@ function ocorrencias(mesos: MesoEvolucao[], feitos: Feito[]): Record<string, Oco
   for (const { mesoId, semana, treino, dia, conta } of feitos) {
     let l = lidos.get(mesoId)
     if (!l) {
-      const meso = mesos.find((m) => m.id === mesoId)!.meso
+      const original = mesos.find((m) => m.id === mesoId)!.meso
       const docs = feitos.filter((f) => f.mesoId === mesoId).map((f) => f.doc)
+      const meso = comPrescricoesRegistradas(original, docs)
       l = { meso, cargas: docsParaRegistros(docs, meso), reps: docsParaRegistrosReps(docs) }
       lidos.set(mesoId, l)
     }

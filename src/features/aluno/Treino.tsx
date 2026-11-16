@@ -24,6 +24,7 @@ import { duracaoTreino, fimDaSessao, TETO_TREINO_MS } from '../../lib/resumo'
 import type { Usuario } from '../../lib/acesso'
 import { corpoEhCarga, fracaoPC, preencherCorpo, rebasear } from '../../lib/pesoCorporal'
 import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../lib/conversores'
+import { comPrescricoesRegistradas } from '../../lib/prescricaoRegistrada'
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
 import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../lib/hooks'
@@ -438,7 +439,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         <Botao tipo="fantasma" onClick={sair}>Voltar</Botao>
       </Centro>
     )
-  const meso = comVolta(docParaMeso(dados), docsRegistros, hoje) // semana de volta: prescrição com −5%
+  const meso = comPrescricoesRegistradas(comVolta(docParaMeso(dados), docsRegistros, hoje), docsRegistros)
   const volta = semanaDeVolta(meso, docsRegistros, hoje, semana) // e a carga anterior (número cinza) também
   const sessao = prescreverSessao(meso, semana, treino)
   if (!sessao) return naoEncontrado
@@ -459,7 +460,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     const t = Date.now()
     setInicioLocal(t)
     marcarTreino(t) // treino em andamento neste aparelho conta como uso (inatividade)
-    marcarInicio(mesoId, uid, semana, treino)
+    marcarInicio(mesoId, uid, semana, treino, docAtual?.prescricaoRegistrada ?? JSON.stringify({ versao: 1, sessao, metodos: metodosDaSessao(meso, semana, treino) }))
   }
   const cancelar = () => {
     if (!window.confirm('Cancelar este treino? O tempo zera e as cargas e reps anotadas nele são apagadas.')) return
@@ -570,6 +571,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     <div className="treino-pagina min-h-lvh">
     <main className="mx-auto max-w-md px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-4">
       <AvisoNotificacoes />
+      {meso.historicoIncerto?.includes(chave) && <p role="status" className="p-3 text-sm text-amber-200">Este registro antigo chegou sem versão da prescrição. A prescrição anterior é uma referência; confira as cargas e repetições registradas.</p>}
       <BotaoVoltar aoVoltar={sair} />
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">

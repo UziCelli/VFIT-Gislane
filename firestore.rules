@@ -202,6 +202,16 @@ service cloud.firestore {
       allow write: if isCoach();
     }
 
+    // Comprovantes privados, imutáveis e sem conteúdo de treino. Limpeza após 30 dias.
+    match /mcpOperacoes/{id} {
+      allow get: if isCoach() && (!exists(/databases/$(database)/documents/mcpOperacoes/$(id)) || resource.data.uid == request.auth.uid);
+      allow create: if isCoach()
+        && request.resource.data.keys().hasOnly(['uid', 'mesoId', 'em'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.mesoId is string
+        && request.resource.data.em == request.time;
+    }
+
     // Id: {mesoId}_s{WW}_t{T}, ex.: abc_s01_t1.
     match /registros/{regId} {
       allow read: if isCoach() || (own(resource.data) && liberado());
@@ -209,7 +219,9 @@ service cloud.firestore {
 
       allow create: if own(request.resource.data) && liberado()
         && request.resource.data.keys().hasOnly(
-             ['alunoId', 'mesoId', 'semana', 'treino', 'realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'pc', 'atualizadoEm'])
+             ['alunoId', 'mesoId', 'semana', 'treino', 'realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'pc', 'atualizadoEm', 'prescricaoRegistrada'])
+        && request.resource.data.get('prescricaoRegistrada', '') is string
+        && request.resource.data.get('prescricaoRegistrada', '').size() <= 60000
         && request.resource.data.semana is int
         && request.resource.data.treino is int
         && registroValido(request.resource.data)
@@ -233,7 +245,10 @@ service cloud.firestore {
       // pc = kg do corpo usado por exercício (slotId → número; 0 = desligado).
       allow update: if own(resource.data) && liberado()
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'pc', 'atualizadoEm'])
+             .hasOnly(['realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'pc', 'atualizadoEm', 'prescricaoRegistrada'])
+        && request.resource.data.get('prescricaoRegistrada', '') is string
+        && request.resource.data.get('prescricaoRegistrada', '').size() <= 60000
+        && (!('prescricaoRegistrada' in resource.data) || request.resource.data.prescricaoRegistrada == resource.data.prescricaoRegistrada)
         && registroValido(request.resource.data)
         && request.resource.data.get('realizadoEm', null)
              in [resource.data.get('realizadoEm', null), null, request.time]

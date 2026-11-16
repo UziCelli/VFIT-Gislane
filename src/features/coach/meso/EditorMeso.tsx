@@ -24,6 +24,7 @@ import TabMetodos from './TabMetodos'
 import TabProgressao from './TabProgressao'
 import { lerProposta } from '../../fisio/propostaEditor'
 import { redimensionar } from './util'
+import { mesoSchema } from '../../../lib/prescricaoSchema'
 
 const DIAS_SEMANA = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -105,6 +106,11 @@ export default function EditorMeso({ id }: { id: string }) {
       novo = { ...novo, divisao: novo.divisao.slice(0, novo.frequencia) }
     }
     if (novo !== meso) setMeso(novo)
+    const { sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, historicoIncerto: _i, ...prescricao } = novo
+    if (!mesoSchema.safeParse(prescricao).success) {
+      setErro('Confira divisão, progressão, dias e métodos antes de salvar. A prescrição está incompleta ou inválida.')
+      return
+    }
     setDirty(false)
     setErro(null)
     const g = salvarMeso(id, alunoId, nome, novo).gravado

@@ -40,7 +40,7 @@ export function padraoMetodo(metodo: Metodo, semana: number, treino: number, exe
 // Ponto de partida: a edição já salva, senão uma cópia do que o plano prescreve para o dia.
 export function iniciarEdicao(meso: Meso, semana: number, treino: number): SessaoEditada {
   return (
-    meso.sessoes?.[`${semana}-${treino}`] ?? {
+    (!meso.prescricoesRegistradas?.[`${semana}-${treino}`] ? meso.sessoes?.[`${semana}-${treino}`] : undefined) ?? {
       semana,
       treino,
       exercicios: slotsDaSessao(meso, semana, treino).map((s) => {

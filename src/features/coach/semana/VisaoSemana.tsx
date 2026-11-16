@@ -5,6 +5,7 @@ import { marcarRealizado } from '../../../lib/acoes'
 import { docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type RegistroDoc } from '../../../lib/conversores'
 import { diaSP } from '../../../lib/acesso'
 import { msSessao } from '../../../lib/resumo'
+import { comPrescricoesRegistradas } from '../../../lib/prescricaoRegistrada'
 import { comVolta } from '../../../lib/agenda'
 import { db } from '../../../lib/firebase'
 import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../../lib/hooks'
@@ -48,7 +49,7 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
   if (carregando) return <Centro>Carregando…</Centro>
   if (!dados) return <Centro>{semInternet ? TEXTO_SEM_INTERNET : 'Meso não encontrado.'}</Centro>
 
-  const meso = comVolta(docParaMeso(dados), docsRegistros, agora) // prescrito = o que o aluno viu (semana de volta −5%)
+  const meso = comPrescricoesRegistradas(comVolta(docParaMeso(dados), docsRegistros, agora), docsRegistros) // prescrito = o que o aluno viu (semana de volta −5%)
   const registros = docsParaRegistros(docsRegistros, meso)
   const reps = docsParaRegistrosReps(docsRegistros)
   const lados = docsParaLados(docsRegistros)
@@ -74,6 +75,7 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
         </>
       }
     >
+      {!!meso.historicoIncerto?.length && <p role="status" className="mb-3 text-sm text-amber-200">Há registros antigos sem versão da prescrição. As prescrições anteriores são referências; confira as cargas registradas.</p>}
       <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
         <Botao disabled={semanaAtual <= 1} onClick={() => ir(`/meso/${id}/semana/${semanaAtual - 1}`)}>
           ← Semana

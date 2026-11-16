@@ -6,7 +6,7 @@ Propósito: proteger identidade, dados de treino/saúde, segredos, disponibilida
 
 - Autoridades: Firebase Auth, `firestore.rules`, Workers em `push/` e `conector/`, workflows e cache local.
 - Papel, proprietário, pagamento/status e MFA do coach devem ser conferidos no servidor/regras; nunca confiar em IDs ou botões do cliente. Manter isolamento entre usuários e marcas.
-- Conector MCP usa a identidade do coach. Concessões antigas são somente leitura; prescrição em desenvolvimento exige novo consentimento e aprovação explícita com MFA antes de gravar. Não ampliar permissões nem introduzir acesso administrativo implícito. Ver [prescrição](docs/conector-prescricao.md).
+- Conector MCP usa a identidade do coach. Concessões antigas são somente leitura; prescrição exige novo consentimento e aprovação explícita com MFA antes de gravar. Não ampliar permissões nem introduzir acesso administrativo implícito. Diagnóstico operacional registra apenas código, etapa e identificador aleatório; nunca conteúdo, stack ou identidade. Ver [prescrição](docs/conector-prescricao.md).
 
 ## Ambientes e segredos
 

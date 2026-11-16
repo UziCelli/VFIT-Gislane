@@ -14,7 +14,7 @@ export async function tokenAppCheck(c: ConfigAppCheck): Promise<string | undefin
   const chave = `${c.projeto}|${c.appId}`
   const guardado = cache.get(chave)
   if (guardado && agora < guardado.vence) return guardado.token
-  const falha = () => new ErroConector('Não consegui validar o app no Firebase. Tente de novo.')
+  const falha = () => new ErroConector('Não consegui validar o app no Firebase. Tente de novo.', 'APPCHECK', 'app_check')
   const buscar = c.buscar ?? fetch
   let r: Response
   try {
@@ -25,6 +25,7 @@ export async function tokenAppCheck(c: ConfigAppCheck): Promise<string | undefin
         // A chave web é restrita ao domínio do app (igual a trocarToken).
         headers: { 'Content-Type': 'application/json', Referer: 'https://app.vfitcoachapp.com/' },
         body: JSON.stringify({ debugToken: c.debugToken }),
+        signal: AbortSignal.timeout(10_000),
       },
     )
   } catch {

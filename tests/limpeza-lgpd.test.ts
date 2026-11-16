@@ -21,7 +21,7 @@ const rodar = () =>
     stdio: ['ignore', 'pipe', 'pipe'],
   })
 
-const COLECOES = ['usuarios', 'mesos', 'registros', 'relatorios', 'notas', 'fotos', 'cardios', 'feedbacks', 'avaliacoes', 'anamneses', 'fisioOrientacoes', 'fisioDores', 'fisioCheckins', 'logs', 'exclusoes']
+const COLECOES = ['usuarios', 'mesos', 'registros', 'relatorios', 'notas', 'fotos', 'cardios', 'feedbacks', 'avaliacoes', 'anamneses', 'fisioOrientacoes', 'fisioDores', 'fisioCheckins', 'logs', 'exclusoes', 'mcpOperacoes']
 const existe = async (p: string) => (await db.doc(p).get()).exists
 const login = async (uid: string) => {
   try { await auth.getUser(uid); return true } catch { return false }
@@ -60,6 +60,8 @@ beforeEach(async () => {
   await semear('coachC', 'coach', true)
   await db.doc('usuarios/migrado').set({ papel: 'aluno', migradoPara: 'alunoA' })
   await db.doc('logs/velho').set({ uid: 'alunoB', em: Timestamp.fromMillis(Date.now() - 40 * 86400_000) })
+  await db.doc('mcpOperacoes/velha').set({ uid: 'coachC', mesoId: 'm-alunoB', em: Timestamp.fromMillis(Date.now() - 40 * 86400_000) })
+  await db.doc('mcpOperacoes/recente').set({ uid: 'coachC', mesoId: 'm-alunoB', em: Timestamp.now() })
 })
 
 describe('limpeza LGPD', () => {
@@ -76,6 +78,8 @@ describe('limpeza LGPD', () => {
     }
     expect(await existe('exclusoes/coachC')).toBe(true)
     expect(await existe('logs/velho')).toBe(false)
+    expect(await existe('mcpOperacoes/velha')).toBe(false)
+    expect(await existe('mcpOperacoes/recente')).toBe(true)
     expect(out).not.toMatch(/alunoA|alunoB|coachC|@x\.com/)
   })
 

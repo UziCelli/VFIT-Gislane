@@ -94,6 +94,13 @@ for (;;) {
   logsVelhos += velhos.size
 }
 
+// Os comprovantes não guardam dados de saúde; retenção limitada para reconciliação.
+for (;;) {
+  const antigos = await db.collection('mcpOperacoes').where('em', '<', corte).limit(400).get()
+  if (antigos.empty) break
+  await apagarLotes(antigos.docs.map((d) => d.ref))
+}
+
 const saida = `## Limpeza LGPD (${marca})\n\n- Pedidos atendidos: ${apagados}\n- Pedidos mantidos (coach): ${mantidos}\n- Documentos apagados: ${docs}\n- Logins apagados: ${logins}\n- Logs com mais de 30 dias apagados: ${logsVelhos}\n`
 console.log(saida)
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, saida)

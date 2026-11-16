@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "typecheck": "tsc -p ."
+    "typecheck": "tsc -p .",
+    "test:runtime": "node --test test/runtime.test.mjs"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "^1.2.4",
@@ -15,6 +16,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261114.1",
     "@modelcontextprotocol/client": "^2.4.0",
-    "typescript": "^5.9.3"
+    "miniflare": "5.20261110.2-beta",
+    "typescript": "^5.9.3",
+    "wrangler": "4.161.0"
   }
 }

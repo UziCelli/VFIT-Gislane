@@ -229,9 +229,9 @@ export async function importarMeso(alunoId: string, nome: string, { meso, regist
 // Treino do dia ajustado no presencial (só aquela semana + treino). Grava só o campo da sessão, nunca o meso
 // inteiro: offline fica na fila e o editor do meso não o apaga (mesoParaDoc não leva `sessoes`).
 export const salvarSessaoEditada = (mesoId: string, s: SessaoEditada) =>
-  updateDoc(doc(db, 'mesos', mesoId), new FieldPath('sessoes', `${s.semana}-${s.treino}`), s)
+  updateDoc(doc(db, 'mesos', mesoId), new FieldPath('sessoes', `${s.semana}-${s.treino}`), s, new FieldPath('prescricoesRegistradas', `${s.semana}-${s.treino}`), null)
 export const voltarAoPlanejado = (mesoId: string, semana: number, treino: number) =>
-  updateDoc(doc(db, 'mesos', mesoId), new FieldPath('sessoes', `${semana}-${treino}`), deleteField())
+  updateDoc(doc(db, 'mesos', mesoId), new FieldPath('sessoes', `${semana}-${treino}`), deleteField(), new FieldPath('prescricoesRegistradas', `${semana}-${treino}`), null)
 
 // Marca que o coach adaptou o treino (o aluno vê o aviso uma vez).
 export const marcarAdaptado = (mesoId: string) => updateDoc(doc(db, 'mesos', mesoId), { adaptadoEm: serverTimestamp() })
@@ -451,8 +451,10 @@ export const reabrirTreino = (mesoId: string, alunoId: string, semana: number, t
   registro(mesoId, alunoId, semana, treino, { realizado: false, realizadoEm: deleteField() })
 
 // Primeira ação do aluno no treino: o chamador só chama se o registro ainda não tem inicioEm.
-export const marcarInicio = (mesoId: string, alunoId: string, semana: number, treino: number) =>
-  registro(mesoId, alunoId, semana, treino, { inicioEm: serverTimestamp() })
+export const marcarInicio = (mesoId: string, alunoId: string, semana: number, treino: number, prescricaoRegistrada?: string) =>
+  registro(mesoId, alunoId, semana, treino, { inicioEm: serverTimestamp(), ...(prescricaoRegistrada && prescricaoRegistrada.length <= 60_000 && { prescricaoRegistrada }) })
+    // Outro aparelho pode já ter criado a cópia imutável. As cargas não dependem dela.
+    .catch((e) => { if (!prescricaoRegistrada) throw e; return registro(mesoId, alunoId, semana, treino, { inicioEm: serverTimestamp() }) })
 
 // Cancelar treino iniciado: UM updateDoc que apaga inicioEm e cada campo já gravado (campo a campo, como
 // registrarCarga/Reps/Pc), para uma carga que chegar depois de outro aparelho não ser apagada. Sem registro, não faz nada.

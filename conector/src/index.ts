@@ -53,9 +53,10 @@ const mcp = createMcpHandler(() => criarServidor(rodar, {
       const proposta = await prepararPrescricao(fs, entrada, Date.now())
       const id = crypto.randomUUID()
       // O RPC só aceita objetos simples; a leitura REST pode conter timestamps como instâncias Ts.
-      try { await propostaObjeto(E, id).guardar(id, uid, structuredClone(proposta), Date.now()) }
+      let expira: number
+      try { expira = await propostaObjeto(E, id).guardar(id, uid, structuredClone(proposta), Date.now()) }
       catch { throw new ErroConector('Não foi possível armazenar a proposta. Nenhum treino foi alterado. Confira os limites e os bindings de PROPOSTAS na Cloudflare.', 'ARMAZENAMENTO', 'armazenamento') }
-      return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, expiraEm: new Date(Date.now() + 15 * 60_000).toISOString(), mensagem: 'O coach precisa conferir e salvar no app.' }
+      return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, expiraEm: new Date(expira).toISOString(), mensagem: 'O coach precisa conferir e salvar no app.' }
     }, uid)
   },
   consultar: async (id: string) => {

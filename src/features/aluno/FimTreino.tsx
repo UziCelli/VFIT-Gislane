@@ -70,6 +70,7 @@ export default function FimTreino({
   const [previa, setPrevia] = useState<string>()
   const [erro, setErro] = useState(false)
   const entrada = useRef<HTMLInputElement>(null)
+  const camera = useRef<HTMLInputElement>(null)
   const dados: DadosTreino = {
     nome: primeiro,
     data,
@@ -170,12 +171,19 @@ export default function FimTreino({
       </m.div>}
 
       <div className="mt-5 space-y-2">
+        {/* Galeria e câmera são entradas separadas: no Android, só `accept` abre direto a galeria, sem opção de câmera (o iOS mostra o menu sozinho). */}
         <input ref={entrada} type="file" accept="image/*" hidden onChange={(e) => { void escolher(e.target.files?.[0]); e.target.value = '' }} />
+        <input ref={camera} type="file" accept="image/*" capture="user" hidden onChange={(e) => { void escolher(e.target.files?.[0]); e.target.value = '' }} />
         {erro && <p role="status" className="text-sm text-red-400">Não deu para abrir essa foto. Tente outra.</p>}
         {!foto && (
-          <Botao tipo="vidro" className="w-full" onClick={() => entrada.current?.click()}>
-            <IcCamera className="mr-1.5 inline size-5 align-[-4px]" /> Adicionar foto
-          </Botao>
+          <div className="flex gap-2">
+            <Botao tipo="vidro" className="flex-1" onClick={() => camera.current?.click()}>
+              <IcCamera className="mr-1.5 inline size-5 align-[-4px]" /> Tirar foto
+            </Botao>
+            <Botao tipo="vidro" className="flex-1" onClick={() => entrada.current?.click()}>
+              Da galeria
+            </Botao>
+          </div>
         )}
         <BotaoCompartilhar
           dados={dados}
@@ -186,11 +194,14 @@ export default function FimTreino({
         />
         {foto && (
           <div className="flex gap-2">
+            <Botao tipo="vidro" className="flex-1" onClick={() => camera.current?.click()}>
+              <IcCamera className="mr-1.5 inline size-5 align-[-4px]" /> Nova foto
+            </Botao>
             <Botao tipo="vidro" className="flex-1" onClick={() => entrada.current?.click()}>
               Trocar foto
             </Botao>
             <Botao tipo="fantasma" className="flex-1" onClick={() => { setFoto(undefined); setPrevia(undefined) }}>
-              Tirar foto
+              Remover foto
             </Botao>
           </div>
         )}

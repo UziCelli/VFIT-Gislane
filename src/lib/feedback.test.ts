@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assinaturaMarca, cardEvidente, filtrar, montarFeedback, podeConvidar, resumoNotas, textoDepoimento, textoParaCopiar, type Entrada } from './feedback'
+import { assinaturaMarca, cardEvidente, filtrar, montarFeedback, podeConvidar, porSemana, resumoNotas, textoDepoimento, textoParaCopiar, type Entrada } from './feedback'
 
 const base: Entrada = { nota: 5, assunto: 'app', texto: '', anonimo: false, depoimento: false }
 
@@ -88,5 +88,20 @@ describe('copiar feedback', () => {
   })
   it('sem tipo', () => {
     expect(textoParaCopiar({ nota: 5, assunto: 'app', texto: 'Amei' })).toBe('Feedback de aluno (5/5 · O app):\n"Amei"')
+  })
+})
+
+describe('porSemana', () => {
+  const DIA = 86_400_000
+  const agora = 1e12
+  const em = (diasAtras: number) => ({ em: new Date(agora - diasAtras * DIA) })
+  it('conta em blocos de 7 dias, do mais recente para o mais antigo', () => {
+    expect(porSemana([em(0), em(6), em(7), em(13), em(14), em(20)], agora, 3)).toEqual([2, 2, 2])
+  })
+  it('ignora o que passa de n blocos e quem não tem data', () => {
+    expect(porSemana([em(21), em(100), { em: null }], agora, 3)).toEqual([0, 0, 0])
+  })
+  it('hora do servidor um pouco à frente do relógio conta como agora', () => {
+    expect(porSemana([{ em: new Date(agora + 5000) }], agora, 2)).toEqual([1, 0])
   })
 })

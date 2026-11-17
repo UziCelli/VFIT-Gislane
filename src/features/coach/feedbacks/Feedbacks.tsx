@@ -3,7 +3,7 @@ import { collection, limit, orderBy, query, where, type Timestamp } from 'fireba
 import { useMemo, useState } from 'react'
 import { coroaAtiva, type Usuario } from '../../../lib/acesso'
 import { apagarFeedback, darCoroa, marcarFeedbackLido } from '../../../lib/acoes'
-import { filtrar, rotuloAssunto, rotuloTipo, resumoNotas, textoDepoimento, textoParaCopiar, type Feedback, type Filtro } from '../../../lib/feedback'
+import { filtrar, porSemana, rotuloAssunto, rotuloTipo, resumoNotas, textoDepoimento, textoParaCopiar, type Feedback, type Filtro } from '../../../lib/feedback'
 import { db } from '../../../lib/firebase'
 import { registrarErro } from '../../../lib/log'
 import { TEXTO_SEM_INTERNET, useLista, useSemInternet } from '../../../lib/hooks'
@@ -88,6 +88,8 @@ export default function Feedbacks() {
   const perfis = useMemo(() => new Map(alunos.dados.map((a) => [a.id, a])), [alunos.dados])
   const { media, total, porNota } = resumoNotas(fb.dados)
   const novos = fb.dados.filter((f) => !f.lido).length
+  const semanas = useMemo(() => porSemana(fb.dados), [fb.dados])
+  const maxSemana = Math.max(1, ...semanas)
   const lista = filtrar(fb.dados, filtro)
   return (
     <Pagina titulo="Feedbacks" voltar={<BotaoVoltar para="/" />}>
@@ -107,6 +109,24 @@ export default function Feedbacks() {
             </div>
           ))}
         </div>
+      </Quadro>
+      <Quadro className="mb-3">
+        <p className="mb-2 text-sm font-semibold text-slate-200">Feedbacks por semana</p>
+        <div className="flex items-end gap-2" role="img" aria-label={`Feedbacks por bloco de 7 dias, do mais antigo ao mais recente: ${[...semanas].reverse().join(', ')}`}>
+          {[...semanas].reverse().map((n, k) => {
+            const i = semanas.length - 1 - k // 0 = últimos 7 dias
+            return (
+              <div key={i} className="flex flex-1 flex-col items-center gap-1">
+                <span className="text-xs text-slate-300">{n}</span>
+                <span className="flex h-16 w-full items-end overflow-hidden rounded bg-white/10">
+                  <span className="block w-full rounded bg-marca-400" style={{ height: `${(n / maxSemana) * 100}%` }} />
+                </span>
+                <span className="text-[11px] text-slate-400">{i === 0 ? '7 dias' : `−${i}s`}</span>
+              </div>
+            )
+          })}
+        </div>
+        <p className="mt-2 text-xs text-slate-400">Cada barra são 7 dias corridos; a da direita é a mais recente. É a sua linha de base para comparar as campanhas.</p>
       </Quadro>
       <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
         {FILTROS.map(([k, t]) => (

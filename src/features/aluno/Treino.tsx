@@ -27,7 +27,7 @@ import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaR
 import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from '../../lib/prescricaoRegistrada'
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
-import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../lib/hooks'
+import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet, useUsuarioAtual } from '../../lib/hooks'
 import { historicoExercicios, recordeAnterior, resumoTreino, type RegistroEvolucao } from '../../lib/evolucao'
 import { ehRecorde } from '../../lib/recorde'
 import { cargaAnterior, semanaAtual } from '../../lib/treino'
@@ -44,6 +44,7 @@ import LoadInput from '../coach/semana/LoadInput'
 import CampoLados, { BotaoLadosDiferentes } from '../coach/semana/CampoLados'
 import { doisLados, ladosDiferentes, lerCelula } from '../../lib/lados'
 import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/presencial/EditarTreino'
+import AvisoEstimativaRm from './AvisoEstimativaRm'
 
 type RegistroFlag = RegistroDoc & { realizado?: boolean; inicioEm?: unknown; realizadoEm?: { toMillis(): number } | null; pc?: Record<string, number> }
 
@@ -388,6 +389,10 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const sair = () => (coach ? ir(base) : voltar('/treino'))
   const [pcLocal, setPcLocal] = useState<Record<string, number>>({}) // vale até o Firestore confirmar
   const { dados: perfil } = useDoc<Usuario>(doc(db, 'usuarios', uid))
+  // Carga sugerida pelas repetições (RM): escolha de quem está usando (aluno, ou o coach no presencial). Sem escolha = pergunta 1x.
+  const eu = useUsuarioAtual()
+  const estimarRm = eu.perfil?.estimativaRm === true
+  const perguntarRm = !!eu.user && !!eu.perfil && eu.perfil.estimativaRm === undefined && !navigator.webdriver // e2e não abre pop-up
   const an = useAnamnese(uid)
   const orient = useOrientacoes(coach ? null : uid)
   const orientacoes = orient.dados
@@ -604,6 +609,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
       )}</AnimatePresence>
       {adaptadoEm != null && <AvisoAdaptado chave={`forca-adaptado-${mesoId}-${adaptadoEm}`} />}
       <Novidades />
+      <AnimatePresence>{perguntarRm && eu.user && <AvisoEstimativaRm uid={eu.user.uid} onde={coach ? 'Minha conta' : 'Conta'} />}</AnimatePresence>
       {coach && meso.sessoes?.[chave] && <FaixaAjustado mesoId={mesoId} semana={semana} treino={treino} />}
       <m.div className="space-y-4" variants={cascata} initial="hidden" animate="show">
         {exibicao.map((e) => {
@@ -614,7 +620,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
           const colunasCargas = cs[e.slot.slotId] ?? []
           const iso = isometrico(e.slot)
           const colunasReps = rs[e.slot.slotId] ?? []
-          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, repsFeitas) // só o extra, com o corpo do registro de origem
+          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, estimarRm ? repsFeitas : undefined) // só o extra, com o corpo do registro de origem
           const slot = e.slot.slotId
           const partes = e.rotulo ? e.rotulo.split('; ').map((p) => ({ p, mt: metodoDoRotulo(p) })) : []
           const gc = gk ? COR_METODO[gk.split('|')[0] as Metodo] : undefined

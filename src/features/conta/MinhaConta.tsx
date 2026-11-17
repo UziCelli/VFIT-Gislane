@@ -11,6 +11,7 @@ import { useDoc } from '../../lib/hooks'
 import { Aviso, Botao, Campo, Cartao, Msg, Pagina } from '../../ui'
 import { IcCheck } from '../../icones'
 import ChavesAvisos from './ChavesAvisos'
+import ChaveEstimativaRm from './ChaveEstimativaRm'
 import { permissao } from '../aluno/AvisoNotificacoes'
 import { AVISOS_COACH, inscreverAvisos } from '../../lib/push'
 
@@ -245,6 +246,11 @@ export default function MinhaConta({ uid, email, abrirTutorial }: { uid: string;
             </Botao>
           </form>
         </Cartao>
+        {perfil?.papel === 'coach' && !carregando && (
+          <Cartao>
+            <ChaveEstimativaRm uid={uid} ligada={perfil.estimativaRm === true} falhou={() => setErro('Não deu para salvar. Tente de novo.')} />
+          </Cartao>
+        )}
         {perfil?.papel === 'coach' && !carregando && <NotificacoesCoach />}
         {perfil?.papel === 'coach' && !carregando && <DuasEtapas />}
         <Msg>{erro && <Aviso>{erro}</Aviso>}</Msg>

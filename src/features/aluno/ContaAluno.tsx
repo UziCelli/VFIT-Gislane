@@ -13,6 +13,7 @@ import { AVISOS_ALUNO, avisosLigados, cancelarPush, CHAVE_AVISOS, inscreverAviso
 import { Aviso, Botao, Campo, Msg, Painel } from '../../ui'
 import { IconeQuadrado, Quadro } from '../../vidro'
 import ChavesAvisos, { Chave } from '../conta/ChavesAvisos'
+import ChaveEstimativaRm from '../conta/ChaveEstimativaRm'
 import { permissao } from './AvisoNotificacoes'
 import PagarPix, { dataCurta, PIX } from './PagarPix'
 
@@ -213,6 +214,10 @@ export default function ContaAluno({ uid, perfil, abrirTutorial, abrirNovidades 
           <span className="flex-1 text-base font-semibold">Selo {marca.nome} na foto</span>
           <Chave ligada={!!perfil.selo} rotulo={`Selo ${marca.nome} na foto`} onChange={(v) => salvarSelo(uid, v).catch(falhou)} />
         </div>
+      </Quadro>
+
+      <Quadro>
+        <ChaveEstimativaRm uid={uid} ligada={perfil.estimativaRm === true} falhou={falhou} />
       </Quadro>
 
       <Mensalidade uid={uid} perfil={perfil} />

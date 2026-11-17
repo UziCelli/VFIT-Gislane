@@ -2,6 +2,12 @@
 
 O número cinza do treino (`cargaAnterior`, `src/lib/treino.ts`) é a carga da última vez que o aluno anotou o exercício. Quando as repetições de hoje são diferentes das daquele registro, a carga é **ajustada** pela tabela de repetições máximas (`src/engine/rm.ts`). A tela avisa: "Cargas em cinza: ajustadas às repetições de hoje, a partir do Treino X".
 
+## Quem liga e desliga
+- Campo `estimativaRm` no `usuarios/{uid}` de cada pessoa (aluno ou coach; o coach usa a sua escolha no treino presencial). Ausente = ainda não escolheu; `false` = desligada; `true` = ligada. Sem ligar, o número cinza é o da última vez, sem ajuste.
+- **Pop-up de uma vez** na tela de treino (`AvisoEstimativaRm.tsx`, mini onboarding): "Ligar" grava `true`; "Agora não", fundo ou Esc gravam `false`. Não volta depois da escolha. Não abre no e2e (`navigator.webdriver`).
+- **Chavinha** "Carga sugerida pelas repetições" em Conta (aluno) e Minha conta (coach): `ChaveEstimativaRm.tsx`.
+- Regras: `firestore.rules` aceita `estimativaRm` booleano no próprio perfil do aluno (coach já escreve no seu); teste em `tests/rules.test.ts`.
+
 ## Como calcula
 1. 1RM estimado = carga feita ÷ fração do 1RM para as reps feitas.
 2. Carga de hoje = 1RM estimado × fração do 1RM para as reps de hoje, arredondada a múltiplos de 0,5 kg (`PASSO_KG`). A carga que o aluno digita aceita até 3 casas.

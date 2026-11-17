@@ -306,6 +306,18 @@ describe('usuarios', () => {
     await assertFails(updateDoc(doc(db('ana'), 'usuarios', 'bia'), { selo: true }));
   });
 
+  it('aluno grava a própria escolha da estimativa de carga por RM (só booleano)', async () => {
+    const ana = doc(db('ana'), 'usuarios', 'ana');
+    await assertSucceeds(updateDoc(ana, { estimativaRm: true }));
+    await assertSucceeds(updateDoc(ana, { estimativaRm: false }));
+    await assertFails(updateDoc(ana, { estimativaRm: 'sim' }));
+    await assertFails(updateDoc(ana, { estimativaRm: 1 }));
+    await assertFails(updateDoc(ana, { estimativaRm: null }));
+    await assertFails(updateDoc(ana, { estimativaRm: true, papel: 'coach' }));
+    await assertFails(updateDoc(ana, { estimativaRm: true, status: 'bloqueado' }));
+    await assertFails(updateDoc(doc(db('ana'), 'usuarios', 'bia'), { estimativaRm: true }));
+  });
+
   it('usuário altera só o próprio nome', async () => {
     await assertSucceeds(updateDoc(doc(db('ana'), 'usuarios', 'ana'), { nome: 'Ana Maria' }));
     await assertFails(updateDoc(doc(db('ana'), 'usuarios', 'bia'), { nome: 'Hack' }));

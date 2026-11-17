@@ -49,7 +49,7 @@ import { arquivadosVencidos } from './alertas'
 import { paraDoc, somarDias, type AvaliacaoForm } from './avaliacao'
 import { idCardio, type TipoCardio } from './cardio'
 import type { NovoFeedback } from './feedback'
-import { docParaMeso, mesoParaDoc, registroId, type MesoDoc } from './conversores'
+import { caminhosParaCancelar, docParaMeso, mesoParaDoc, registroId, type MesoDoc, type RegistroGravado } from './conversores'
 import { auth, authCadastro, db, apagarCacheAoSair, concluirSaida, reabrirAposFalha } from './firebase'
 import { sincronizarAntesDeSair } from './saidaSegura'
 import type { Importado } from './planilha'
@@ -476,18 +476,10 @@ export const marcarInicio = (mesoId: string, alunoId: string, semana: number, tr
 
 // Cancelar treino iniciado: UM updateDoc que apaga inicioEm e cada campo já gravado (campo a campo, como
 // registrarCarga/Reps/Pc), para uma carga que chegar depois de outro aparelho não ser apagada. Sem registro, não faz nada.
-export const cancelarTreino = (
-  mesoId: string,
-  semana: number,
-  treino: number,
-  atual: { cargas?: Record<string, object>; reps?: Record<string, object>; lados?: Record<string, object>; pc?: Record<string, unknown> } | undefined,
-) => {
+export const cancelarTreino = (mesoId: string, semana: number, treino: number, atual: RegistroGravado | undefined) => {
   if (!atual) return
   const apagar: Record<string, unknown> = { inicioEm: deleteField(), atualizadoEm: serverTimestamp() }
-  for (const mapa of ['cargas', 'reps', 'lados'] as const)
-    for (const [slot, cols] of Object.entries(atual[mapa] ?? {}))
-      for (const k of Object.keys(cols)) apagar[`${mapa}.${slot}.${k}`] = deleteField()
-  for (const slot of Object.keys(atual.pc ?? {})) apagar[`pc.${slot}`] = deleteField()
+  for (const caminho of caminhosParaCancelar(atual)) apagar[caminho] = deleteField()
   updateDoc(doc(db, 'registros', registroId(mesoId, semana, treino)), apagar).catch((e) =>
     registrarErro('gravacao', `registro: ${e?.code ?? e}`, e), // ninguém espera esta promessa: não relança
   )

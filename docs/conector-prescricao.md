@@ -43,7 +43,7 @@ No editor, reduzir semanas ou dias retira métodos, trocas e adições do interv
 
 ## Propostas no app (sem depender do link)
 
-O app do coach mostra sozinho as propostas aguardando: aviso no topo de qualquer tela, entrada **Propostas de treino** no menu (só com proposta pendente) e lista em `#/confirmar-treino-mcp` (sem `id`). O link da resposta da IA continua válido. Listar ou abrir nunca salva: salvar segue exclusivo do botão **Salvar treino**.
+O app do coach mostra sozinho as propostas aguardando: aviso no topo de qualquer tela, entrada **Propostas de treino** no menu lateral do computador (só com proposta pendente; no celular a barra tem 6 abas e a proposta aparece como selo com a contagem no Início) e lista em `#/confirmar-treino-mcp` (sem `id`). O link da resposta da IA continua válido. Listar ou abrir nunca salva: salvar segue exclusivo do botão **Salvar treino**.
 
 - **Índice por coach:** ao preparar, o Worker grava um resumo (id, aluno, nome, ação, prazo; nunca o treino) na instância `__indice:<uid>` da própria classe `PropostaTreino` (sem nova migração). Máximo de 20; um alarme próprio apaga os resumos vencidos há mais de 24 h (mesmo se o coach parar de usar o conector). Falha ao indexar não falha a proposta: o link continua valendo.
 - **`GET /prescricao/pendentes`:** mesmo login do coach com 2 etapas e App Check das demais rotas `/prescricao`. Devolve `{ propostas: [{ id, nome, alunoNome, acao, resumo, expiraEm, status }] }` só com `proposta` e `resultado_pendente`, na ordem de criação (mais nova primeiro). Salva, recusada, vencida ou inexistente saem da lista e do índice.

@@ -25,7 +25,7 @@ export function BarraAbas({ abas, className = '' }: { abas: Aba[]; className?: s
           >
             {ativo && <Bolha />}
             <Icone className={`size-[22px] ${ativo ? 'text-marca-400' : ''}`} />
-            <span className="truncate">{rotulo}</span>
+            <span className="max-w-full truncate">{rotulo}</span>
             {selo ? (
               <span className="absolute right-[18%] top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-slate-900/60">
                 {selo > 9 ? '9+' : selo}

@@ -67,6 +67,25 @@ describe('ajustarRm / cargaPessoal', () => {
     expect(Math.abs(cargaPessoal(m, 10)! - ultimo)).toBeLessThanOrEqual(1) // no máximo 1 passo de 0,5 kg a mais ou a menos
   })
 
+  it('carga que cai de verdade (60 → 30 kg) não é erro: o último treino manda', () => {
+    const antigos = [1, 2, 3, 4, 5, 6].flatMap((t) => [0, 1, 2].map((j) => ({ t, sessao: `s${t}`, kg: 60, reps: 10, serie: j })))
+    const ultimo = [0, 1, 2].map((j) => ({ t: 7, sessao: 's7', kg: 30, reps: 10, serie: j }))
+    const m = ajustarRm([...antigos, ...ultimo])!
+    expect(m.sessoes).toBe(1)
+    expect(cargaPessoal(m, 10)).toBe(30)
+    expect(cargaPessoal(m, 8)).toBe(cargaEquivalente(30, 10, 8)) // ~31,5, não ~63
+  })
+
+  it('digitação errada dentro de uma sessão do meio do histórico continua sendo descartada', () => {
+    const base = [1, 2, 3].flatMap((t) => [0, 1, 2].map((j) => ({ t, sessao: `s${t}`, kg: j === 2 && t === 2 ? 600 : 60, reps: 10, serie: j })))
+    expect(cargaPessoal(ajustarRm(base)!, 10)).toBe(60)
+  })
+
+  it('variação pequena entre treinos (até ~15%) não zera o histórico', () => {
+    const pts = [1, 2, 3, 4].flatMap((t) => [0, 1, 2].map((j) => ({ t, sessao: `s${t}`, kg: t === 4 ? 55 : 60, reps: 10, serie: j })))
+    expect(ajustarRm(pts)!.sessoes).toBe(4)
+  })
+
   it('reps fora de 1..20 no alvo: sem sugestão', () => {
     const m = ajustarRm([ponto(100, 0, 10)])!
     expect(cargaPessoal(m, 25)).toBeNull()

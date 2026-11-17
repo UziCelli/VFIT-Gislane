@@ -40,15 +40,34 @@ const mediana = (v: number[]) => {
   return o.length % 2 ? o[m] : (o[m - 1] + o[m]) / 2
 }
 
-// Ajusta o modelo; null quando não há ponto válido (reps 1..15, carga > 0). Descarta série cujo desvio da tabela fica a mais
-// de LIMITE_DIGITACAO da mediana (erro de digitação), com 3 ou mais pontos.
+const MUDANCA_REGIME = 0.15 // ~15% de diferença entre o último treino e os anteriores: a carga mudou de verdade, não é ruído do dia
+
+// Ajusta o modelo; null quando não há ponto válido (reps 1..15, carga > 0).
+// 1) Digitação: DENTRO de cada sessão, com 3 ou mais séries, descarta a que fica a mais de LIMITE_DIGITACAO da mediana da própria
+//    sessão (600 em vez de 60). Não compara com outros treinos: carga que muda de verdade não é erro.
+// 2) Mudança de regime: se o último treino difere mais de 15% do que vinha antes (queda por lesão, aparelho novo, unidade trocada),
+//    o histórico antigo deixa de valer e só o último treino conta.
 export function ajustarRm(pontosBrutos: PontoRm[]): ModeloRm | null {
-  let pontos = pontosBrutos.filter((p) => p.kg > 0 && p.reps >= 1 && p.reps <= REPS_MAX_ORIGEM && Number.isFinite(p.kg) && Number.isFinite(p.t))
-  if (pontos.length >= 3) {
-    const med = mediana(pontos.map((p) => logDesvio(p.kg, p.reps)!))
-    pontos = pontos.filter((p) => Math.abs(logDesvio(p.kg, p.reps)! - med) <= LIMITE_DIGITACAO)
-  }
+  const validos = pontosBrutos.filter((p) => p.kg > 0 && p.reps >= 1 && p.reps <= REPS_MAX_ORIGEM && Number.isFinite(p.kg) && Number.isFinite(p.t))
+  const grupos = new Map<string, PontoRm[]>()
+  for (const p of validos) grupos.set(p.sessao, [...(grupos.get(p.sessao) ?? []), p])
+  let pontos = [...grupos.values()].flatMap((g) => {
+    if (g.length < 3) return g
+    const med = mediana(g.map((p) => logDesvio(p.kg, p.reps)!))
+    return g.filter((p) => Math.abs(logDesvio(p.kg, p.reps)! - med) <= LIMITE_DIGITACAO)
+  })
   if (!pontos.length) return null
+  const medias = [...new Set(pontos.map((p) => p.sessao))].map((s) => {
+    const ps = pontos.filter((p) => p.sessao === s)
+    return { sessao: s, t: ps.reduce((a, p) => a + p.t, 0) / ps.length, y: ps.reduce((a, p) => a + logDesvio(p.kg, p.reps)!, 0) / ps.length }
+  }).sort((a, b) => a.t - b.t)
+  if (medias.length > 1) {
+    const ult = medias[medias.length - 1]
+    const ant = medias.slice(0, -1)
+    const w = ant.map((m) => Math.pow(0.5, (ult.t - m.t) / MEIA_VIDA))
+    const ref = ant.reduce((a, m, i) => a + w[i] * m.y, 0) / w.reduce((a, x) => a + x, 0)
+    if (Math.abs(ult.y - ref) > MUDANCA_REGIME) pontos = pontos.filter((p) => p.sessao === ult.sessao)
+  }
   const tUltimo = Math.max(...pontos.map((p) => p.t))
   const porSessao = new Map<string, PontoRm[]>()
   for (const p of pontos) porSessao.set(p.sessao, [...(porSessao.get(p.sessao) ?? []), p])

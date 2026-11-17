@@ -1,5 +1,5 @@
 // Ajudas da tela do aluno. Funções puras.
-import { cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, prescreverSessao, repsEfetivas, type Meso, type ModeloRm, type Registros } from '../engine'
+import { cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, prescreverSessao, REPS_MAX_ORIGEM, repsEfetivas, type Meso, type ModeloRm, type Registros } from '../engine'
 import { diaSP } from './acesso'
 import { normalizar } from './iaTreino'
 import { doisLados, lerCelula } from './lados'
@@ -90,7 +90,9 @@ export function cargaAnterior(
       // 2º, reps de hoje diferentes das daquele registro: a carga vira a equivalente. Com o modelo pessoal do aluno (curva dele,
       // presa a −12%/+8% da tabela); sem dado suficiente, pela tabela de RM (engine/rm.ts). Reps iguais: fica como foi anotado.
       extra.forEach((c, k) => {
-        if (k >= e.n || k >= hoje.n || (c != null && feitas[k] === hoje.reps[k])) return
+        if (k >= e.n || k >= hoje.n) return
+        // Reps iguais, ou mais de 15 no registro de origem (não serve de base, nem para o modelo): fica como foi anotado.
+        if (c != null && (feitas[k] === hoje.reps[k] || feitas[k] > REPS_MAX_ORIGEM)) return
         const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k]) : null)
         if (kg != null && kg !== c) {
           extra[k] = kg

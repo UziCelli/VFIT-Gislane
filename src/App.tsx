@@ -42,6 +42,7 @@ import Instalar from './features/instalar/Instalar'
 import GuiaFisio from './features/fisio/GuiaFisio'
 import FisioCoach from './features/fisio/FisioCoach'
 import GuiaMetodos from './features/metodos/GuiaMetodos'
+import GuiaReferencias from './features/metodos/GuiaReferencias'
 import MinhaConta from './features/conta/MinhaConta'
 import ConectarClaude from './features/conta/ConectarClaude'
 import ConfirmarTreinoMcp from './features/conta/ConfirmarTreinoMcp'
@@ -190,7 +191,7 @@ function Vigia({ papel }: { papel: 'coach' | 'aluno' }) {
 const ativaAba = (rota: string) =>
   rota.startsWith('/confirmar-treino-mcp') ? 'propostas'
   : rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
-  : rota === '/fisio' ? 'metodos'
+  : rota === '/fisio' || rota === '/referencias' ? 'metodos'
   : rota === '/alunos' || rota.startsWith('/alunos/') || rota.startsWith('/aluno/') || rota.startsWith('/meso/') ? 'alunos'
   : 'inicio' // '/' e rotas desconhecidas (a tela padrão é o Início)
 
@@ -218,7 +219,7 @@ function Menu({ rota, propostas }: { rota: string; propostas: number }) {
     { id: 'feedbacks', rotulo: 'Feedbacks', href: '#/feedbacks', Icone: IcBalao, selo: naoLidos },
     // Só aparece quando o assistente deixou treino aguardando (ou na própria tela): evita aba morta para quem não usa o conector.
     ...(propostas > 0 || at === 'propostas' ? [{ id: 'propostas', rotulo: 'Propostas de treino', href: '#/confirmar-treino-mcp', Icone: IcPrancheta, selo: propostas }] : []),
-    { id: 'metodos', rotulo: 'Métodos', href: '#/metodos', Icone: IcLivro },
+    { id: 'metodos', rotulo: 'Consultas', href: '#/metodos', Icone: IcLivro },
     { id: 'conta', rotulo: 'Minha conta', href: '#/conta', Icone: IcPessoa },
   ]
   return (
@@ -289,6 +290,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />
   else if (rota === '/metodos') tela = <GuiaMetodos coach />
   else if (rota === '/fisio') tela = <GuiaFisio />
+  else if (rota === '/referencias') tela = <GuiaReferencias />
   else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} pendentes={propostasMcp} verificando={verificandoMcp} />
   else if (rota.startsWith('/conectar-claude')) tela = <ConectarClaude pedido={new URLSearchParams(rota.split('?')[1]).get('pedido')} />
   else if (rota === '/conta') tela = <MinhaConta uid={uid} email={email} abrirTutorial={() => setTutorial(true)} />

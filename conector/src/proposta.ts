@@ -41,7 +41,11 @@ export class PropostaTreino extends DurableObject {
       const atual = await this.ctx.storage.get<{ uid: string; itens: ItemIndice[] }>('indice')
       const itens = atual?.uid === uid ? atual.itens : []
       const novos = [item, ...itens.filter((i) => i.id !== item.id && i.expira + RETENCAO_MS > agora)].slice(0, LIMITE_INDICE)
-      await this.ctx.storage.put('indice', { uid, itens: novos })
+      await this.ctx.storage.transaction(async (tx) => {
+        await tx.put('indice', { uid, itens: novos })
+        // Limpeza própria: sem isso, nome do aluno e resumo ficariam guardados se o coach parasse de usar o conector.
+        await tx.setAlarm(Math.min(...novos.map((i) => i.expira)) + RETENCAO_MS)
+      })
     })
   }
 
@@ -158,7 +162,19 @@ export class PropostaTreino extends DurableObject {
   async alarm(): Promise<void> {
     await this.serializar(async () => {
       const registro = await this.ctx.storage.get<Registro>('registro')
-      if (!registro) return
+      if (!registro) {
+        // Instância de índice do coach: apaga os resumos vencidos há mais de 24 h e reagenda para o próximo.
+        const atual = await this.ctx.storage.get<{ uid: string; itens: ItemIndice[] }>('indice')
+        if (!atual) return
+        const agora = Date.now()
+        const itens = atual.itens.filter((i) => i.expira + RETENCAO_MS > agora)
+        if (!itens.length) { await this.ctx.storage.deleteAll(); return }
+        await this.ctx.storage.transaction(async (tx) => {
+          await tx.put('indice', { uid: atual.uid, itens })
+          await tx.setAlarm(Math.min(...itens.map((i) => i.expira)) + RETENCAO_MS)
+        })
+        return
+      }
       if (registro.resultado.status === 'proposta') {
         registro.resultado = { status: 'expirada' }
         await this.ctx.storage.transaction(async (tx) => {

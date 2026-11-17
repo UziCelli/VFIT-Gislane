@@ -29,6 +29,7 @@ export default function LoadInput({
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
   function commit(campo: HTMLInputElement) {
+    setConferir(null) // qualquer nova saída do campo invalida a pergunta anterior (ela guardava o valor velho)
     const t = campo.value.trim().replace(',', '.')
     const v = t === '' ? null : Number(t)
     // Só dígitos com um ponto: Number() aceitaria "1e3", "0x10" e "-0".
@@ -59,6 +60,8 @@ export default function LoadInput({
       defaultValue={valor ?? ''}
       disabled={disabled}
       placeholder={placeholder == null ? undefined : String(placeholder)}
+      onFocus={() => setConferir(null)}
+      onChange={() => setConferir(null)}
       onBlur={(e) => commit(e.target)}
       onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
       className={`w-full rounded border border-slate-700 bg-slate-950 px-1 py-1 text-center font-display text-base font-bold text-slate-100 outline-none focus:border-marca-500 disabled:opacity-50`}

@@ -866,7 +866,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                         <Fragment key={k}>
                           {linha(k)}
                           {!coach && !iso && k === e.n - 1 && colunasCargas[k] != null && (
-                            <PerguntaRir mesoId={mesoId} uid={uid} semana={semana} treino={treino} slotId={slot} coluna={k} valor={rirFeito[chave]?.[slot]?.[k] ?? null} disabled={travado} />
+                            <PerguntaRir mesoId={mesoId} uid={uid} semana={semana} treino={treino} slotId={slot} coluna={k} valor={rirFeito[`${semana}-${treino}`]?.[slot]?.[k] ?? null} disabled={travado} />
                           )}
                           {cols.length > 0 && (
                             <button

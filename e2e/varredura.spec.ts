@@ -50,6 +50,10 @@ for (const largura of [1280, 390]) {
     const ctx = await browser.newContext({ viewport: { width: largura, height: largura > 500 ? 800 : 844 }, locale: 'pt-BR' })
     // A varredura usa somente emuladores; a API de IA é validada nos testes próprios.
     await ctx.route('**/ia/status', rota => rota.fulfill({ json: { chave: null } }))
+    // Propostas do assistente: sem conector real na varredura (lista vazia, com CORS para o app local).
+    await ctx.route('**/prescricao/pendentes', rota => rota.fulfill(rota.request().method() === 'OPTIONS'
+      ? { status: 204, headers: { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, OPTIONS' } }
+      : { headers: { 'Access-Control-Allow-Origin': '*' }, json: { propostas: [] } }))
     let page = await ctx.newPage()
     const erros: string[] = []
     const ouvir = (p: Page) => {

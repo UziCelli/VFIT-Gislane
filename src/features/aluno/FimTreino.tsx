@@ -11,7 +11,7 @@ import { gerarCartaoTreino, limitar, type DadosTreino } from '../evolucao/cartao
 import { reduzirFoto } from '../../lib/foto'
 import type { SessaoCheckin } from '../../lib/checkin'
 import CheckinFim from '../fisio/CheckinFim'
-import ConviteFeedback from '../feedback/ConviteFeedback'
+import { PopupFeedback } from '../feedback/ConviteFeedback'
 import { IcCamera, IcSubir, IcTrofeu } from '../../icones'
 
 const CONFETE = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#facc15', '#a78bfa']
@@ -208,7 +208,7 @@ export default function FimTreino({
           </div>
         )}
         {checkin && <CheckinFim {...checkin} />}
-        <ConviteFeedback />
+        <PopupFeedback />
         <Botao tipo="primario" tamanho="lg" className="w-full" onClick={voltar}>
           Voltar para Hoje
         </Botao>

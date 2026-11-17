@@ -168,4 +168,17 @@ describe('cópia da prescrição enviada pelo aluno', () => {
     expect(p.condicoes).toContainEqual({ caminho: 'usuarios/aluno', existe: true })
     expect(p.condicoes?.some((c) => c.caminho.startsWith('usuarios/') && c.updateTime)).toBe(false)
   })
+
+  it('cópia sem nenhuma série (do aluno ou já salva no meso) não é protegida: o treino segue o plano', async () => {
+    const fs = banco()
+    const meso = { ...mesoPadrao(), inicio: '2026-11-01', divisao: [[{ slotId: 'sup', nome: 'Supino Reto Barra' }], [], []] }
+    const sessao = prescreverSessao(meso, 1, 1)!
+    const vazia = { versao: 1 as const, metodos: [], sessao: { ...sessao, series: 0, exercicios: sessao.exercicios.map((x) => ({ ...x, n: 0, reps: [], repsBase: [], cargaSugerida: [], drops: [] })) } }
+    const d = { ...documento, dados: { ...documento.dados, ...mesoParaDoc(meso), prescricoesRegistradas: { '1-1': vazia } } }
+    fs.doc.mockImplementation(async (p) => p === 'usuarios/aluno' ? { id: 'aluno', updateTime: '2026-11-15T01:00:00Z', dados: { papel: 'aluno' } } : p === 'mesos/ciclo' ? d : null)
+    fs.lote.mockImplementation(async (caminhos: string[]) => caminhos.map((caminho) => ({ caminho, doc: caminho === 'registros/ciclo_s01_t1' ? { id: 'ciclo_s01_t1', updateTime: '2026-11-15T02:00:00Z', dados: { mesoId: 'ciclo', alunoId: 'aluno', semana: 1, treino: 1, prescricaoRegistrada: JSON.stringify(vazia) } } : null })))
+    const p = await prepararPrescricao(fs as unknown as Firestore, { acao: 'editar', alunoId: 'aluno', mesoId: 'ciclo', nome: 'Renomeado' }, agora)
+    const copia = (p.dados.prescricoesRegistradas as Record<string, { sessao: { exercicios: { n: number }[] } }> | undefined)?.['1-1']
+    expect(copia === undefined || copia.sessao.exercicios.some((e) => e.n > 0)).toBe(true)
+  })
 })

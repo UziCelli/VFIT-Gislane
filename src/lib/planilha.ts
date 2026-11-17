@@ -13,6 +13,7 @@ export interface Importado {
   registros: RegistroImportado[] // só treinos realizados
   naoMarcados: RegistroImportado[] // treinos com carga e "Realizado" desmarcado (carga costuma ser copiada: só entram se o coach quiser)
   deFora: number // = naoMarcados.length
+  semanasSemSeries: number[] // semanas (1-based) em que a progressão veio em branco: o treino delas ficaria com 0 série
 }
 
 const METODO_COLS = ['id', 'ativo', 'semana', 'treino', 'exercicio', 'nomeExercicio', 'metodo', 'escopo', 'serie', 'grupo',
@@ -123,6 +124,12 @@ export function planilhaParaMeso(celulas: Map<string, Valor>, novoId: () => stri
     auxiliares: Array.from({ length: semanas }, (_, w) => linha(rAux + w)),
   }
 
+  // Semana em branco na progressão vira treino com 0 série (e, se já iniciado, uma cópia vazia congelada): avisa antes de importar.
+  const semSeries = (l: (number | null)[]) => !l.some((v) => v !== null && v > 0)
+  const temAuxiliar = divisao.some((t) => t.length > 2) // principais = posições 1–2; auxiliares = 3–10
+  const semanasSemSeries = Array.from({ length: semanas }, (_, w) => w + 1).filter((w) =>
+    (divisao.some((t) => t.length > 0) && semSeries(progressao.principais[w - 1])) || (temAuxiliar && semSeries(progressao.auxiliares[w - 1])))
+
   // Métodos: tabela 7 linhas abaixo do rótulo. Linhas repetidas (mesmo conteúdo) entram uma vez.
   const metodos: AplicacaoMetodo[] = []
   const vistos = new Set<string>()
@@ -189,7 +196,7 @@ export function planilhaParaMeso(celulas: Map<string, Valor>, novoId: () => stri
       else if (Object.keys(cargas).length) naoMarcados.push({ semana: w, treino: t, realizado, cargas })
     }
 
-  return { meso: { frequencia, semanas, inicio, pausaS: pausa, divisao, trocas, progressao, metodos }, registros, naoMarcados, deFora: naoMarcados.length }
+  return { meso: { frequencia, semanas, inicio, pausaS: pausa, divisao, trocas, progressao, metodos }, registros, naoMarcados, deFora: naoMarcados.length, semanasSemSeries }
 }
 
 export function abaSugerida(abas: string[]): string | undefined {

@@ -1,6 +1,6 @@
 import type { AplicacaoMetodo, Meso, Sessao } from '../engine/tipos'
 import { z } from 'zod'
-import { prescreverSessao } from '../engine/sessao'
+import { copiaVazia, prescreverSessao } from '../engine/sessao'
 import { metodoSchema } from './prescricaoSchema'
 
 const numero = z.number().finite()
@@ -17,12 +17,12 @@ export function lerPrescricaoRegistrada(texto: unknown): PrescricaoRegistrada | 
   if (typeof texto !== 'string' || texto.length > 60_000) return null
   try {
     const r = snapshotSchema.safeParse(JSON.parse(texto))
-    return r.success ? r.data : null
+    return r.success && !copiaVazia(r.data) ? r.data : null // cópia sem nenhuma série é defeito: o plano vale
   } catch { return null }
 }
 
 export function comPrescricoesRegistradas(meso: Meso, registros: { semana: number; treino: number; prescricaoRegistrada?: string; cargas?: Record<string, unknown>; reps?: Record<string, unknown> }[]): Meso {
-  const preservadas = { ...meso.prescricoesRegistradas }
+  const preservadas = Object.fromEntries(Object.entries(meso.prescricoesRegistradas ?? {}).filter(([, p]) => !copiaVazia(p))) as NonNullable<Meso['prescricoesRegistradas']>
   const historicoIncerto = [...(meso.historicoIncerto ?? [])]
   for (const r of registros) {
     const p = lerPrescricaoRegistrada(r.prescricaoRegistrada)
@@ -31,7 +31,7 @@ export function comPrescricoesRegistradas(meso: Meso, registros: { semana: numbe
     if (!(chave in preservadas) && !p) {
       const ids = [...new Set([...Object.keys(r.cargas ?? {}), ...Object.keys(r.reps ?? {})])]
       // Cliente antigo não informa versão: a cópia é uma referência explícita, nunca uma certeza.
-      const anteriores = meso.prescricoesAnteriores?.[chave]
+      const anteriores = meso.prescricoesAnteriores?.[chave]?.filter((a) => !copiaVazia(a))
       const referencia = anteriores?.find((a) => ids.length > 0 && ids.every((id) => a.sessao.exercicios.some((e) => e.slot.slotId === id))) ?? anteriores?.find((a) => ids.some((id) => a.sessao.exercicios.some((e) => e.slot.slotId === id)))
       if (referencia) {
         const atual = prescreverSessao(meso, r.semana, r.treino)

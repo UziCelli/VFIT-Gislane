@@ -35,6 +35,17 @@ function extraTempo(m: AplicacaoMetodo): number {
   return ad + p * (b > 1 ? b - 1 : 0)
 }
 
+// Cópia congelada em que todo exercício ficou com 0 série é defeito de gravação, não histórico: vale o plano.
+// (Ela nasce se o treino é iniciado, ou o histórico é protegido, quando o plano do dia estava vazio; sem este descarte
+// o aluno vê "0 / —" para sempre, porque a cópia tem prioridade sobre o plano.)
+export const copiaVazia = (p: { sessao: Sessao } | null | undefined): boolean =>
+  !!p && p.sessao.exercicios.length > 0 && p.sessao.exercicios.every((e) => e.n === 0)
+
+export function copiaDoDia(meso: Meso, semana: number, treino: number) {
+  const p = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
+  return p && !copiaVazia(p) ? p : undefined
+}
+
 // Linha de reps de um exercício na semana: a própria (por slotId do slot da divisão, também numa troca),
 // senão a padrão, senão o legado (principais pos 1–2, auxiliares 3–10).
 export function linhaPrescrita(meso: Meso, semana: number, treino: number, pos: number): (number | null)[] {
@@ -53,7 +64,7 @@ export function linhaPrescrita(meso: Meso, semana: number, treino: number, pos: 
 // Exercícios do dia: a sessão editada no presencial, senão a divisão com as trocas pontuais (de = posição)
 // e, no fim, as adições daquela semana (sem `de`: exercício novo).
 export function slotsDaSessao(meso: Meso, semana: number, treino: number): SlotSessao[] {
-  const preservada = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
+  const preservada = copiaDoDia(meso, semana, treino)
   if (preservada) return preservada.sessao.exercicios.map((e) => ({ ...e.slot, repsRegistradas: e.repsBase ?? e.reps.slice(0, e.n), origemIsometrica: isometrico(e.slot), pausaRegistradaS: e.pausaS }))
   const editada = meso.sessoes?.[`${semana}-${treino}`]
   if (editada) return editada.exercicios
@@ -65,14 +76,14 @@ export function slotsDaSessao(meso: Meso, semana: number, treino: number): SlotS
 
 // Linhas de método do dia (ativas ou não): as da sessão editada, senão as do plano.
 export function metodosDaSessao(meso: Meso, semana: number, treino: number): AplicacaoMetodo[] {
-  const preservada = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
+  const preservada = copiaDoDia(meso, semana, treino)
   if (preservada) return preservada.metodos
   const editada = meso.sessoes?.[`${semana}-${treino}`]
   return editada ? editada.metodos : meso.metodos.filter((m) => m.semana === semana && m.treino === treino)
 }
 
 export function prescreverSessao(meso: Meso, semana: number, treino: number): Sessao | null {
-  const preservada = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
+  const preservada = copiaDoDia(meso, semana, treino)
   if (preservada) return structuredClone(preservada.sessao)
   if (semana < 1 || semana > meso.semanas || treino < 1 || treino > meso.frequencia) return null
 

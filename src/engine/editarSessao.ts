@@ -1,6 +1,6 @@
 // Edição de um treino do dia (presencial), sem mexer no planejamento. Funções puras: devolvem uma SessaoEditada
 // nova, gravada em `meso.sessoes[`${semana}-${treino}`]`. Cargas nunca são apagadas: ficam no slotId antigo.
-import { metodosDaSessao, slotsDaSessao } from './sessao'
+import { copiaDoDia, metodosDaSessao, slotsDaSessao } from './sessao'
 import { isometrico } from './isometria'
 import type { AplicacaoMetodo, Escopo, Meso, Metodo, SessaoEditada } from './tipos'
 
@@ -40,7 +40,7 @@ export function padraoMetodo(metodo: Metodo, semana: number, treino: number, exe
 // Ponto de partida: a edição já salva, senão uma cópia do que o plano prescreve para o dia.
 export function iniciarEdicao(meso: Meso, semana: number, treino: number): SessaoEditada {
   return (
-    (!meso.prescricoesRegistradas?.[`${semana}-${treino}`] ? meso.sessoes?.[`${semana}-${treino}`] : undefined) ?? {
+    (!copiaDoDia(meso, semana, treino) ? meso.sessoes?.[`${semana}-${treino}`] : undefined) ?? {
       semana,
       treino,
       exercicios: slotsDaSessao(meso, semana, treino).map((s) => {

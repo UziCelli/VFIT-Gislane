@@ -2,7 +2,7 @@ import marca from '@marca/marca.json'
 import { useEffect, useState } from 'react'
 import { IcEstrela } from '../../icones'
 import { enviarFeedback } from '../../lib/acoes'
-import { ASSUNTOS, TEXTO_MAX, TIPOS, marcarConvite, montarFeedback, podeDepoimento, primeiroNome, type Assunto, type TipoFeedback } from '../../lib/feedback'
+import { ASSUNTOS, TEXTO_MAX, TIPOS, marcarConvite, marcarEnviado, montarFeedback, podeDepoimento, primeiroNome, type Assunto, type TipoFeedback } from '../../lib/feedback'
 import { registrarErro } from '../../lib/log'
 import { voltar } from '../../rota'
 import { Botao, classesBotao, classesOpcao, Pagina } from '../../ui'
@@ -51,6 +51,7 @@ export default function EnviarFeedback({ uid, nome }: { uid: string; nome: strin
     // No anônimo, nem o erro vai para os logs (o log guarda o uid e ligaria o aluno ao envio).
     enviarFeedback(montarFeedback(entrada, uid)).catch((e) => { if (!anonimo) registrarErro('gravacao', `feedback: ${e?.code ?? e}`, e) })
     marcarConvite()
+    marcarEnviado()
     travaAte = Date.now() + TRAVA_MS
     setEnviado(nota)
   }
@@ -130,7 +131,13 @@ export default function EnviarFeedback({ uid, nome }: { uid: string; nome: strin
         <div className="space-y-1">
           <Opcao marcada={anonimo} onChange={setAnonimo}>Enviar sem meu nome</Opcao>
           {mostrarDepoimento && (
-            <Opcao marcada={depoimento} onChange={setDepoimento}>{`Autorizo usar meu depoimento (só o primeiro nome) na divulgação ${marca.doNome}`}</Opcao>
+            <div className="rounded-xl border border-marca-400/60 bg-marca-500/15 p-3">
+              <Opcao marcada={depoimento} onChange={setDepoimento}>{`Autorizo usar meu depoimento (só o primeiro nome) na divulgação ${marca.doNome}`}</Opcao>
+              <p className="ml-8 text-xs text-slate-400">Só o seu primeiro nome aparece. Sem marcar, ninguém usa sua mensagem na divulgação.</p>
+            </div>
+          )}
+          {nota === 5 && !anonimo && !mostrarDepoimento && (
+            <p className="text-sm text-slate-400">Escreva sua mensagem acima para poder autorizar o uso como depoimento.</p>
           )}
         </div>
 

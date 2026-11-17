@@ -4,7 +4,7 @@ import { collection, doc, query, where } from 'firebase/firestore'
 import { AnimatePresence, animate, m, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { contagem, elastico, saida, suave } from '../../movimento'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { isometrico, metricasSessao, metodosDaSessao, prescreverSessao, type Metodo } from '../../engine'
+import { copiaVazia, isometrico, metricasSessao, metodosDaSessao, prescreverSessao, type Metodo } from '../../engine'
 import { COR_METODO, METODOS, metodoDoRotulo } from '../../data/metodos'
 import { limparTreino, marcarTreino } from '../../lib/inatividade'
 import { mmss, useDescanso } from '../../lib/descanso'
@@ -24,7 +24,7 @@ import { duracaoTreino, fimDaSessao, TETO_TREINO_MS } from '../../lib/resumo'
 import type { Usuario } from '../../lib/acesso'
 import { corpoEhCarga, fracaoPC, preencherCorpo, rebasear } from '../../lib/pesoCorporal'
 import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../lib/conversores'
-import { comPrescricoesRegistradas } from '../../lib/prescricaoRegistrada'
+import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from '../../lib/prescricaoRegistrada'
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
 import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../lib/hooks'
@@ -460,7 +460,9 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     const t = Date.now()
     setInicioLocal(t)
     marcarTreino(t) // treino em andamento neste aparelho conta como uso (inatividade)
-    marcarInicio(mesoId, uid, semana, treino, docAtual?.prescricaoRegistrada ?? JSON.stringify({ versao: 1, sessao, metodos: metodosDaSessao(meso, semana, treino) }))
+    // Reaproveita a cópia gravada só se for válida; a defeituosa (sem séries) é refeita, e nunca se grava uma vazia.
+    const copiaGravada = lerPrescricaoRegistrada(docAtual?.prescricaoRegistrada) ? docAtual?.prescricaoRegistrada : undefined
+    marcarInicio(mesoId, uid, semana, treino, copiaGravada ?? (copiaVazia({ sessao }) ? undefined : JSON.stringify({ versao: 1, sessao, metodos: metodosDaSessao(meso, semana, treino) })))
   }
   const cancelar = () => {
     if (!window.confirm('Cancelar este treino? O tempo zera e as cargas e reps anotadas nele são apagadas.')) return

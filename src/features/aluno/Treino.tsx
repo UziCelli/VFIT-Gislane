@@ -31,6 +31,7 @@ import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet, useUsuarioAtual }
 import { historicoExercicios, recordeAnterior, resumoTreino, type RegistroEvolucao } from '../../lib/evolucao'
 import { ehRecorde } from '../../lib/recorde'
 import { cargaAnterior, semanaAtual, type Fonte } from '../../lib/treino'
+import { modelosPorExercicio } from '../../lib/rmPessoal'
 import { cargaVolta, comVolta, semanaDeVolta, travado as travadoAgenda } from '../../lib/agenda'
 import { confirmarExclusao, dataDaNota, msDaNota } from '../../lib/notas'
 import { IcCadeado, IcCheck, IcInfo, IcLapis, IcLixeira, IcMais, IcPausa, IcPlay, IcReiniciar, IcSino, IcSinoMudo, IcVoltar } from '../../icones'
@@ -438,6 +439,19 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
       pcs: Object.fromEntries(docs.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)])),
     }
   }, [dados, todosMesos, todosRegistros, mesoId])
+  // Modelo pessoal de RM por exercício (curva do próprio aluno; só com a chave ligada). Fica em memória: roda por mudança de dados, não por toque.
+  const modelosRm = useMemo(() => {
+    if (!dados || !estimarRm) return null
+    const meso = comPrescricoesRegistradas(docParaMeso(dados), docsRegistros)
+    const atual: Fonte = {
+      meso,
+      registros: docsParaRegistros(docsRegistros, meso),
+      reps: docsParaRegistrosReps(docsRegistros),
+      lados: docsParaLados(docsRegistros),
+      pcs: Object.fromEntries(docsRegistros.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)])),
+    }
+    return modelosPorExercicio(atual, { semana, treino }, fonteAnterior)
+  }, [dados, docsRegistros, estimarRm, fonteAnterior, semana, treino])
   const festejados = useRef(new Set<string>())
   const [festa, setFesta] = useState<Festa | null>(null)
   const fecharFesta = useCallback(() => setFesta(null), [])
@@ -645,7 +659,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
           const colunasCargas = cs[e.slot.slotId] ?? []
           const iso = isometrico(e.slot)
           const colunasReps = rs[e.slot.slotId] ?? []
-          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, estimarRm ? repsFeitas : undefined, { anterior: estimarRm ? fonteAnterior : null }) // só o extra, com o corpo do registro de origem
+          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, estimarRm ? repsFeitas : undefined, { anterior: estimarRm ? fonteAnterior : null, modelos: estimarRm ? modelosRm : null }) // só o extra, com o corpo do registro de origem
           const slot = e.slot.slotId
           const partes = e.rotulo ? e.rotulo.split('; ').map((p) => ({ p, mt: metodoDoRotulo(p) })) : []
           const gc = gk ? COR_METODO[gk.split('|')[0] as Metodo] : undefined

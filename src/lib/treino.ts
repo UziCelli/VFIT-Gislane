@@ -1,8 +1,9 @@
 // Ajudas da tela do aluno. Funções puras.
-import { cargaEquivalente, corrigirDigitacao, isometrico, prescreverSessao, repsEfetivas, type Meso, type Registros } from '../engine'
+import { cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, prescreverSessao, repsEfetivas, type Meso, type ModeloRm, type Registros } from '../engine'
 import { diaSP } from './acesso'
 import { normalizar } from './iaTreino'
 import { doisLados, lerCelula } from './lados'
+import { chaveModelo } from './rmPessoal'
 
 // Semana w cobre os dias [inicio + 7(w−1), inicio + 7w), contados no calendário de São Paulo.
 export function semanaAtual(meso: Meso, hoje: Date) {
@@ -41,7 +42,7 @@ export function cargaAnterior(
   pcs?: Pcs,
   lados?: Registros, // lado esquerdo por série (docsParaLados); só usado em exercício de 2 lados
   repsFeitas?: Registros, // reps anotadas (docsParaRegistrosReps). Dado, liga a correção e o ajuste às reps de hoje
-  opcoes?: { anterior?: Fonte | null },
+  opcoes?: { anterior?: Fonte | null; modelos?: Map<string, ModeloRm> | null }, // modelos: modeloPorExercicio (lib/rmPessoal.ts)
 ) {
   const hoje = prescreverSessao(meso, semana, treino)?.exercicios[pos - 1]
   const alvo = hoje?.slot
@@ -50,6 +51,7 @@ export function cargaAnterior(
   const iso = isometrico(alvo)
   const nomeAlvo = normalizar(alvo.nome)
   const ajusta = !!repsFeitas
+  const modelo = ajusta ? opcoes?.modelos?.get(chaveModelo(alvo.nome, dois, iso)) : undefined
   const tentar = (f: Fonte, w: number, t: number, doAnterior: boolean) => {
     const chave = `${w}-${t}`
     const reg = f.registros[chave]
@@ -85,9 +87,11 @@ export function cargaAnterior(
       const limpa = corrigirDigitacao(extra.slice(0, e.n), feitas.slice(0, e.n))
       limpa.series.forEach((c, k) => (extra[k] = c))
       if (limpa.trocadas.length) estimada = true
-      // 2º, reps de hoje diferentes das daquele registro: a carga vira a equivalente pela tabela de RM (engine/rm.ts).
+      // 2º, reps de hoje diferentes das daquele registro: a carga vira a equivalente. Com o modelo pessoal do aluno (curva dele,
+      // presa a −12%/+8% da tabela); sem dado suficiente, pela tabela de RM (engine/rm.ts). Reps iguais: fica como foi anotado.
       extra.forEach((c, k) => {
-        const kg = c != null && k < e.n && k < hoje.n ? cargaEquivalente(c, feitas[k], hoje.reps[k]) : null
+        if (k >= e.n || k >= hoje.n || (c != null && feitas[k] === hoje.reps[k])) return
+        const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k]) : null)
         if (kg != null && kg !== c) {
           extra[k] = kg
           estimada = true

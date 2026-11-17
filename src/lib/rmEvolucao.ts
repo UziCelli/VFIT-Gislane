@@ -6,11 +6,13 @@ import { docsParaRegistros, docsParaRegistrosReps, docsParaRegistrosRir, lerPc, 
 import { doisLados } from './lados'
 import { corpoEhCarga } from './pesoCorporal'
 
-export type PontoRmCoach = { mesoId: string; semana: number; treino: number; rm: number; rir: number | null }
+// `rm` é null quando o treino não serve para estimar o 1RM (mais de 15 reps, peso do corpo, 2 lados, isometria) mas tem resposta de RIR.
+export type PontoRmCoach = { mesoId: string; semana: number; treino: number; rm: number | null; rir: number | null }
 type Reg = RegistroDoc & { mesoId: string }
 
-// Um ponto por treino em que o exercício (pelo nome) teve alguma série válida: o maior 1RM implícito das séries (já sem erro
-// de digitação óbvio) e a resposta de "quantas ainda faria" da última série normal. Ordem: meso (como veio), semana, treino.
+// Um ponto por treino em que o exercício (pelo nome) tem 1RM estimável (o maior 1RM implícito das séries, já sem erro de digitação
+// óbvio) ou resposta de "quantas ainda faria" da última série normal. As duas coisas são independentes: o RIR vale mesmo quando o
+// treino não serve para estimar o 1RM. Ordem: meso (como veio), semana, treino.
 export function pontosRm(mesos: { id: string; meso: Meso }[], registros: Reg[], nome: string): PontoRmCoach[] {
   const out: PontoRmCoach[] = []
   for (const { id, meso } of mesos) {
@@ -23,17 +25,23 @@ export function pontosRm(mesos: { id: string; meso: Meso }[], registros: Reg[], 
     for (const d of [...docs].sort((a, b) => a.semana - b.semana || a.treino - b.treino)) {
       const chave = `${d.semana}-${d.treino}`
       for (const e of prescreverSessao(meso, d.semana, d.treino)?.exercicios ?? []) {
-        if (e.slot.nome !== nome || doisLados(e.slot) || isometrico(e.slot) || corpoEhCarga(nome)) continue
-        if ((pcs[chave]?.[e.slot.slotId] ?? 0) > 0) continue
-        const kgs = (cargas[chave]?.[e.slot.slotId] ?? []).slice(0, e.n)
-        const feitas = repsEfetivas(e.reps, reps[chave]?.[e.slot.slotId]).slice(0, e.n)
-        const limpo = corrigirDigitacao(kgs, feitas).series
-        const rms = limpo.flatMap((kg, k) => {
-          const r = kg == null ? null : rmEstimado(kg, feitas[k])
-          return r == null ? [] : [r]
-        })
-        if (!rms.length) continue
-        out.push({ mesoId: id, semana: d.semana, treino: d.treino, rm: Math.max(...rms), rir: rir[chave]?.[e.slot.slotId]?.[e.n - 1] ?? null })
+        if (e.slot.nome !== nome) continue
+        // Série comum com carga total: fora do 1RM ficam 2 lados, isometria, peso do corpo (a % vale para o total, não para o extra).
+        const serveParaRm = !(doisLados(e.slot) || isometrico(e.slot) || corpoEhCarga(nome) || (pcs[chave]?.[e.slot.slotId] ?? 0) > 0)
+        let rm: number | null = null
+        if (serveParaRm) {
+          const kgs = (cargas[chave]?.[e.slot.slotId] ?? []).slice(0, e.n)
+          const feitas = repsEfetivas(e.reps, reps[chave]?.[e.slot.slotId]).slice(0, e.n)
+          const limpo = corrigirDigitacao(kgs, feitas).series
+          const rms = limpo.flatMap((kg, k) => {
+            const r = kg == null ? null : rmEstimado(kg, feitas[k])
+            return r == null ? [] : [r]
+          })
+          rm = rms.length ? Math.max(...rms) : null
+        }
+        const resposta = rir[chave]?.[e.slot.slotId]?.[e.n - 1] ?? null
+        if (rm == null && resposta == null) continue
+        out.push({ mesoId: id, semana: d.semana, treino: d.treino, rm, rir: resposta })
       }
     }
   }

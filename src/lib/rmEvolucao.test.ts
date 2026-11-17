@@ -16,11 +16,11 @@ describe('pontosRm', () => {
   it('um ponto por treino: o maior 1RM implícito das séries (10 reps: 60 kg ≈ 75,4 kg)', () => {
     const p = pontosRm([{ id: 'm1', meso: m }], [reg(1, { a: { s1: 60, s2: 60, s3: 58 } })], 'Supino')
     expect(p).toHaveLength(1)
-    expect(p[0].rm).toBeCloseTo(75.4, 1)
+    expect(p[0].rm!).toBeCloseTo(75.4, 1)
   })
   it('600 no lugar de 60 não vira 1RM absurdo', () => {
     const p = pontosRm([{ id: 'm1', meso: m }], [reg(1, { a: { s1: 60, s2: 60, s3: 600 } })], 'Supino')
-    expect(p[0].rm).toBeCloseTo(75.4, 1)
+    expect(p[0].rm!).toBeCloseTo(75.4, 1)
   })
   it('exercício diferente, sem carga, isometria ou peso do corpo: sem ponto', () => {
     expect(pontosRm([{ id: 'm1', meso: m }], [reg(1, { a: { s1: 60 } })], 'Remada')).toEqual([])
@@ -28,6 +28,21 @@ describe('pontosRm', () => {
     const iso = meso([slot('b', 'Dead Bug Isométrico')])
     expect(pontosRm([{ id: 'm1', meso: iso }], [reg(1, { b: { s1: 30, s2: 30, s3: 30 } })], 'Dead Bug Isométrico')).toEqual([])
     expect(pontosRm([{ id: 'm1', meso: m }], [reg(1, { a: { s1: 60 } }, { pc: { a: 70 } })], 'Supino')).toEqual([])
+  })
+  it('a resposta de esforço vale mesmo sem 1RM estimável (acima de 15 reps, peso do corpo)', () => {
+    const m20 = meso([slot('a', 'Supino')])
+    m20.progressao = { principais: Array.from({ length: 6 }, () => [20, 20, 20]), auxiliares: Array.from({ length: 6 }, () => [20, 20, 20]) }
+    const alto = pontosRm([{ id: 'm1', meso: m20 }], [reg(1, { a: { s1: 30, s2: 30, s3: 30 } }, { rir: { a: { s3: 2 } } })], 'Supino')
+    expect(alto).toEqual([{ mesoId: 'm1', semana: 1, treino: 1, rm: null, rir: 2 }])
+    const comCorpo = pontosRm([{ id: 'm1', meso: m }], [reg(1, { a: { s1: 60 } }, { pc: { a: 70 }, rir: { a: { s3: 1 } } })], 'Supino')
+    expect(comCorpo).toEqual([{ mesoId: 'm1', semana: 1, treino: 1, rm: null, rir: 1 }])
+  })
+  it('esforço médio considera treinos sem 1RM', () => {
+    const ps = [
+      { mesoId: 'm', semana: 1, treino: 1, rm: 70, rir: 3 },
+      { mesoId: 'm', semana: 2, treino: 1, rm: null, rir: 1 },
+    ]
+    expect(rirMedio(ps)).toEqual({ media: 2, respostas: 2 })
   })
   it('traz a resposta de "quantas ainda faria" da última série normal', () => {
     const p = pontosRm([{ id: 'm1', meso: m }], [reg(1, { a: { s1: 60, s2: 60, s3: 60 } }, { rir: { a: { s1: 3, s3: 1 } } })], 'Supino')

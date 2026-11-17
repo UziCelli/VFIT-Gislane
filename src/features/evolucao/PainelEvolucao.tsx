@@ -80,7 +80,9 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
     if (!coach || !nomeSel) return null
     const ms = (mesoId ? mesos.filter((x) => x.id === mesoId) : [...mesos]).sort((a, b) => a.meso.inicio.localeCompare(b.meso.inicio))
     const ps = pontosRm(ms, regsL.dados, nomeSel)
-    return ps.length ? { ultimo: ps[ps.length - 1].rm, tendencia: tendenciaRm(ps.map((x) => x.rm)), esforco: rirMedio(ps), n: ps.length } : null
+    const rms = ps.flatMap((x) => (x.rm == null ? [] : [x.rm])) // o esforço (RIR) vale mesmo em treino sem 1RM estimável
+    const esforco = rirMedio(ps)
+    return rms.length || esforco ? { ultimo: rms.length ? rms[rms.length - 1] : null, tendencia: tendenciaRm(rms), esforco, n: rms.length } : null
   }, [coach, mesos, regsL.dados, mesoId, nomeSel])
 
   const cabeca = (
@@ -370,6 +372,8 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
             {rmInfo && (
               <div className="mt-3 border-t border-slate-800 pt-3 text-sm">
                 <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">1RM estimado (só coach)</h3>
+                {rmInfo.ultimo == null && <p className="text-slate-400">Sem 1RM estimável neste exercício (séries acima de 15 repetições, peso do corpo, 2 lados ou isometria).</p>}
+                {rmInfo.ultimo != null && (
                 <p>
                   <span className="font-display text-lg font-bold">{fmt(Math.round(rmInfo.ultimo * 10) / 10)} kg</span>{' '}
                   {rmInfo.tendencia ? (
@@ -380,14 +384,17 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
                     <span className="text-slate-400">tendência com 3 ou mais treinos</span>
                   )}
                 </p>
+                )}
                 {rmInfo.esforco && (
                   <p className="mt-1 text-slate-300">
                     Esforço: costuma sobrar ~{rmInfo.esforco.media.toFixed(1).replace('.', ',')} {Math.round(rmInfo.esforco.media * 10) / 10 === 1 ? 'repetição' : 'repetições'} no fim da última série ({rmInfo.esforco.respostas} {rmInfo.esforco.respostas === 1 ? 'resposta' : 'respostas'}).
                   </p>
                 )}
+                {rmInfo.ultimo != null && (
                 <p className="mt-1 text-xs text-slate-500">
                   Estimado pelas séries de até 15 repetições, <strong>por baixo</strong> (quem para antes da falha rende mais que isso). Maior 1RM implícito de cada treino, em {rmInfo.n} {rmInfo.n === 1 ? 'treino' : 'treinos'}.
                 </p>
+                )}
               </div>
             )}
           </Cartao>

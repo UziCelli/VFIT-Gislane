@@ -248,8 +248,9 @@ function Menu({ rota, propostas }: { rota: string; propostas: number }) {
       <BarraAbas
         className="lg:hidden"
         abas={itens
-          .filter((i) => i.id !== 'ranking')
-          .map((i) => ({ rotulo: i.id === 'conta' ? 'Conta' : i.id === 'feedbacks' ? 'Opiniões' : i.id === 'propostas' ? 'Propostas' : i.rotulo, href: i.href, Icone: i.Icone, ativo: (at === 'ranking' ? 'inicio' : at) === i.id, selo: i.selo }))}
+          // Celular: 6 abas (7 não cabem). Ranking e Propostas só aparecem no menu lateral; no celular a proposta chega pelo aviso do topo e pelo selo do Início.
+          .filter((i) => i.id !== 'ranking' && i.id !== 'propostas')
+          .map((i) => ({ rotulo: i.id === 'conta' ? 'Conta' : i.id === 'feedbacks' ? 'Opiniões' : i.rotulo, href: i.href, Icone: i.Icone, ativo: (at === 'ranking' || at === 'propostas' ? 'inicio' : at) === i.id, selo: i.id === 'inicio' ? propostas : i.selo }))}
       />
     </>
   )

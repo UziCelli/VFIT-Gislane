@@ -18,6 +18,14 @@ Instruções comuns: Codex lê CODEX.md; Claude Code lê CLAUDE.md; cada agente 
 - Claude revisa PR do Codex; Codex revisa PR do Claude. Antes do merge, registrar **“Revisão cruzada: OK”**, com o commit revisado, pelo outro agente; nova alteração exige revisão do novo diff. Exceção somente com autorização explícita do dono para aquela entrega.
 - Só juntar com revisão válida, verificações obrigatórias verdes e autorização de integração aplicável. Não publicar PR de trabalho; depois de merge autorizado, conferir os workflows de publicação. Não contornar proteção nem considerar teste pulado como aprovação.
 
+## Passo a passo da entrega (use como lista, sem reler o resto)
+
+1. **Antes de rodar o CI:** `git fetch origin main`. Se a main andou, junte-a na branch (merge, sem rebase) e resolva conflito. Confira se o Graphify versionado mudou: `git diff --stat origin/main HEAD -- graphify-out`. Vazio = nada a fazer. Mudou por causa da main = aceite a versão da main; nunca regenere o grafo por rotina. O arquivo `graphify-out/cache/last_query_stamp` muda sozinho a cada `graphify query`: descarte com `git checkout -- graphify-out/cache/last_query_stamp`, não commite.
+2. **Rascunho + revisão cruzada:** com a PR em rascunho, comente `@codex review` (se o autor for o Codex, o Claude revisa). Espere o parecer; ajuste o que for concreto e peça nova revisão do novo commit.
+3. **Revisão OK no commit atual** (o que vale como OK está no [Fluxo automático](#fluxo-automático-de-pr-victor-17112026)). Então tire do rascunho: isso dispara uma única rodada completa de CI.
+4. **CI verde no commit atual** (reexecute só o job instável, uma vez; nunca pule teste).
+5. **Merge** com 3 e 4 cumpridos, feito pelo Claude sem perguntar (exceções: dados em produção ou custo em dinheiro). Depois, conferir os workflows de publicação.
+
 ## Fluxo automático de PR (Victor, 17/11/2026)
 
 Do PR ao merge sem esperar o Victor, com o mínimo de Actions e de uso das IAs.

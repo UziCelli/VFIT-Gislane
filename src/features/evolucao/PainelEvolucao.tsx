@@ -161,7 +161,7 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
   const detalhes = (children: ReactNode) =>
     resumido ? (
       <details className="group">
-        <summary className="toque flex min-h-12 cursor-pointer list-none items-center justify-center rounded-xl border border-white/15 bg-white/5 px-4 text-sm font-semibold text-slate-200">Ver mais detalhes</summary>
+        <summary className="toque flex min-h-12 cursor-pointer list-none items-center justify-center vidro-tenue rounded-xl px-4 text-sm font-semibold text-slate-200">Ver mais detalhes</summary>
         <div className="mt-4 space-y-4">{children}</div>
       </details>
     ) : (

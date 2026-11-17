@@ -11,6 +11,8 @@ export default function CampoLados({
   onGravar,
   placeholder,
   placeholderD,
+  referencia,
+  referenciaD,
   className = 'w-16',
   disabled,
 }: {
@@ -19,6 +21,8 @@ export default function CampoLados({
   onGravar: (esq: number | null, dir: number | null) => void
   placeholder?: number | string | null // "semana passada" (esquerdo, ou o único campo)
   placeholderD?: number | string | null
+  referencia?: number | null // "confere?" (ver LoadInput): esquerdo, ou o único campo
+  referenciaD?: number | null
   className?: string
   disabled?: boolean
 }) {
@@ -36,15 +40,15 @@ export default function CampoLados({
         <div className="flex flex-col gap-1">
           <label className="flex items-center gap-1">
             <span className="w-3 text-xs font-bold text-slate-400">E</span>
-            <LoadInput className="min-w-0 flex-1" disabled={disabled} valor={cel.esq} placeholder={placeholder} onSalvar={(v) => salvar(v, cel.dir)} />
+            <LoadInput className="min-w-0 flex-1" disabled={disabled} valor={cel.esq} placeholder={placeholder} referencia={referencia} onSalvar={(v) => salvar(v, cel.dir)} />
           </label>
           <label className="flex items-center gap-1">
             <span className="w-3 text-xs font-bold text-slate-400">D</span>
-            <LoadInput className="min-w-0 flex-1" disabled={disabled} valor={cel.dir} placeholder={placeholderD} onSalvar={(v) => salvar(cel.esq, v)} />
+            <LoadInput className="min-w-0 flex-1" disabled={disabled} valor={cel.dir} placeholder={placeholderD} referencia={referenciaD} onSalvar={(v) => salvar(cel.esq, v)} />
           </label>
         </div>
       ) : (
-        <LoadInput className="w-full" disabled={disabled} valor={cel.esq} placeholder={placeholder} onSalvar={(v) => salvar(v, v)} />
+        <LoadInput className="w-full" disabled={disabled} valor={cel.esq} placeholder={placeholder} referencia={referencia} onSalvar={(v) => salvar(v, v)} />
       )}
       {cel.antigo != null && <span className="block text-[10px] leading-tight text-slate-500">anotado antes: {fmt(cel.antigo)} kg</span>}
     </div>

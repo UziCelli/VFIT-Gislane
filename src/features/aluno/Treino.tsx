@@ -781,6 +781,10 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                       ? dois && antD != null && antD !== antE && !ed ? `${pv(antE)}/${pv(antD)}` : pv(antE)
                       : null
                   const placeholderD = antD != null ? pv(antD) : null
+                  // "Confere?": referência numérica do número cinza (a mesma que o aluno vê), para pedir confirmação de carga bem diferente.
+                  const refNum = (n: number | null | undefined) => (n == null ? null : volta ? cargaVolta(n) : n)
+                  const referenciaE = dropStage && e.cargaSugerida[k] != null ? e.cargaSugerida[k] : refNum(antE)
+                  const referenciaD = refNum(antD)
                   // Uma faixa colorida por método que cobre esta série (etapas do drop = Dropset).
                   const cores = [...new Set(partes.filter(({ p, mt }) => mt && (dropStage ? mt === 'Dropset' : seriesDoRotulo(p, e.n).includes(k + 1))).map(({ mt }) => mt!))]
                   return (
@@ -815,6 +819,8 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                             ed={!!ed}
                             placeholder={placeholderKg}
                             placeholderD={placeholderD}
+                            referencia={referenciaE}
+                            referenciaD={referenciaD}
                             onGravar={(esq, dir) => {
                               registrarCargaLados(mesoId, uid, semana, treino, e.slot.slotId, k, esq, dir, corpo)
                               aposGravar(esq == null || dir == null ? null : Math.round((esq + dir + corpo) * 100) / 100)
@@ -826,6 +832,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                         disabled={travado}
                         valor={colunasCargas[k] != null ? Math.max(0, Math.round((colunasCargas[k]! - corpo) * 100) / 100) : null}
                         placeholder={placeholderKg}
+                        referencia={referenciaE}
                         onSalvar={(v) => {
                           const total = v == null ? null : Math.round((v + corpo) * 100) / 100
                           registrarCarga(mesoId, uid, semana, treino, e.slot.slotId, k, total)

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { Meso, Slot } from '../engine'
 import {
   caminhoCarga,
+  caminhosParaCancelar,
   docParaCargas,
   docParaMeso,
   docParaReps,
@@ -269,5 +270,21 @@ describe('docParaRir (repetições que sobraram)', () => {
   it('coluna fora de s1..s40 é ignorada e vazio dá mapa vazio', () => {
     expect(docParaRir({ a: { s99: 1 } }).a).toEqual([])
     expect(docParaRir(undefined)).toEqual({})
+  })
+})
+
+describe('caminhosParaCancelar', () => {
+  it('apaga cargas, reps, lados, rir e pc, campo a campo', () => {
+    const c = caminhosParaCancelar({
+      cargas: { a: { s1: 60, s2: 60 } },
+      reps: { a: { s1: 10 } },
+      lados: { b: { s1: 6 } },
+      rir: { a: { s3: 2 } },
+      pc: { c: 70 },
+    })
+    expect(c.sort()).toEqual(['cargas.a.s1', 'cargas.a.s2', 'lados.b.s1', 'pc.c', 'reps.a.s1', 'rir.a.s3'])
+  })
+  it('registro vazio: nada a apagar', () => {
+    expect(caminhosParaCancelar({})).toEqual([])
   })
 })

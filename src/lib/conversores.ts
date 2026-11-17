@@ -186,3 +186,20 @@ export const docsParaRegistrosRir = (docs: RegistroDoc[]): Registros =>
 // notas/{alunoId}: anotação do aluno por exercício (chave = nome do exercício; '' = sem nota).
 // datas: quando cada anotação foi escrita (anotações de antes de 12/11/2026 não têm).
 export type NotasDoc = { exercicios?: Record<string, string>; datas?: Record<string, { toMillis(): number } | null> }
+
+// O que o aluno digitou num registro (cargas, reps, lados, rir por slot e coluna; pc por slot).
+export type RegistroGravado = {
+  cargas?: Record<string, object>
+  reps?: Record<string, object>
+  lados?: Record<string, object>
+  rir?: Record<string, object>
+  pc?: Record<string, unknown>
+}
+// Caminhos (campo a campo) que o cancelamento do treino apaga: tudo que o aluno digitou, inclusive o RIR (a resposta de uma
+// tentativa cancelada não pode reaparecer marcada na seguinte).
+export const caminhosParaCancelar = (atual: RegistroGravado): string[] => [
+  ...(['cargas', 'reps', 'lados', 'rir'] as const).flatMap((mapa) =>
+    Object.entries(atual[mapa] ?? {}).flatMap(([slot, cols]) => Object.keys(cols).map((k) => `${mapa}.${slot}.${k}`)),
+  ),
+  ...Object.keys(atual.pc ?? {}).map((slot) => `pc.${slot}`),
+]

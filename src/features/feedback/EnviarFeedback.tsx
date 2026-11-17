@@ -5,15 +5,14 @@ import { enviarFeedback } from '../../lib/acoes'
 import { ASSUNTOS, TEXTO_MAX, TIPOS, marcarConvite, montarFeedback, podeDepoimento, primeiroNome, type Assunto, type TipoFeedback } from '../../lib/feedback'
 import { registrarErro } from '../../lib/log'
 import { voltar } from '../../rota'
-import { Botao, classesBotao, Pagina } from '../../ui'
+import { Botao, classesBotao, classesOpcao, Pagina } from '../../ui'
 import { Quadro } from '../../vidro'
 import { BotaoVoltar } from '../../voltar'
 
 const TRAVA_MS = 60_000
 let travaAte = 0 // freio no app: depois de enviar, o botão fica travado por 60 s
 
-const chip = (on: boolean) =>
-  `min-h-11 rounded-full border px-4 text-sm font-semibold ${on ? 'border-marca-400 bg-marca-500 text-white' : 'border-white/20 bg-white/5 text-slate-200'}`
+const chip = (on: boolean) => classesOpcao(on, 'min-h-11 rounded-full px-4 text-sm')
 
 function Opcao({ marcada, onChange, children }: { marcada: boolean; onChange: (v: boolean) => void; children: string }) {
   return (

@@ -4,7 +4,7 @@ import { enviarAnamnese, novaVersaoCoach } from '../../lib/acoes'
 import { registrarErro } from '../../lib/log'
 import { IcCheck } from '../../icones'
 import { ir } from '../../rota'
-import { Aviso, Botao, Centro } from '../../ui'
+import { Aviso, Botao, Centro, classesOpcao } from '../../ui'
 import { Quadro } from '../../vidro'
 import { BotaoVoltar } from '../../voltar'
 import FichaAnamnese from './FichaAnamnese'
@@ -27,7 +27,7 @@ const apagar = (chave: string) => {
   }
 }
 
-const seleciona = (on: boolean) => `min-h-12 rounded-xl border px-4 text-[15px] font-semibold ${on ? 'border-marca-400 bg-marca-500 text-white' : 'border-white/15 bg-white/5 text-slate-200'}`
+const seleciona = (on: boolean) => classesOpcao(on, 'min-h-12 rounded-xl px-4 text-[15px]')
 
 const Caixa = ({ rotulo, on, mudar }: { rotulo: string; on: boolean; mudar: (v: boolean) => void }) => (
   <button type="button" role="checkbox" aria-checked={on} onClick={() => mudar(!on)} className={`${seleciona(on)} flex w-full items-center gap-2 py-2 text-left`}>
@@ -63,7 +63,7 @@ function Campo({ p, v, mudar }: { p: Pergunta; v: unknown; mudar: (x: unknown) =
           maxLength={p.max}
           rows={3}
           onChange={(e) => mudar(e.target.value)}
-          className="w-full rounded-xl border border-white/15 bg-white/5 p-3 text-[15px]"
+          className="vidro-tenue w-full rounded-xl p-3 text-[15px]"
         />
       )
     case 'aceite':

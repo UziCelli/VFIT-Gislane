@@ -44,8 +44,13 @@ const tamanhos = {
   lg: 'h-14 rounded-2xl px-5 text-[17px] font-bold shadow-lg',
 }
 
+// Sem `transition-*` aqui: a transição de todo botão/link vem do index.css (molas + `button:active`).
 export const classesBotao = (tipo: keyof typeof estilos, tamanho: keyof typeof tamanhos, extra = '') =>
-  `border transition-colors disabled:opacity-50 ${tamanhos[tamanho]} ${estilos[tipo]} ${extra}`
+  `border disabled:opacity-50 ${tamanhos[tamanho]} ${estilos[tipo]} ${extra}`
+
+// Opção de escolha (filtro, resposta de ficha): marcada = cor da marca; desmarcada = vidro tênue. Forma e tamanho vão em `extra`.
+export const classesOpcao = (on: boolean, extra = '') =>
+  `border font-semibold ${on ? 'border-marca-400 bg-marca-500 text-white' : 'vidro-tenue text-slate-200'} ${extra}`
 
 export const Botao = ({
   tipo = 'secundario',

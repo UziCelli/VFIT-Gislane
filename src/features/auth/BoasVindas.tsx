@@ -47,11 +47,8 @@ function FolhaIPhone({ onFechar }: { onFechar: () => void }) {
       <m.div className="fixed inset-0 z-30 bg-black/65" onClick={onFechar} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: saida }} transition={suave} />
       <m.div
         aria-hidden
-        initial={{ y: -8 }}
-        animate={{ y: [0, 10, 0] }}
         exit={{ opacity: 0, transition: saida }}
-        transition={{ duration: 1.1, repeat: Infinity }}
-        className="pointer-events-none fixed bottom-[88px] right-[22px] z-40 text-marca-300 drop-shadow-lg"
+        className="pulo pointer-events-none fixed bottom-[88px] right-[22px] z-40 text-marca-300 drop-shadow-lg"
       >
         <IcSeta className="size-14 rotate-90" />
       </m.div>

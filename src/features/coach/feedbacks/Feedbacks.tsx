@@ -8,7 +8,7 @@ import { db } from '../../../lib/firebase'
 import { registrarErro } from '../../../lib/log'
 import { TEXTO_SEM_INTERNET, useLista, useSemInternet } from '../../../lib/hooks'
 import { IcEstrela } from '../../../icones'
-import { Botao, Msg, Pagina } from '../../../ui'
+import { Botao, classesOpcao, Msg, Pagina } from '../../../ui'
 import { Quadro } from '../../../vidro'
 import { BotaoVoltar } from '../../../voltar'
 import BotaoCompartilhar from '../../evolucao/BotaoCompartilhar'
@@ -103,7 +103,7 @@ export default function Feedbacks() {
       </Quadro>
       <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
         {FILTROS.map(([k, t]) => (
-          <button key={k} type="button" aria-pressed={filtro === k} onClick={() => setFiltro(k)} className={`min-h-11 shrink-0 rounded-full border px-4 text-sm font-semibold ${filtro === k ? 'border-marca-400 bg-marca-500 text-white' : 'border-white/20 bg-white/5 text-slate-200'}`}>
+          <button key={k} type="button" aria-pressed={filtro === k} onClick={() => setFiltro(k)} className={classesOpcao(filtro === k, 'min-h-11 shrink-0 rounded-full px-4 text-sm')}>
             {k === 'novos' ? `Novos ${novos}` : t}
           </button>
         ))}

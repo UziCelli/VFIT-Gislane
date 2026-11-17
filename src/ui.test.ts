@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classesBotao, confirmarNumero } from './ui'
+import { classesBotao, classesOpcao, confirmarNumero } from './ui'
 
 describe('classesBotao', () => {
   it('md tem alvo de toque de 44px', () => expect(classesBotao('primario', 'md')).toContain('min-h-11'))
@@ -21,4 +21,12 @@ describe('confirmarNumero', () => {
   it('vazio volta ao valor anterior', () => expect(confirmarNumero('', 1, 12, false, 4)).toBe(4))
   it('vazio com vazio=undefined limpa', () => expect(confirmarNumero(' ', 1, undefined, true, 45)).toBeUndefined())
   it('texto inválido volta ao anterior', () => expect(confirmarNumero('abc', 1, 12, false, 4)).toBe(4))
+})
+
+describe('classesOpcao', () => {
+  it('marcada usa a cor da marca; desmarcada, o vidro tênue', () => {
+    expect(classesOpcao(true)).toContain('bg-marca-500')
+    expect(classesOpcao(false)).toContain('vidro-tenue')
+  })
+  it('forma e tamanho de fora entram por último', () => expect(classesOpcao(false, 'min-h-11').endsWith('min-h-11')).toBe(true))
 })

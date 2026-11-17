@@ -73,4 +73,12 @@ describe('cargaAnterior com o modelo pessoal', () => {
     const r = cargaAnterior(m3, r3, 3, 1, 1, undefined, undefined, reps3, { modelos: mods })
     expect(r).toMatchObject({ series: [30, 30, 30] })
   })
+  it('registro de origem com 0 repetições: mantém a carga anotada, mesmo com modelo', () => {
+    const m3 = meso([slot('a', 'Supino')], [[10, 10, 10], [10, 10, 10], [8, 8, 8]])
+    const r3 = { '1-1': { a: [60, 60, 60] }, '2-1': { a: [30, 30, 30] } }
+    const reps3 = { '2-1': { a: [0, 0, 0] } }
+    const mods = modelosPorExercicio({ ...fonte(m3, r3, reps3) }, { semana: 3, treino: 1 })
+    const r = cargaAnterior(m3, r3, 3, 1, 1, undefined, undefined, reps3, { modelos: mods })
+    expect(r).toMatchObject({ series: [30, 30, 30] })
+  })
 })

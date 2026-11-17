@@ -91,8 +91,10 @@ export function cargaAnterior(
       // presa a −12%/+8% da tabela); sem dado suficiente, pela tabela de RM (engine/rm.ts). Reps iguais: fica como foi anotado.
       extra.forEach((c, k) => {
         if (k >= e.n || k >= hoje.n) return
-        // Reps iguais, ou mais de 15 no registro de origem (não serve de base, nem para o modelo): fica como foi anotado.
-        if (c != null && (feitas[k] === hoje.reps[k] || feitas[k] > REPS_MAX_ORIGEM)) return
+        // Reps iguais, ou fora de 1..15 no registro de origem (0, vazio ou acima de 15 não servem de base, nem para o modelo):
+        // fica como foi anotado.
+        const baseValida = feitas[k] >= 1 && feitas[k] <= REPS_MAX_ORIGEM
+        if (c != null && (feitas[k] === hoje.reps[k] || !baseValida)) return
         const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k]) : null)
         if (kg != null && kg !== c) {
           extra[k] = kg

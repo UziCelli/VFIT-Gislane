@@ -22,13 +22,26 @@ Instruções comuns: Codex lê CODEX.md; Claude Code lê CLAUDE.md; cada agente 
 
 1. **Antes de rodar o CI:** `git fetch origin main`. Se a main andou, junte-a na branch (merge, sem rebase) e resolva conflito. Confira se o Graphify versionado mudou: `git diff --stat origin/main HEAD -- graphify-out`. Vazio = nada a fazer. Mudou por causa da main = aceite a versão da main; nunca regenere o grafo por rotina. O arquivo `graphify-out/cache/last_query_stamp` muda sozinho a cada `graphify query`: descarte com `git checkout -- graphify-out/cache/last_query_stamp`, não commite.
 2. **Rascunho + revisão cruzada:** com a PR em rascunho, comente `@codex review` (se o autor for o Codex, o Claude revisa). Espere o parecer; ajuste o que for concreto e peça nova revisão do novo commit.
-3. **Revisão OK:** só com **“Revisão cruzada: OK”** e o commit revisado registrados. Então tire do rascunho: isso dispara uma única rodada completa de CI.
+3. **Revisão OK no commit atual** (o que vale como OK está no [Fluxo automático](#fluxo-automático-de-pr-victor-17112026)). Então tire do rascunho: isso dispara uma única rodada completa de CI.
 4. **CI verde no commit atual** (reexecute só o job instável, uma vez; nunca pule teste).
-5. **Merge** só com 3 e 4 cumpridos e a autorização do dono para integrar. Depois, conferir os workflows de publicação.
+5. **Merge** com 3 e 4 cumpridos, feito pelo Claude sem perguntar (exceções: dados em produção ou custo em dinheiro). Depois, conferir os workflows de publicação.
+
+## Fluxo automático de PR (Victor, 17/11/2026)
+
+Do PR ao merge sem esperar o Victor, com o mínimo de Actions e de uso das IAs.
+
+- **Todo PR abre em rascunho.** Rascunho não roda CI. Sai do rascunho só com a revisão cruzada OK no commit atual, para uma única rodada completa de CI.
+- **PR do Claude:** comentar `@codex review`. Vale como OK do Codex o resumo "Codex Review" concluído no commit atual sem achados pendentes, ou um comentário "Revisão cruzada: OK" do Codex. Achado real: corrigir, enviar e pedir `@codex review` de novo. Achado que não procede: responder na conversa com o motivo.
+- **PR do Codex (branch `codex/…`):** o Codex abre o PR só com o trabalho terminado e não envia commits depois (mudança pedida depois vira PR novo). Não precisa avisar ninguém: uma tarefa do Claude com gatilho do GitHub é acionada sozinha e revisa. Se achar problema, o Claude corrige no próprio PR e pede `@codex review` para o Codex conferir a correção. Com tudo OK, o Claude registra "Revisão cruzada: OK" com o commit.
+- **Dependabot (branch `dependabot/…`):** atualizações pequenas chegam juntas uma vez por mês; a mesma tarefa do Claude confere e junta com CI verde, sem revisão do Codex. Versão grande (major): o Claude comenta o risco no PR e avisa o Victor, sem juntar.
+- **Juntar sem perguntar:** o merge fica com o Claude. Com revisão cruzada OK no commit atual, nenhum achado pendente e CI obrigatório verde, ele tira do rascunho se preciso, junta conferindo o commit e acompanha a publicação. Perguntar ao Victor antes só se a mudança apagar ou migrar dados que já estão em produção, ou tiver custo em dinheiro.
+- **CI vermelho:** corrigir e repetir; mudança de código depois do OK pede novo `@codex review`. Falha que não é do PR: explicar ao Victor em linguagem simples. Instabilidade: reexecutar só o job que falhou, uma vez.
+- **Esperar não gasta IA:** a revisão do Codex e o CI são acompanhados por consulta à API do GitHub em segundo plano, sem rotina agendada nem conversa de verificação.
+- **No fim:** avisar o Victor em 2–3 tópicos (o que mudou e se já está no ar).
 
 ## Economia sem perder proteção
 
 - Faça validação proporcional: testes afetados, ampliando por risco ou falha; não repita testes aprovados sem mudança relevante. Preserve o CI obrigatório. PR em rascunho adia o CI pesado existente até ficar pronta.
-- **Minutos do Actions são limitados (repositório privado, plano grátis, vários repositórios do dono). Não rode teste à toa.** Durante o trabalho: nenhum teste, ou só o do arquivo afetado quando indispensável. Nunca e2e nem regras com emuladores por rotina. A PR fica em rascunho até a revisão cruzada (`@codex review` em comentário) terminar e não haver ajuste pendente; só então sai do rascunho, para uma única rodada completa de CI. Falha de instabilidade: reexecute só o job que falhou. Não reexecute verificação verde sem mudança. Mudança só de documentação não pede teste. Publicação só no merge.
+- **Minutos do Actions são limitados (repositório privado, plano grátis, vários repositórios do dono). Não rode teste à toa.** Durante o trabalho: nenhum teste, ou só o do arquivo afetado quando indispensável. Nunca e2e nem regras com emuladores por rotina. Rascunho e revisão antes do CI: ver [Fluxo automático de PR](#fluxo-automático-de-pr-victor-17112026). Falha de instabilidade: reexecute só o job que falhou. Não reexecute verificação verde sem mudança. Mudança só de documentação não pede teste. Publicação só no merge.
 - Sem delegação automática para tarefas simples. Use ferramentas determinísticas para operações simples; não prometa economia exata ou troca de modelo indisponível.
 - Atualize documentação só quando comportamento, regra ou pendência mudar. Uma fonte por assunto; links nos demais lugares. Não acumule diário de entregas no contexto inicial.

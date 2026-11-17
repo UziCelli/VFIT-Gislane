@@ -27,10 +27,11 @@ import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaR
 import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from '../../lib/prescricaoRegistrada'
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
-import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../lib/hooks'
+import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet, useUsuarioAtual } from '../../lib/hooks'
 import { historicoExercicios, recordeAnterior, resumoTreino, type RegistroEvolucao } from '../../lib/evolucao'
 import { ehRecorde } from '../../lib/recorde'
-import { cargaAnterior, semanaAtual } from '../../lib/treino'
+import { cargaAnterior, semanaAtual, type Fonte } from '../../lib/treino'
+import { modelosPorExercicio } from '../../lib/rmPessoal'
 import { cargaVolta, comVolta, semanaDeVolta, travado as travadoAgenda } from '../../lib/agenda'
 import { confirmarExclusao, dataDaNota, msDaNota } from '../../lib/notas'
 import { IcCadeado, IcCheck, IcInfo, IcLapis, IcLixeira, IcMais, IcPausa, IcPlay, IcReiniciar, IcSino, IcSinoMudo, IcVoltar } from '../../icones'
@@ -44,6 +45,7 @@ import LoadInput from '../coach/semana/LoadInput'
 import CampoLados, { BotaoLadosDiferentes } from '../coach/semana/CampoLados'
 import { doisLados, ladosDiferentes, lerCelula } from '../../lib/lados'
 import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/presencial/EditarTreino'
+import AvisoEstimativaRm from './AvisoEstimativaRm'
 
 type RegistroFlag = RegistroDoc & { realizado?: boolean; inicioEm?: unknown; realizadoEm?: { toMillis(): number } | null; pc?: Record<string, number> }
 
@@ -388,6 +390,10 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const sair = () => (coach ? ir(base) : voltar('/treino'))
   const [pcLocal, setPcLocal] = useState<Record<string, number>>({}) // vale até o Firestore confirmar
   const { dados: perfil } = useDoc<Usuario>(doc(db, 'usuarios', uid))
+  // Carga sugerida pelas repetições (RM): escolha de quem está usando (aluno, ou o coach no presencial). Sem escolha = pergunta 1x.
+  const eu = useUsuarioAtual()
+  const estimarRm = eu.perfil?.estimativaRm === true
+  const perguntarRm = !!eu.user && !!eu.perfil && eu.perfil.estimativaRm === undefined && !navigator.webdriver // e2e não abre pop-up
   const an = useAnamnese(uid)
   const orient = useOrientacoes(coach ? null : uid)
   const orientacoes = orient.dados
@@ -413,6 +419,39 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     () => historicoExercicios(todosMesos.map((x) => ({ id: x.id, meso: docParaMeso(x), nome: x.nome })), todosRegistros),
     [todosMesos, todosRegistros],
   )
+  // Meso anterior do aluno (maior início antes do atual), já convertido, para a sugestão da 1ª semana de um ciclo novo.
+  const fonteAnterior = useMemo((): Fonte | null => {
+    if (!dados) return null
+    const inicio = docParaMeso(dados).inicio.slice(0, 10)
+    const ant = todosMesos
+      .filter((x) => x.id !== mesoId)
+      .map((x) => ({ x, m: docParaMeso(x) }))
+      .filter(({ m }) => m.inicio.slice(0, 10) < inicio)
+      .sort((a, b) => b.m.inicio.localeCompare(a.m.inicio))[0]
+    const docs = ant ? todosRegistros.filter((r) => r.mesoId === ant.x.id) : []
+    if (!ant || !docs.length) return null
+    const meso = comPrescricoesRegistradas(ant.m, docs)
+    return {
+      meso,
+      registros: docsParaRegistros(docs, meso),
+      reps: docsParaRegistrosReps(docs),
+      lados: docsParaLados(docs),
+      pcs: Object.fromEntries(docs.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)])),
+    }
+  }, [dados, todosMesos, todosRegistros, mesoId])
+  // Modelo pessoal de RM por exercício (curva do próprio aluno; só com a chave ligada). Fica em memória: roda por mudança de dados, não por toque.
+  const modelosRm = useMemo(() => {
+    if (!dados || !estimarRm) return null
+    const meso = comPrescricoesRegistradas(docParaMeso(dados), docsRegistros)
+    const atual: Fonte = {
+      meso,
+      registros: docsParaRegistros(docsRegistros, meso),
+      reps: docsParaRegistrosReps(docsRegistros),
+      lados: docsParaLados(docsRegistros),
+      pcs: Object.fromEntries(docsRegistros.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)])),
+    }
+    return modelosPorExercicio(atual, { semana, treino }, fonteAnterior)
+  }, [dados, docsRegistros, estimarRm, fonteAnterior, semana, treino])
   const festejados = useRef(new Set<string>())
   const [festa, setFesta] = useState<Festa | null>(null)
   const fecharFesta = useCallback(() => setFesta(null), [])
@@ -454,6 +493,11 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const pcs = lerPc(docAtual?.pc)
   const cargasCruas = docParaCargas(docAtual?.cargas) // o que está gravado de fato (para decidir o que gravar)
   const pcsPorRegistro = Object.fromEntries(docsRegistros.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)]))
+  // Pop-up da carga sugerida por RM: só na 1ª vez em que ela traria algo (ajustada às reps de hoje, corrigida ou do ciclo anterior).
+  const sugereRm = perguntarRm && sessao.exercicios.some((e) => {
+    const r = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, repsFeitas, { anterior: fonteAnterior })
+    return !!r && (r.estimada || !!r.origem.anterior)
+  })
   const iniciou = () => {
     if (inicioMs != null || jaIniciou.current) return // início pendente offline lê null: não conta, senão o botão fica morto depois de recarregar
     jaIniciou.current = true
@@ -604,6 +648,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
       )}</AnimatePresence>
       {adaptadoEm != null && <AvisoAdaptado chave={`forca-adaptado-${mesoId}-${adaptadoEm}`} />}
       <Novidades />
+      <AnimatePresence>{sugereRm && eu.user && <AvisoEstimativaRm uid={eu.user.uid} onde={coach ? 'Minha conta' : 'Conta'} />}</AnimatePresence>
       {coach && meso.sessoes?.[chave] && <FaixaAjustado mesoId={mesoId} semana={semana} treino={treino} />}
       <m.div className="space-y-4" variants={cascata} initial="hidden" animate="show">
         {exibicao.map((e) => {
@@ -614,7 +659,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
           const colunasCargas = cs[e.slot.slotId] ?? []
           const iso = isometrico(e.slot)
           const colunasReps = rs[e.slot.slotId] ?? []
-          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, repsFeitas) // só o extra, com o corpo do registro de origem
+          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, estimarRm ? repsFeitas : undefined, { anterior: estimarRm ? fonteAnterior : null, modelos: estimarRm ? modelosRm : null }) // só o extra, com o corpo do registro de origem
           const slot = e.slot.slotId
           const partes = e.rotulo ? e.rotulo.split('; ').map((p) => ({ p, mt: metodoDoRotulo(p) })) : []
           const gc = gk ? COR_METODO[gk.split('|')[0] as Metodo] : undefined
@@ -715,7 +760,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                 </button>
               ))}
               {!coach && <RelatarDor uid={uid} exercicio={e.slot.nome.trim()} sessao={{ mesoId, semana, treino }} slots={{ [e.slot.nome.trim()]: e.slot.slotId }} />}
-              {anterior && (anterior.estimada || anterior.origem.treino !== treino) && <p className="mb-2 text-xs text-slate-400">Cargas em cinza: {anterior.estimada ? 'ajustadas às repetições de hoje, a partir do' : 'última vez no'} Treino {anterior.origem.treino} · {anterior.origem.semana === semana ? 'esta semana' : `semana ${anterior.origem.semana}`}</p>}
+              {anterior && (anterior.estimada || anterior.origem.anterior || anterior.origem.treino !== treino) && <p className="mb-2 text-xs text-slate-400">Cargas em cinza: {anterior.estimada ? 'ajustadas às repetições de hoje, a partir do' : 'última vez no'} Treino {anterior.origem.treino} · {anterior.origem.anterior ? `ciclo anterior (semana ${anterior.origem.semana})` : anterior.origem.semana === semana ? 'esta semana' : `semana ${anterior.origem.semana}`}</p>}
               <div className="space-y-2">
                 {(() => {
                 // Colunas do drop pendurado na série s (1-based); drop sem série (exercício sem séries) vai para o fim.

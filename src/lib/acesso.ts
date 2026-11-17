@@ -13,6 +13,7 @@ export interface Usuario {
   privacidadeEm?: Timestamp // aceite da Política de Privacidade (LGPD)
   privacidadeVersao?: string // VERSAO_PRIVACIDADE aceita
   selo?: boolean // aluno escolheu mostrar o selo da marca na foto
+  estimativaRm?: boolean // carga cinza ajustada às reps de hoje (docs/estimativa-rm.md). Ausente = ainda não escolheu (o pop-up pergunta); false = desligada
   mensalidade?: number // R$, definida pelo coach
   pagamentoInformadoEm?: Timestamp // aluno tocou "Já paguei"
   vozDoAppAte?: Timestamp // coroa "Voz do app" (só o coach grava; vale até esta data)

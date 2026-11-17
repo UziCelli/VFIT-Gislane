@@ -5,7 +5,7 @@ export { adicionarExercicio, adicionarMetodo, alternarSerieDropset, ESCOPOS, esc
 export { ajustarSeries, analisarProgressao, limiteDe, polimento, progressaoAutomatica, reduzirVolume, tempoPorSemana } from './volume'
 export type { AnaliseProgressao, FormaProgressao, TipoPolimento } from './volume'
 export { metricasExercicio, metricasSessao, metricasSemana, evolucaoExercicio, repsEfetivas } from './metricas'
-export { arredondarKg, cargaEquivalente, fracaoDoRM, PASSO_KG, REPS_MAX_ALVO, REPS_MAX_ORIGEM, rmEstimado } from './rm'
+export { arredondarKg, cargaEquivalente, corrigirDigitacao, fracaoDoRM, LIMITE_DIGITACAO, logDesvio, PASSO_KG, REPS_MAX_ALVO, REPS_MAX_ORIGEM, rmEstimado } from './rm'
 export { metaRobusta, metaCiclo } from './meta'
 export { migrarProgressao } from './progressao'
 export { aplicarSugestao, classificarEquipamento, sugerirMetodos } from './sugestao'

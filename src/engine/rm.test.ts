@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { arredondarKg, cargaEquivalente, fracaoDoRM, rmEstimado } from './rm'
+import { arredondarKg, cargaEquivalente, corrigirDigitacao, fracaoDoRM, rmEstimado } from './rm'
 
 describe('fracaoDoRM (tabela geral de Nuzzo 2023)', () => {
   it('1 repetição = 100% do 1RM', () => expect(fracaoDoRM(1)).toBe(1))
@@ -23,8 +23,9 @@ describe('fracaoDoRM (tabela geral de Nuzzo 2023)', () => {
 describe('rmEstimado', () => {
   it('60 kg x 10 reps ≈ 75 kg', () => expect(rmEstimado(60, 10)).toBeCloseTo(75.4, 1))
   it('1 rep é o próprio 1RM', () => expect(rmEstimado(100, 1)).toBe(100))
-  it('mais de 12 reps ou carga inválida: sem base', () => {
-    expect(rmEstimado(40, 13)).toBeNull()
+  it('até 15 reps serve de base; acima disso ou com carga inválida: sem base', () => {
+    expect(rmEstimado(40, 15)).toBeCloseTo(57.5, 1)
+    expect(rmEstimado(40, 16)).toBeNull()
     expect(rmEstimado(0, 8)).toBeNull()
     expect(rmEstimado(-5, 8)).toBeNull()
   })
@@ -50,9 +51,32 @@ describe('cargaEquivalente', () => {
     const ida = cargaEquivalente(80, 6, 12)!
     expect(Math.abs(cargaEquivalente(ida, 12, 6)! - 80)).toBeLessThanOrEqual(1)
   })
-  it('sem base: null (reps de origem > 12, alvo > 20, carga 0)', () => {
-    expect(cargaEquivalente(30, 15, 8)).toBeNull()
+  it('60 kg x 15 reps vira carga para 8 reps', () => {
+    expect(cargaEquivalente(60, 15, 8)).toBe(72)
+  })
+  it('sem base: null (reps de origem > 15, alvo > 20, carga 0)', () => {
+    expect(cargaEquivalente(30, 16, 8)).toBeNull()
     expect(cargaEquivalente(30, 10, 25)).toBeNull()
     expect(cargaEquivalente(0, 10, 8)).toBeNull()
+  })
+})
+
+describe('corrigirDigitacao', () => {
+  it('600 no lugar de 60 vira a carga equivalente da mediana', () => {
+    const r = corrigirDigitacao([60, 60, 600, 60], [10, 10, 10, 10])
+    expect(r.series).toEqual([60, 60, 60, 60])
+    expect(r.trocadas).toEqual([2])
+  })
+  it('variação normal de resistência (pirâmide) não é erro', () => {
+    const r = corrigirDigitacao([80, 70, 62, 55], [6, 8, 10, 12])
+    expect(r.trocadas).toEqual([])
+  })
+  it('menos de 3 séries válidas: não mexe', () => {
+    expect(corrigirDigitacao([60, 600], [10, 10]).trocadas).toEqual([])
+    expect(corrigirDigitacao([60, null, 600], [10, 10, 10]).trocadas).toEqual([])
+  })
+  it('série vazia ou com reps fora da faixa não entra na conta', () => {
+    const r = corrigirDigitacao([60, 60, 60, null, 40], [10, 10, 10, 10, 20])
+    expect(r.series).toEqual([60, 60, 60, null, 40])
   })
 })

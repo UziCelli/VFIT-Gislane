@@ -14,7 +14,7 @@ const TABELA: readonly (readonly [number, number])[] = [
   [60, 19.56], [55, 22.46], [50, 26.03],
 ]
 
-export const REPS_MAX_ORIGEM = 12 // acima disso a carga feita não serve de base (Reynolds: até ~10)
+export const REPS_MAX_ORIGEM = 15 // acima disso a carga feita não serve de base. O estudo é preciso até ~65% do 1RM (~17 reps); a incerteza individual chega a ±10% da carga aqui
 export const REPS_MAX_ALVO = 20 // acima disso a carga cai para perto de 60% do 1RM, onde o estudo perde precisão
 export const PASSO_KG = 0.5
 
@@ -48,4 +48,41 @@ export function cargaEquivalente(carga: number, repsFeitas: number, repsAlvo: nu
   if (rm == null || f == null) return null
   const kg = arredondarKg(rm * f, passo)
   return kg > 0 ? kg : null
+}
+
+// Desvio (em log) de cada série em relação à tabela: ln(kg) - ln(fração do 1RM para as reps). Serve para achar digitação errada.
+export const logDesvio = (kg: number, reps: number): number | null => {
+  const f = fracaoDoRM(reps, REPS_MAX_ORIGEM)
+  return f == null || !(kg > 0) ? null : Math.log(kg) - Math.log(f)
+}
+export const LIMITE_DIGITACAO = 0.3 // ~±30% da carga em relação à mediana das séries: acima disso é erro de digitação, não de resistência
+
+const mediana = (v: number[]) => {
+  const o = [...v].sort((a, b) => a - b)
+  const m = o.length >> 1
+  return o.length % 2 ? o[m] : (o[m - 1] + o[m]) / 2
+}
+
+// Troca por um valor plausível a série digitada com erro óbvio (ex.: 600 em vez de 60): com 3 ou mais séries válidas, a que
+// fica a mais de LIMITE_DIGITACAO da mediana vira a carga equivalente da mediana para as reps dela. Menos de 3: não mexe.
+// Devolve o novo vetor e quais posições foram trocadas.
+export function corrigirDigitacao(series: (number | null | undefined)[], reps: number[]) {
+  const pontos = series.flatMap((kg, i) => {
+    const d = kg == null ? null : logDesvio(kg, reps[i])
+    return d == null ? [] : [{ i, d }]
+  })
+  const out = series.map((x) => x ?? null)
+  const trocadas: number[] = []
+  if (pontos.length < 3) return { series: out, trocadas }
+  const med = mediana(pontos.map((p) => p.d))
+  for (const { i, d } of pontos) {
+    if (Math.abs(d - med) <= LIMITE_DIGITACAO) continue
+    const f = fracaoDoRM(reps[i], REPS_MAX_ORIGEM)!
+    const kg = arredondarKg(Math.exp(med) * f)
+    if (kg > 0) {
+      out[i] = kg
+      trocadas.push(i)
+    }
+  }
+  return { series: out, trocadas }
 }

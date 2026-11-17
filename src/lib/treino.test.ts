@@ -200,8 +200,60 @@ describe('cargaAnterior ajustada às reps de hoje (tabela de RM)', () => {
     const r = cargaAnterior(m, { '1-1': { a: [90] } }, 2, 1, 1, { '1-1': { a: 76 } }, undefined, {})
     expect(r).toMatchObject({ series: [14], estimada: false })
   })
-  it('reps de origem acima de 12: mantém a carga anotada', () => {
-    const r = cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, { '1-1': { a: [15, 15] } })
+  it('reps de origem acima de 15: mantém a carga anotada', () => {
+    const r = cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, { '1-1': { a: [16, 16] } })
     expect(r).toMatchObject({ series: [60, 60], estimada: false })
+  })
+})
+
+describe('cargaAnterior: digitação errada', () => {
+  const m: Meso = {
+    frequencia: 1, semanas: 2, inicio: '2026-01-05', pausaS: 60,
+    divisao: [[slot('a', 'Supino')]],
+    progressao: { principais: [[10, 10, 10, 10], [10, 10, 10, 10]], auxiliares: [[10, 10, 10, 10], [10, 10, 10, 10]] },
+    metodos: [],
+  }
+  it('600 no lugar de 60 não vira sugestão (com reps informadas)', () => {
+    const r = cargaAnterior(m, { '1-1': { a: [60, 60, 600, 60] } }, 2, 1, 1, undefined, undefined, {})
+    expect(r).toMatchObject({ series: [60, 60, 60, 60], estimada: true })
+  })
+  it('sem reps informadas (recurso desligado), mostra como foi anotado', () => {
+    expect(cargaAnterior(m, { '1-1': { a: [60, 60, 600, 60] } }, 2, 1, 1)).toMatchObject({ series: [60, 60, 600, 60] })
+  })
+})
+
+describe('cargaAnterior: meso anterior (pelo nome do exercício)', () => {
+  const mk = (nome: string, id = 'a', extra: Partial<Slot> = {}): Meso => ({
+    frequencia: 1, semanas: 2, inicio: '2026-03-02', pausaS: 60,
+    divisao: [[{ ...slot(id, nome), ...extra }]],
+    progressao: { principais: [[10, 10], [10, 10]], auxiliares: [[10, 10], [10, 10]] },
+    metodos: [],
+  })
+  const ant = (nome: string, extra: Partial<Slot> = {}) => ({ meso: { ...mk(nome, 'x', extra), inicio: '2026-01-05' }, registros: { '1-1': { x: [40, 42] }, '2-1': { x: [44, 46] } } })
+  it('semana 1 do meso novo usa a última carga do anterior, mesmo com slotId diferente', () => {
+    const r = cargaAnterior(mk('Supino Reto Barra'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })
+    expect(r).toMatchObject({ series: [44, 46], origem: { semana: 2, treino: 1, anterior: true } })
+  })
+  it('acento, caixa e espaços não atrapalham', () => {
+    const r = cargaAnterior(mk('  Supino  RETO Barra'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('supino reto barra') })
+    expect(r).toMatchObject({ series: [44, 46] })
+    const acento = cargaAnterior(mk('Elevação Pélvica'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('elevacao pelvica') })
+    expect(acento).toMatchObject({ series: [44, 46] })
+  })
+  it('nome parecido NÃO casa (outro equipamento é outro exercício)', () => {
+    expect(cargaAnterior(mk('Supino Reto Halter'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })).toBeNull()
+    expect(cargaAnterior(mk('Supino Reto'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })).toBeNull()
+  })
+  it('2 lados ou isometria diferentes não casam', () => {
+    expect(cargaAnterior(mk('Rosca', 'a', { doisLados: true }), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Rosca') })).toBeNull()
+  })
+  it('o meso atual tem prioridade; o anterior só entra quando o atual não tem nada', () => {
+    const r = cargaAnterior(mk('Supino Reto Barra'), { '1-1': { a: [50, 52] } }, 2, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })
+    expect(r).toMatchObject({ series: [50, 52] })
+    expect(r?.origem.anterior).toBeUndefined()
+  })
+  it('meso anterior sem registros ou ausente: nada', () => {
+    expect(cargaAnterior(mk('Supino Reto Barra'), {}, 1, 1, 1)).toBeNull()
+    expect(cargaAnterior(mk('Supino Reto Barra'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: null })).toBeNull()
   })
 })

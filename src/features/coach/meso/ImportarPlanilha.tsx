@@ -126,7 +126,7 @@ export default function ImportarPlanilha({ uid, qtdMesos, onFechar }: { uid: str
   )
 }
 
-function Previa({ meso, registros, deFora, comoFeitos, onComoFeitos }: Importado & { comoFeitos: boolean; onComoFeitos: (v: boolean) => void }) {
+function Previa({ meso, registros, deFora, semanasSemSeries, comoFeitos, onComoFeitos }: Importado & { comoFeitos: boolean; onComoFeitos: (v: boolean) => void }) {
   const n = registros.length + (comoFeitos ? deFora : 0)
   return (
     <div className="space-y-1 rounded-lg bg-slate-950 p-3 text-sm" data-testid="previa">
@@ -144,6 +144,12 @@ function Previa({ meso, registros, deFora, comoFeitos, onComoFeitos }: Importado
       <p>
         {n} {n === 1 ? 'treino realizado' : 'treinos realizados'} com carga
       </p>
+      {semanasSemSeries.length > 0 && (
+        <p role="status" className="text-xs text-amber-300" data-testid="aviso-semanas-vazias">
+          {semanasSemSeries.length === 1 ? 'A semana' : 'As semanas'} {semanasSemSeries.join(', ')} {semanasSemSeries.length === 1 ? 'está' : 'estão'} sem séries na planilha:
+          os treinos {semanasSemSeries.length === 1 ? 'dela vão' : 'delas vão'} aparecer com 0 série. Preencha a progressão antes de importar.
+        </p>
+      )}
       {deFora > 0 && (
         <label className="flex items-start gap-2 text-xs text-slate-400">
           <input type="checkbox" checked={comoFeitos} onChange={(e) => onComoFeitos(e.target.checked)} className="mt-0.5" />

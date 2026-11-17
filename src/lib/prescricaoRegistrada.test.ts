@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { mesoPadrao } from '../features/coach/meso/mesoPadrao'
 import { prescreverSessao, metodosDaSessao } from '../engine/sessao'
 import { mesoParaDoc, docParaMeso } from './conversores'
@@ -70,4 +70,46 @@ it('recusa método malformado antes de renderizar a aprovação', () => {
   const sessao = prescreverSessao(m, 1, 1)!
   const metodos = [{ ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Dropset', escopo: 'Todas as séries', repsEtapa: 'texto' }]
   expect(lerPrescricaoRegistrada(JSON.stringify({ versao: 1, sessao, metodos }))).toBeNull()
+})
+
+// Caso real (Gislane, semana 9 / treino 1): a cópia congelada saiu com 0 série e escondia o plano certo.
+describe('cópia congelada sem nenhuma série', () => {
+  const plano = () => ({ ...mesoPadrao(), divisao: [[{ slotId: 'leg', nome: 'Leg Press 35' }, { slotId: 'stiff', nome: 'Stiff' }], [], []] })
+  const vazia = (m: ReturnType<typeof plano>) => {
+    const s = prescreverSessao(m, 1, 1)!
+    return { versao: 1 as const, sessao: { ...s, series: 0, exercicios: s.exercicios.map((e) => ({ ...e, n: 0, reps: [], repsBase: [], cargaSugerida: [], drops: [] })) }, metodos: [] }
+  }
+
+  it('o motor ignora a cópia vazia e prescreve pelo plano', () => {
+    const m = plano()
+    const esperado = prescreverSessao(m, 1, 1)!
+    expect(esperado.exercicios[0].n).toBeGreaterThan(0)
+    const defeituoso = { ...m, prescricoesRegistradas: { '1-1': vazia(m) } }
+    expect(prescreverSessao(defeituoso, 1, 1)).toEqual(esperado)
+    expect(metodosDaSessao(defeituoso, 1, 1)).toEqual(metodosDaSessao(m, 1, 1))
+    expect(iniciarEdicao(defeituoso, 1, 1).exercicios.map((e) => e.slotId)).toEqual(['leg', 'stiff'])
+  })
+
+  it('a cópia do registro vazia não é lida nem congela o treino', () => {
+    const m = plano()
+    const texto = JSON.stringify(vazia(m))
+    expect(lerPrescricaoRegistrada(texto)).toBeNull()
+    const depois = comPrescricoesRegistradas(m, [{ semana: 1, treino: 1, prescricaoRegistrada: texto }])
+    expect(depois.prescricoesRegistradas?.['1-1']).toBeUndefined()
+    expect(prescreverSessao(depois, 1, 1)).toEqual(prescreverSessao(m, 1, 1))
+  })
+
+  it('a cópia vazia que já está no documento do meso é descartada ao carregar', () => {
+    const m = plano()
+    const depois = comPrescricoesRegistradas({ ...m, prescricoesRegistradas: { '1-1': vazia(m) } }, [{ semana: 1, treino: 1 }])
+    expect(depois.prescricoesRegistradas?.['1-1']).toBeUndefined()
+    expect(prescreverSessao(depois, 1, 1)?.exercicios[0].n).toBeGreaterThan(0)
+  })
+
+  it('uma cópia válida continua valendo mesmo se o plano mudou depois', () => {
+    const m = plano()
+    const valida = { versao: 1 as const, sessao: prescreverSessao(m, 1, 1)!, metodos: [] }
+    const depois = comPrescricoesRegistradas({ ...m, divisao: [[], [], []], prescricoesRegistradas: { '1-1': valida } }, [{ semana: 1, treino: 1 }])
+    expect(prescreverSessao(depois, 1, 1)).toEqual(valida.sessao)
+  })
 })

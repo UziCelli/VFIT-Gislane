@@ -24,6 +24,13 @@ describe('planilhaParaMeso', () => {
     expect(registros[0]).toEqual({ semana: 1, treino: 1, realizado: true, cargas: { id1: { s1: 20, s3: 22.5 } } })
   })
 
+  it('avisa as semanas em branco na progressão (treino sairia com 0 série) e não avisa quando está completa', () => {
+    expect(planilhaParaMeso(new Map(Object.entries(aba())), ids()).semanasSemSeries).toEqual([])
+    // Semana 2: principais zerados (T19). Os auxiliares dela já estão em branco na fixture, mas só contam se algum treino tem 3+ exercícios.
+    const vazia = planilhaParaMeso(new Map(Object.entries(aba(false, { T19: 0 }))), ids())
+    expect(vazia.semanasSemSeries).toEqual([2])
+  })
+
   it('trunca progressão, troca de exercício vira slot novo e leva a carga', () => {
     const { meso, registros, deFora, naoMarcados } = planilhaParaMeso(new Map(Object.entries(aba())), ids())
     expect(meso.progressao.principais[1]).toEqual([5, null, null, null, null, null])

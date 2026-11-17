@@ -1,6 +1,6 @@
 export * from './tipos'
 export { isometrico, LIMITE_ISOMETRIA_S, linhaIsometrica, progressaoIsometrica } from './isometria'
-export { prescreverSessao, linhaPrescrita, metodosDaSessao, slotsDaSessao } from './sessao'
+export { copiaDoDia, copiaVazia, prescreverSessao, linhaPrescrita, metodosDaSessao, slotsDaSessao } from './sessao'
 export { adicionarExercicio, adicionarMetodo, alternarSerieDropset, ESCOPOS, escoposPara, iniciarEdicao, mudarSeries, padraoMetodo, removerExercicio, removerMetodo, serieDoDrop, trocarExercicio } from './editarSessao'
 export { ajustarSeries, analisarProgressao, limiteDe, polimento, progressaoAutomatica, reduzirVolume, tempoPorSemana } from './volume'
 export type { AnaliseProgressao, FormaProgressao, TipoPolimento } from './volume'

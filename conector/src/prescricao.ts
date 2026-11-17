@@ -8,7 +8,7 @@ import { proximoMesoId } from '../../src/lib/proximoMesoId'
 import { somarDias } from '../../src/lib/avaliacao'
 import { dataSP, mesoAtual, proximoMeso } from '../../src/features/aluno/mesoAtual'
 import { mesoPadrao } from '../../src/features/coach/meso/mesoPadrao'
-import { prescreverSessao, metodosDaSessao } from '../../src/engine/sessao'
+import { copiaVazia, prescreverSessao, metodosDaSessao } from '../../src/engine/sessao'
 import { lerPrescricaoRegistrada, comPrescricoesRegistradas } from '../../src/lib/prescricaoRegistrada'
 import { diasDaSemana, DIAS_AUTO } from '../../src/lib/agenda'
 import { registroId } from '../../src/lib/conversores'
@@ -94,7 +94,8 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   validarIdentidades()
   // O perfil muda por ações do aluno (peso, aceite, pagamento): não exige a versão exata, mas o aluno precisa continuar existindo (exclusão LGPD não pode deixar mesociclo órfão).
   const condicoes: Condicao[] = [{ caminho: `usuarios/${e.alunoId}`, existe: true }]
-  const preservadas = { ...base.prescricoesRegistradas }
+  // Cópia congelada sem nenhuma série é defeito (a leitura já a ignora): não a carrega para a edição nem a recria.
+  const preservadas = Object.fromEntries(Object.entries(base.prescricoesRegistradas ?? {}).filter(([, p]) => !copiaVazia(p))) as NonNullable<Meso['prescricoesRegistradas']>
   const anteriores = structuredClone(base.prescricoesAnteriores ?? {})
   if (e.acao === 'editar') {
     const caminhos = Array.from({ length: Math.max(base.semanas, escolhido.semanas) }, (_, w) => Array.from({ length: Math.max(base.frequencia, escolhido.frequencia) }, (_, t) => `registros/${registroId(e.mesoId!, w + 1, t + 1)}`)).flat()
@@ -117,7 +118,8 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
       const baseRegistrada = comPrescricoesRegistradas(base, [{ ...r.doc.dados, semana: w, treino: t, ...(registrada ? {} : { prescricaoRegistrada: undefined }) }])
       const sessao = prescreverSessao(baseRegistrada, w, t)
       if (!sessao) throw new ErroConector('Sessão registrada fora do mesociclo.', 'HISTORICO', 'validacao', false)
-      preservadas[chave] ??= base.prescricoesRegistradas?.[chave] !== null && registrada && registrada.sessao.semana === w && registrada.sessao.treino === t ? registrada : { versao: 1, sessao, metodos: metodosDaSessao(baseRegistrada, w, t), ...(baseRegistrada.historicoIncerto?.includes(chave) && { referenciaHistorica: true }) }
+      const copiaDoDia = base.prescricoesRegistradas?.[chave] !== null && registrada && registrada.sessao.semana === w && registrada.sessao.treino === t ? registrada : { versao: 1 as const, sessao, metodos: metodosDaSessao(baseRegistrada, w, t), ...(baseRegistrada.historicoIncerto?.includes(chave) && { referenciaHistorica: true }) }
+      if (!copiaVazia(copiaDoDia)) preservadas[chave] ??= copiaDoDia
     }
     // Mantém referências para filas de clientes antigos que só sincronizem depois do commit.
     for (let w = 1; w <= base.semanas; w++) for (let t = 1; t <= base.frequencia; t++) {

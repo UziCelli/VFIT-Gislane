@@ -159,7 +159,7 @@ export default function Inicio({ nome }: { nome: string }) {
         <p className="text-sm text-slate-300">Indícios para conferir e decidir os próximos passos. Avaliações dos últimos 37 dias incluem rascunhos e permanecem como lembrete nesse período.</p>
         {prioridadesCarregando ? <p className="text-sm text-slate-300">Carregando prioridades...</p> : prioridadesErro ? <p className="text-sm text-amber-200">Não foi possível carregar todas as prioridades. Tente novamente quando houver conexão.</p> : prioridades.length === 0 ? <p className="text-sm text-slate-300">Nenhuma prioridade encontrada agora.</p> : (
           <ul className="space-y-2">{prioridades.map((p) => <li key={p.alunoId}>
-            <a href={`#/aluno/${p.alunoId}`} className="block min-h-11 rounded-2xl border border-white/20 bg-white/10 p-3 hover:bg-white/15">
+            <a href={`#/aluno/${p.alunoId}`} className="block min-h-11 vidro-leve rounded-2xl p-3">
               <span className="font-semibold underline">{p.nome}</span><span className="mt-1 block text-sm text-slate-200">{p.motivos.join(' · ')}</span>
             </a>
           </li>)}</ul>
@@ -176,7 +176,7 @@ export default function Inicio({ nome }: { nome: string }) {
               const d = mesos.dados.find((y) => y.id === x.id)!
               return (
                 <li key={x.id} className="max-w-full min-w-0">
-                  <a href={`#/meso/${x.id}/relatorio`} className="block min-h-11 min-w-0 max-w-full truncate rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm hover:bg-white/15">
+                  <a href={`#/meso/${x.id}/relatorio`} className="block min-h-11 min-w-0 max-w-full truncate vidro-leve rounded-full px-4 py-2.5 text-sm">
                     {nomeDe.get(d.alunoId)} · {x.nome}
                   </a>
                 </li>
@@ -193,7 +193,7 @@ export default function Inicio({ nome }: { nome: string }) {
           <ul className="flex flex-wrap gap-2">
             {paraAvaliar.map((x) => (
               <li key={x.mesoId} className="max-w-full min-w-0">
-                <a href={`#/aluno/${x.alunoId}/avaliacoes`} className="block min-h-11 min-w-0 max-w-full truncate rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm hover:bg-white/15">
+                <a href={`#/aluno/${x.alunoId}/avaliacoes`} className="block min-h-11 min-w-0 max-w-full truncate vidro-leve rounded-full px-4 py-2.5 text-sm">
                   {nomeDe.get(x.alunoId)} · {x.nome}
                 </a>
               </li>
@@ -223,14 +223,14 @@ export default function Inicio({ nome }: { nome: string }) {
           <ul className="flex flex-wrap gap-2">
             {novasAnam.map((a) => (
               <li key={a.id} className="max-w-full min-w-0">
-                <a href={`#/aluno/${a.alunoId}/anamnese`} className="block min-h-11 min-w-0 max-w-full truncate rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm hover:bg-white/15">
+                <a href={`#/aluno/${a.alunoId}/anamnese`} className="block min-h-11 min-w-0 max-w-full truncate vidro-leve rounded-full px-4 py-2.5 text-sm">
                   {nomeDe.get(a.alunoId)} · nova{sinaisAtencao(a.r).length > 0 && ' · Atenção'}
                 </a>
               </li>
             ))}
             {pendentesAnam.map((x) => (
               <li key={x.alunoId} className="max-w-full min-w-0">
-                <a href={`#/aluno/${x.alunoId}/anamnese`} className="block min-h-11 min-w-0 max-w-full truncate rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-slate-300 hover:bg-white/15">
+                <a href={`#/aluno/${x.alunoId}/anamnese`} className="block min-h-11 min-w-0 max-w-full truncate vidro-leve rounded-full px-4 py-2.5 text-sm text-slate-300">
                   {x.nome} · {x.motivo === 'primeira' ? 'não respondeu' : 'atualizar'}
                 </a>
               </li>
@@ -268,7 +268,7 @@ export default function Inicio({ nome }: { nome: string }) {
                     : [{ k: a.id, href: `#/aluno/${a.id}`, texto: a.nome }]
                   return links.map((l) => (
                     <li key={`${a.id}-${l.k}`} className="flex max-w-full min-w-0 items-center gap-2">
-                      <a href={l.href} className="block min-h-11 max-w-full truncate rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm hover:bg-white/15">
+                      <a href={l.href} className="block min-h-11 max-w-full truncate vidro-leve rounded-full px-4 py-2.5 text-sm">
                         {l.texto}
                       </a>
                       {titulo === 'Aguardando aprovação' && (

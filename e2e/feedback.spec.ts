@@ -76,6 +76,12 @@ test('aluno envia feedback e o coach vê, marca lido e copia o depoimento', asyn
   await expect(cartaoAna.getByRole('button', { name: 'Copiar depoimento' })).toBeVisible()
   await cartaoAna.getByRole('button', { name: 'Copiar depoimento' }).click()
   await expect(page.getByText('Copiado')).toBeVisible()
+  // Coroa "Voz do app": o coach libera e o aluno a vê no avatar; some o botão de dar e aparece o de renovar.
+  await cartaoAna.getByRole('button', { name: 'Dar coroa + ajuste prioritário' }).click()
+  await expect(page.getByText('Coroa por 30 dias e ajuste prioritário liberados')).toBeVisible()
+  await expect(cartaoAna.getByRole('button', { name: 'Renovar coroa' })).toBeVisible()
+  await ana.page.goto('/#/')
+  await expect(ana.page.getByRole('img', { name: 'Coroa Voz do app' })).toBeVisible({ timeout: 20_000 })
   await cartaoAna.getByRole('button', { name: 'Lido', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Novos 1' })).toBeVisible()
   await expect(abas.getByRole('link', { name: /^Opiniões/ })).toContainText('1')
@@ -85,6 +91,8 @@ test('aluno envia feedback e o coach vê, marca lido e copia o depoimento', asyn
   await expect(cartaoBia.getByRole('button', { name: 'Copiar depoimento' })).toHaveCount(0)
   await expect(cartaoBia.getByRole('button', { name: 'Imagem' })).toHaveCount(0)
   await expect(cartaoBia.getByText('Sem autorização para divulgar')).toBeVisible()
+  // Anônimo não recebe prêmio: sem botão de coroa.
+  await expect(cartaoBia.getByRole('button', { name: /coroa/i })).toHaveCount(0)
   await cartaoBia.getByRole('button', { name: 'Copiar texto' }).click()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Feedback de aluno (3/5 · O app · Crítica):\n"Treino B está longo demais."')
   await Promise.all([ctx.close(), ana.ctx.close(), bia.ctx.close()])

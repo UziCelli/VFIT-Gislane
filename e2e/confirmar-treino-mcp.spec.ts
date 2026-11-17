@@ -108,7 +108,10 @@ test('proposta do assistente aparece sozinha no app e abre a conferência', asyn
   await page.getByLabel('Senha').fill(COACH.senha)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await expect(page.getByText('o assistente preparou um treino para você conferir.', { exact: false })).toBeVisible()
-  await expect(page.getByRole('link', { name: /Propostas/ }).first()).toBeVisible()
+  // Celular: sem aba "Propostas" (a barra tem 6 abas); a contagem aparece como selo no Início.
+  const abas = page.getByRole('navigation', { name: 'Menu', exact: true })
+  await expect(abas.getByRole('link', { name: /Propostas/ })).toHaveCount(0)
+  await expect(abas.getByRole('link', { name: /^Início/ })).toContainText('1')
   await page.getByRole('link', { name: 'Conferir treino' }).click()
   await expect(page.getByText('Aluno: Ana Exemplo', { exact: false })).toBeVisible()
   await page.getByRole('button', { name: 'Salvar treino' }).click()
@@ -116,6 +119,7 @@ test('proposta do assistente aparece sozinha no app e abre a conferência', asyn
   await page.getByRole('link', { name: 'Voltar ao início' }).click()
   await expect(page.getByText('o assistente preparou um treino para você conferir.', { exact: false })).toHaveCount(0)
   await expect(page.getByRole('link', { name: /Propostas/ })).toHaveCount(0)
+  await expect(abas.getByRole('link', { name: /^Início/ })).not.toContainText('1')
 })
 test('lista do assistente: verificar agora consulta de novo e não há consulta periódica', async ({ page }) => {
   let consultas = 0, pendente = false

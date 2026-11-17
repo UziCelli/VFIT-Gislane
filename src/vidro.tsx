@@ -15,17 +15,17 @@ export type Aba = { rotulo: string; href: string; Icone: Icone; ativo: boolean; 
 export function BarraAbas({ abas, className = '' }: { abas: Aba[]; className?: string }) {
   return (
     <nav aria-label="Menu" className={`fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] ${className}`}>
-      <div className="vidro mx-auto flex h-[66px] max-w-[400px] items-center gap-1 rounded-full px-1.5">
+      <div className="vidro mx-auto flex h-[66px] max-w-[400px] items-center gap-0.5 rounded-full px-1">
         {abas.map(({ rotulo, href, Icone, ativo, selo }) => (
           <a
             key={href}
             href={href}
             aria-current={ativo ? 'page' : undefined}
-            className={`relative flex h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10.5px] font-semibold tracking-wide ${ativo ? 'text-white' : 'text-slate-300/85'}`}
+            className={`relative flex h-[56px] min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-full text-[10.5px] font-semibold ${ativo ? 'text-white' : 'text-slate-300/85'}`}
           >
             {ativo && <Bolha />}
             <Icone className={`size-[22px] ${ativo ? 'text-marca-400' : ''}`} />
-            <span className="truncate">{rotulo}</span>
+            <span className="max-w-full truncate">{rotulo}</span>
             {selo ? (
               <span className="absolute right-[18%] top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white ring-2 ring-slate-900/60">
                 {selo > 9 ? '9+' : selo}

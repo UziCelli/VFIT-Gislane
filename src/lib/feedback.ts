@@ -107,6 +107,18 @@ export function resumoNotas(lista: { nota: number }[]) {
   return { media: total ? soma / total : 0, total, porNota }
 }
 
+// Feedbacks por bloco de 7 dias, contando de agora para trás: índice 0 = últimos 7 dias, 1 = 7 a 14 dias atrás, etc.
+// Blocos corridos (sem depender de fuso nem de segunda-feira). Mais velhos que `n` blocos ficam de fora.
+export function porSemana(lista: { em: Date | null }[], agoraMs = Date.now(), n = 6): number[] {
+  const blocos = Array<number>(n).fill(0)
+  for (const f of lista) {
+    if (!f.em) continue
+    const i = Math.floor(Math.max(0, agoraMs - f.em.getTime()) / (7 * 86_400_000))
+    if (i < n) blocos[i]++
+  }
+  return blocos
+}
+
 export type Filtro = 'todos' | 'novos' | 'sugestoes' | 'criticas' | 'depoimentos'
 
 export function filtrar<T extends Pick<Feedback, 'tipo' | 'lido' | 'depoimento'>>(lista: T[], f: Filtro): T[] {

@@ -57,6 +57,7 @@ service cloud.firestore {
         && d.get('cargas', {}) is map
         && d.get('reps', {}) is map
         && d.get('lados', {}) is map
+        && d.get('rir', {}) is map
         && d.get('pc', {}) is map;
     }
 
@@ -221,7 +222,7 @@ service cloud.firestore {
 
       allow create: if own(request.resource.data) && liberado()
         && request.resource.data.keys().hasOnly(
-             ['alunoId', 'mesoId', 'semana', 'treino', 'realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'pc', 'atualizadoEm', 'prescricaoRegistrada'])
+             ['alunoId', 'mesoId', 'semana', 'treino', 'realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'rir', 'pc', 'atualizadoEm', 'prescricaoRegistrada'])
         && request.resource.data.get('prescricaoRegistrada', '') is string
         && request.resource.data.get('prescricaoRegistrada', '').size() <= 60000
         && request.resource.data.semana is int
@@ -247,7 +248,7 @@ service cloud.firestore {
       // pc = kg do corpo usado por exercício (slotId → número; 0 = desligado).
       allow update: if own(resource.data) && liberado()
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'pc', 'atualizadoEm', 'prescricaoRegistrada'])
+             .hasOnly(['realizado', 'realizadoEm', 'inicioEm', 'cargas', 'reps', 'lados', 'rir', 'pc', 'atualizadoEm', 'prescricaoRegistrada'])
         && request.resource.data.get('prescricaoRegistrada', '') is string
         && request.resource.data.get('prescricaoRegistrada', '').size() <= 60000
         && (!('prescricaoRegistrada' in resource.data) || request.resource.data.prescricaoRegistrada == resource.data.prescricaoRegistrada)

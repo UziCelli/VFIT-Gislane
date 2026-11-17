@@ -23,7 +23,7 @@ import { cancelarTreino, marcarInicio, marcarRealizado, reabrirTreino, registrar
 import { duracaoTreino, fimDaSessao, TETO_TREINO_MS } from '../../lib/resumo'
 import type { Usuario } from '../../lib/acesso'
 import { corpoEhCarga, fracaoPC, preencherCorpo, rebasear } from '../../lib/pesoCorporal'
-import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../lib/conversores'
+import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, docsParaRegistrosRir, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../lib/conversores'
 import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from '../../lib/prescricaoRegistrada'
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
@@ -46,6 +46,7 @@ import CampoLados, { BotaoLadosDiferentes } from '../coach/semana/CampoLados'
 import { doisLados, ladosDiferentes, lerCelula } from '../../lib/lados'
 import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/presencial/EditarTreino'
 import AvisoEstimativaRm from './AvisoEstimativaRm'
+import PerguntaRir from './PerguntaRir'
 
 type RegistroFlag = RegistroDoc & { realizado?: boolean; inicioEm?: unknown; realizadoEm?: { toMillis(): number } | null; pc?: Record<string, number> }
 
@@ -485,6 +486,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
 
   const cargas = docsParaRegistros(docsRegistros, meso) // totais normalizados (ver normalizarCargas)
   const repsFeitas = docsParaRegistrosReps(docsRegistros)
+  const rirFeito = docsParaRegistrosRir(docsRegistros) // repetições que sobraram (0..3) por série
   const ladosFeitos = docsParaLados(docsRegistros) // lado esquerdo (formato novo de 2 lados)
   const chave = `${semana}-${treino}`
   const cs = cargas[chave] ?? {}
@@ -781,6 +783,10 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                       ? dois && antD != null && antD !== antE && !ed ? `${pv(antE)}/${pv(antD)}` : pv(antE)
                       : null
                   const placeholderD = antD != null ? pv(antD) : null
+                  // "Confere?": referência numérica do número cinza (a mesma que o aluno vê), para pedir confirmação de carga bem diferente.
+                  const refNum = (n: number | null | undefined) => (n == null ? null : volta ? cargaVolta(n) : n)
+                  const referenciaE = dropStage && e.cargaSugerida[k] != null ? e.cargaSugerida[k] : refNum(antE)
+                  const referenciaD = refNum(antD)
                   // Uma faixa colorida por método que cobre esta série (etapas do drop = Dropset).
                   const cores = [...new Set(partes.filter(({ p, mt }) => mt && (dropStage ? mt === 'Dropset' : seriesDoRotulo(p, e.n).includes(k + 1))).map(({ mt }) => mt!))]
                   return (
@@ -815,6 +821,8 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                             ed={!!ed}
                             placeholder={placeholderKg}
                             placeholderD={placeholderD}
+                            referencia={referenciaE}
+                            referenciaD={referenciaD}
                             onGravar={(esq, dir) => {
                               registrarCargaLados(mesoId, uid, semana, treino, e.slot.slotId, k, esq, dir, corpo)
                               aposGravar(esq == null || dir == null ? null : Math.round((esq + dir + corpo) * 100) / 100)
@@ -826,6 +834,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                         disabled={travado}
                         valor={colunasCargas[k] != null ? Math.max(0, Math.round((colunasCargas[k]! - corpo) * 100) / 100) : null}
                         placeholder={placeholderKg}
+                        referencia={referenciaE}
                         onSalvar={(v) => {
                           const total = v == null ? null : Math.round((v + corpo) * 100) / 100
                           registrarCarga(mesoId, uid, semana, treino, e.slot.slotId, k, total)
@@ -856,6 +865,9 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                       return (
                         <Fragment key={k}>
                           {linha(k)}
+                          {!coach && !iso && k === e.n - 1 && colunasCargas[k] != null && (
+                            <PerguntaRir mesoId={mesoId} uid={uid} semana={semana} treino={treino} slotId={slot} coluna={k} valor={rirFeito[`${semana}-${treino}`]?.[slot]?.[k] ?? null} disabled={travado} />
+                          )}
                           {cols.length > 0 && (
                             <button
                               type="button"

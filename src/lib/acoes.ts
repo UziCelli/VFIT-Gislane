@@ -49,7 +49,7 @@ import { arquivadosVencidos } from './alertas'
 import { paraDoc, somarDias, type AvaliacaoForm } from './avaliacao'
 import { idCardio, type TipoCardio } from './cardio'
 import type { NovoFeedback } from './feedback'
-import { docParaMeso, mesoParaDoc, registroId, type MesoDoc } from './conversores'
+import { caminhosParaCancelar, docParaMeso, mesoParaDoc, registroId, type MesoDoc, type RegistroGravado } from './conversores'
 import { auth, authCadastro, db, apagarCacheAoSair, concluirSaida, reabrirAposFalha } from './firebase'
 import { sincronizarAntesDeSair } from './saidaSegura'
 import type { Importado } from './planilha'
@@ -411,6 +411,17 @@ export const registrarReps = (
   n: number | null,
 ) => registro(mesoId, alunoId, semana, treino, { reps: { [slotId]: { [`s${coluna + 1}`]: n } } })
 
+// Repetições que o aluno ainda faria no fim da série (RIR: 0, 1, 2 ou 3 = 3 ou mais): rir.<slotId>.s<n>. null limpa.
+export const registrarRir = (
+  mesoId: string,
+  alunoId: string,
+  semana: number,
+  treino: number,
+  slotId: string,
+  coluna: number, // 0-based, como no motor
+  n: 0 | 1 | 2 | 3 | null,
+) => registro(mesoId, alunoId, semana, treino, { rir: { [slotId]: { [`s${coluna + 1}`]: n } } })
+
 // Peso do corpo usado no exercício com PC (0 = desligado): pc.<slotId>.
 // `cargas` (de `rebasear`) vai na MESMA gravação: pc e cargas nunca ficam meio trocados, nem num snapshot no meio.
 export const registrarPc = (
@@ -465,18 +476,10 @@ export const marcarInicio = (mesoId: string, alunoId: string, semana: number, tr
 
 // Cancelar treino iniciado: UM updateDoc que apaga inicioEm e cada campo já gravado (campo a campo, como
 // registrarCarga/Reps/Pc), para uma carga que chegar depois de outro aparelho não ser apagada. Sem registro, não faz nada.
-export const cancelarTreino = (
-  mesoId: string,
-  semana: number,
-  treino: number,
-  atual: { cargas?: Record<string, object>; reps?: Record<string, object>; lados?: Record<string, object>; pc?: Record<string, unknown> } | undefined,
-) => {
+export const cancelarTreino = (mesoId: string, semana: number, treino: number, atual: RegistroGravado | undefined) => {
   if (!atual) return
   const apagar: Record<string, unknown> = { inicioEm: deleteField(), atualizadoEm: serverTimestamp() }
-  for (const mapa of ['cargas', 'reps', 'lados'] as const)
-    for (const [slot, cols] of Object.entries(atual[mapa] ?? {}))
-      for (const k of Object.keys(cols)) apagar[`${mapa}.${slot}.${k}`] = deleteField()
-  for (const slot of Object.keys(atual.pc ?? {})) apagar[`pc.${slot}`] = deleteField()
+  for (const caminho of caminhosParaCancelar(atual)) apagar[caminho] = deleteField()
   updateDoc(doc(db, 'registros', registroId(mesoId, semana, treino)), apagar).catch((e) =>
     registrarErro('gravacao', `registro: ${e?.code ?? e}`, e), // ninguém espera esta promessa: não relança
   )

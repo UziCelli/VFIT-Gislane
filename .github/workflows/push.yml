@@ -11,8 +11,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: push-worker
+  group: repository-workflows
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read

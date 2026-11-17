@@ -16,6 +16,11 @@ on:
         description: Conteúdo do JSON gerado por tools/planilha_para_meso.py
         required: true
 
+concurrency:
+  group: repository-workflows
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: read
 

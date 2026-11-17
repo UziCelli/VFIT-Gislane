@@ -4,21 +4,17 @@ name: Publicar conector do Claude (Cloudflare)
 # Mesmos secrets do push.yml: CLOUDFLARE_API_TOKEN (Edit Cloudflare Workers e acesso ao namespace KV) e CLOUDFLARE_ACCOUNT_ID.
 # O KV OAUTH_KV já foi criado; seu ID consta em conector/wrangler.toml.
 on:
-  push:
+  # Só entra na fila depois de Publicar liberar o grupo compartilhado.
+  workflow_run:
+    workflows: [Publicar]
+    types: [completed]
     branches: [main]
-    paths:
-      - 'conector/**'
-      - 'push/src/**'
-      - 'src/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/conector.yml'
-      - 'tools/conector-appcheck-check.mjs'
   workflow_dispatch:
 
 concurrency:
-  group: conector-worker
+  group: repository-workflows
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read
@@ -26,10 +22,43 @@ permissions:
 
 jobs:
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
     steps:
+      - name: Confirmar versão atual e publicação compatível sem bloquear a fila
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
+          PUBLISH_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          atual=$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')
+          if [ "$atual" != "$COMMIT" ]; then
+            echo "::error::Versão ultrapassada; publique a main atual antes de publicar o conector."
+            exit 1
+          fi
+          run_id="$PUBLISH_RUN"
+          if [ -z "$run_id" ]; then
+            run_id=$(gh api "repos/$GH_REPO/actions/workflows/deploy.yml/runs?head_sha=$COMMIT&status=completed&per_page=100" --jq '.workflow_runs[0].id // empty')
+          fi
+          if [ -z "$run_id" ]; then
+            echo "::error::Publique o app deste commit primeiro e depois execute o conector."
+            exit 1
+          fi
+          estado=$(gh api --paginate "repos/$GH_REPO/actions/runs/$run_id/jobs?per_page=100" --jq '.jobs[] | select(.name == "deploy") | .conclusion')
+          if [ "$estado" != success ]; then
+            echo "::error::App ou regras não publicados; conector preservado."
+            exit 1
+          fi
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -58,24 +87,6 @@ jobs:
           export FIREBASE_API_KEY=$(grep '^VITE_FIREBASE_API_KEY=' .env.production | cut -d= -f2)
           export FIREBASE_APP_ID=$(grep '^VITE_FIREBASE_APP_ID=' .env.production | cut -d= -f2)
           node tools/conector-appcheck-check.mjs
-      - name: Aguardar app e regras compatíveis antes de habilitar a edição
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          COMMIT: ${{ github.sha }}
-        run: |
-          for tentativa in $(seq 1 120); do
-            run_id=$(gh api "repos/$GH_REPO/actions/runs?head_sha=$COMMIT&per_page=100" --jq '.workflow_runs[] | select(.name == "Publicar") | .id' | head -1)
-            if [ -n "$run_id" ]; then
-              estado=$(gh api "repos/$GH_REPO/actions/runs/$run_id/jobs" --jq '.jobs[] | select(.name == "deploy") | .conclusion // .status' | tail -1)
-              if [ "$estado" = success ]; then exit 0; fi
-              case "$estado" in failure|cancelled|timed_out|skipped) echo "::error::App ou regras não publicados; conector preservado."; exit 1;; esac
-            fi
-            echo "Aguardando publicação compatível ($tentativa/120)."
-            sleep 10
-          done
-          echo "::error::Publicação compatível não confirmada; conector preservado."
-          exit 1
       - name: Atualizar segredo e publicar o Worker
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -83,12 +94,13 @@ jobs:
           APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN }}
           # Desligamento de emergência: variável do repositório EDICAO_COMPLETA=0 (Settings → Variables). Sem valor = ligada.
           EDICAO_COMPLETA: ${{ vars.EDICAO_COMPLETA }}
+          BUILD_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
         working-directory: conector
         run: |
           chave=$(grep '^VITE_FIREBASE_API_KEY=' ../.env.production | cut -d= -f2)
           appid=$(grep '^VITE_FIREBASE_APP_ID=' ../.env.production | cut -d= -f2)
           printf %s "$APPCHECK_DEBUG_TOKEN" | npx --yes --package=wrangler@4.161.0 wrangler secret put APPCHECK_DEBUG_TOKEN
-          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid" --var "BUILD_ID:$GITHUB_SHA" --var "EDICAO_COMPLETA:${EDICAO_COMPLETA:-1}"
+          npx --yes --package=wrangler@4.161.0 wrangler deploy --var "FIREBASE_API_KEY:$chave" --var "FIREBASE_APP_ID:$appid" --var "BUILD_ID:$BUILD_COMMIT" --var "EDICAO_COMPLETA:${EDICAO_COMPLETA:-1}"
       - name: Conferir o Worker no ar
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

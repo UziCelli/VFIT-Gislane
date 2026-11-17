@@ -19,8 +19,9 @@ permissions:
   actions: write
 
 concurrency:
-  group: gerar-apk
+  group: repository-workflows
   cancel-in-progress: false
+  queue: max
 
 jobs:
   build:

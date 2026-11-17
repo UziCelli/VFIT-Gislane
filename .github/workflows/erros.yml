@@ -12,6 +12,11 @@ on:
           - vfit
           - gislane
 
+concurrency:
+  group: repository-workflows
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: read
 

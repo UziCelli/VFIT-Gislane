@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { collection, doc, query, where } from 'firebase/firestore'
 import { prescreverSessao, type Meso } from '../../engine'
-import { vencePerto, type Foto, type Usuario } from '../../lib/acesso'
+import { coroaAtiva, vencePerto, type Foto, type Usuario } from '../../lib/acesso'
 import { comVolta, diasDaSemana, treinoDeHoje } from '../../lib/agenda'
 import type { RegistroAlerta } from '../../lib/alertas'
 import type { MesoSalvo } from '../../lib/conversores'
@@ -67,7 +67,7 @@ export default function InicioAluno({ uid, nome }: { uid: string; nome: string }
         </div>
         <BotaoSair />
         <a href="#/conta" aria-label="Minha conta" className="toque rounded-full">
-          <Avatar img={foto?.img} nome={nome} selo={perfil?.selo} tamanho={44} />
+          <Avatar img={foto?.img} nome={nome} selo={perfil?.selo} coroa={coroaAtiva(perfil)} tamanho={44} />
         </a>
       </div>
       {anamnese.motivo && <AnamnesePendente primeira={anamnese.motivo === 'primeira'} />}

@@ -318,6 +318,17 @@ describe('usuarios', () => {
     await assertFails(updateDoc(doc(db('ana'), 'usuarios', 'bia'), { estimativaRm: true }));
   });
 
+  it('coroa e ajuste prioritário: só o coach grava; o aluno não se dá o prêmio', async () => {
+    const ana = doc(db('ana'), 'usuarios', 'ana');
+    await assertFails(updateDoc(ana, { vozDoAppAte: futuro }));
+    await assertFails(updateDoc(ana, { ajustePrioritario: true }));
+    await assertFails(updateDoc(ana, { selo: true, vozDoAppAte: futuro }));
+    await assertFails(updateDoc(doc(db('ana'), 'usuarios', 'bia'), { vozDoAppAte: futuro }));
+    const alunaDoCoach = doc(db('coach'), 'usuarios', 'ana');
+    await assertSucceeds(updateDoc(alunaDoCoach, { vozDoAppAte: futuro, ajustePrioritario: true }));
+    await assertSucceeds(updateDoc(alunaDoCoach, { ajustePrioritario: deleteField() }));
+  });
+
   it('usuário altera só o próprio nome', async () => {
     await assertSucceeds(updateDoc(doc(db('ana'), 'usuarios', 'ana'), { nome: 'Ana Maria' }));
     await assertFails(updateDoc(doc(db('ana'), 'usuarios', 'bia'), { nome: 'Hack' }));

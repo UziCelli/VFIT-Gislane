@@ -4,7 +4,7 @@ import { doc } from 'firebase/firestore'
 import marca from '@marca/marca.json'
 import { Avatar } from '../../avatar'
 import { IcBalao, IcEstrela, IcLivro, IcPessoa, IcPrancheta, IcSair, IcSeta, IcSino } from '../../icones'
-import { type Foto, type Usuario } from '../../lib/acesso'
+import { coroaAtiva, type Foto, type Usuario } from '../../lib/acesso'
 import { apagarFoto, recuperarSenha, sair, salvarFoto, salvarNome, salvarPeso, salvarSelo } from '../../lib/acoes'
 import { db } from '../../lib/firebase'
 import { reduzirFoto } from '../../lib/foto'
@@ -175,7 +175,7 @@ export default function ContaAluno({ uid, perfil, abrirTutorial, abrirNovidades 
       <section className="flex flex-col items-center gap-2 pt-2 text-center">
         <input ref={arquivo} type="file" accept="image/*" className="hidden" onChange={(e) => escolherFoto(e.target.files?.[0])} />
         <button type="button" onClick={() => arquivo.current?.click()} aria-label="Escolher foto" className="toque rounded-full">
-          <Avatar img={foto?.img} nome={perfil.nome} selo={perfil.selo} tamanho={96} />
+          <Avatar img={foto?.img} nome={perfil.nome} selo={perfil.selo} coroa={coroaAtiva(perfil)} tamanho={96} />
         </button>
         {editando ? (
           <form

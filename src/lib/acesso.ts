@@ -16,7 +16,14 @@ export interface Usuario {
   estimativaRm?: boolean // carga cinza ajustada às reps de hoje (docs/estimativa-rm.md). Ausente = ainda não escolheu (o pop-up pergunta); false = desligada
   mensalidade?: number // R$, definida pelo coach
   pagamentoInformadoEm?: Timestamp // aluno tocou "Já paguei"
+  vozDoAppAte?: Timestamp // coroa "Voz do app" (só o coach grava; vale até esta data)
+  ajustePrioritario?: boolean // prêmio por feedback: o coach faz o ajuste de treino na frente; só o coach grava
 }
+
+// Coroa "Voz do app": dura 30 dias (coach libera em Feedbacks) e some sozinha depois.
+export const DIAS_COROA = 30
+export const coroaAtiva = (u: Pick<Usuario, 'vozDoAppAte'> | null | undefined, agoraMs = Date.now()) =>
+  !!u?.vozDoAppAte && u.vozDoAppAte.toMillis() > agoraMs
 
 // fotos/{uid}: foto de perfil opcional (JPEG pequeno em data URL; sem Storage, que exige plano pago).
 export interface Foto {

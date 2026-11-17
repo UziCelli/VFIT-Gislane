@@ -2,8 +2,8 @@ import { AnimatePresence, m } from 'motion/react'
 import { agil, saida, suave } from '../../../movimento'
 import { useState } from 'react'
 import { collection, doc, getDocFromServer, query, where } from 'firebase/firestore'
-import { diasParaVencer, hojeMaisDias, type Usuario } from '../../../lib/acesso'
-import { apagarAluno, confirmarPagamento, definirAcesso, salvarMensalidade } from '../../../lib/acoes'
+import { coroaAtiva, diasParaVencer, hojeMaisDias, type Usuario } from '../../../lib/acesso'
+import { apagarAluno, concluirAjustePrioritario, confirmarPagamento, definirAcesso, salvarMensalidade } from '../../../lib/acoes'
 import { registrarErro } from '../../../lib/log'
 import { db } from '../../../lib/firebase'
 import { TEXTO_SEM_INTERNET, useLista, useSemInternet } from '../../../lib/hooks'
@@ -70,7 +70,7 @@ export default function Alunos() {
   const semInternet = useSemInternet()
   const { dados: fotos } = useLista<Foto>(collection(db, 'fotos'))
   const imgs = new Map(fotos.map((f) => [f.id, f.img]))
-  const avatar = (a: Aluno) => <Avatar img={imgs.get(a.id)} nome={a.nome} selo={a.selo} tamanho={36} />
+  const avatar = (a: Aluno) => <Avatar img={imgs.get(a.id)} nome={a.nome} selo={a.selo} coroa={coroaAtiva(a)} tamanho={36} />
   const [busca, setBusca] = useState('')
   const [aberto, setAberto] = useState<string | null>(null)
   const [editando, setEditando] = useState<string | null>(null)
@@ -160,6 +160,7 @@ export default function Alunos() {
         {!a.presencial && a.status === 'ativo' && <button className={linhaAcao} onClick={() => { abrir(null); confirmarPix(a.id, a.pagoAte) }}>Renovar</button>}
         {!a.presencial && a.status === 'ativo' && <button className={linhaAcao} onClick={() => setEditando(a.id)}>Mudar data ou mensalidade</button>}
         {!a.presencial && <button className={linhaAcao} onClick={() => setAvisando(a.id)}>Enviar aviso</button>}
+        {a.ajustePrioritario && <button className={linhaAcao} onClick={() => { abrir(null); concluirAjustePrioritario(a.id).catch((e) => registrarErro('gravacao', `ajuste: ${e?.code ?? e}`, e)) }}>Ajuste feito</button>}
         {!a.presencial && a.status !== 'bloqueado' && (
           <button className={`${linhaAcao} text-red-400`} onClick={() => { abrir(null); bloquear(a.id) }}>Bloquear</button>
         )}
@@ -374,6 +375,7 @@ function Chip({ a, s }: { a: Aluno; s: { texto: string; cor: string } }) {
       {PIX && a.mensalidade != null && <span className="text-xs text-slate-400">{reais(a.mensalidade)}/mês</span>}
       {PIX && a.pagamentoInformadoEm && <span className="rounded-full bg-amber-900/50 px-2 py-1 text-xs font-semibold text-amber-300">Informou pagamento</span>}
       {PIX && a.status === 'ativo' && <ComAtraso a={a} />}
+      {a.ajustePrioritario && <span className="rounded-full bg-amber-900/50 px-2 py-1 text-xs font-semibold text-amber-300">Ajuste prioritário</span>}
     </>
   )
 }

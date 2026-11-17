@@ -612,7 +612,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
           const colunasCargas = cs[e.slot.slotId] ?? []
           const iso = isometrico(e.slot)
           const colunasReps = rs[e.slot.slotId] ?? []
-          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos) // só o extra, com o corpo do registro de origem
+          const anterior = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, repsFeitas) // só o extra, com o corpo do registro de origem
           const slot = e.slot.slotId
           const partes = e.rotulo ? e.rotulo.split('; ').map((p) => ({ p, mt: metodoDoRotulo(p) })) : []
           const gc = gk ? COR_METODO[gk.split('|')[0] as Metodo] : undefined
@@ -713,7 +713,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                 </button>
               ))}
               {!coach && <RelatarDor uid={uid} exercicio={e.slot.nome.trim()} sessao={{ mesoId, semana, treino }} slots={{ [e.slot.nome.trim()]: e.slot.slotId }} />}
-              {anterior && anterior.origem.treino !== treino && <p className="mb-2 text-xs text-slate-400">Cargas em cinza: última vez no Treino {anterior.origem.treino} · {anterior.origem.semana === semana ? 'esta semana' : `semana ${anterior.origem.semana}`}</p>}
+              {anterior && (anterior.estimada || anterior.origem.treino !== treino) && <p className="mb-2 text-xs text-slate-400">Cargas em cinza: {anterior.estimada ? 'ajustadas às repetições de hoje, a partir do' : 'última vez no'} Treino {anterior.origem.treino} · {anterior.origem.semana === semana ? 'esta semana' : `semana ${anterior.origem.semana}`}</p>}
               <div className="space-y-2">
                 {(() => {
                 // Colunas do drop pendurado na série s (1-based); drop sem série (exercício sem séries) vai para o fim.

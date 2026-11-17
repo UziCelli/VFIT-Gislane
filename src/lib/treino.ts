@@ -1,5 +1,5 @@
 // Ajudas da tela do aluno. Funções puras.
-import { prescreverSessao, type Meso, type Registros } from '../engine'
+import { cargaEquivalente, isometrico, prescreverSessao, repsEfetivas, type Meso, type Registros } from '../engine'
 import { diaSP } from './acesso'
 import { doisLados, lerCelula } from './lados'
 
@@ -17,6 +17,8 @@ export function semanaAtual(meso: Meso, hoje: Date) {
 // Sem isso (o exercício é novo neste treino), qualquer outro treino: primeiro os anteriores da MESMA semana (do mais
 // perto para o 1º), depois os das semanas anteriores (do último treino para o 1º). Lida pelo slotId daquele registro.
 // `origem` (semana e treino de onde saiu) deixa a tela avisar quando não é o mesmo treino.
+// Com `repsFeitas`, série cujas reps de hoje diferem das daquele registro vem ajustada pela tabela de RM
+// (`estimada: true`); reps não anotadas valem as prescritas naquele dia. Passo de 0,5 kg.
 // Devolve `series` (S1..Sn daquele registro) e `drops` separados: o n muda entre registros. `drops[j]` segue os drops
 // de hoje: a mesma etapa da mesma série naquele registro, senão a mesma etapa de outra série (o drop mudou de série).
 // Sem `pcs`, devolve o total gravado. Com `pcs` (`${semana}-${treino}` -> { slotId: kg do corpo }),
@@ -29,6 +31,7 @@ export function cargaAnterior(
   pos: number,
   pcs?: Record<string, Record<string, number> | undefined>,
   lados?: Registros, // lado esquerdo por série (docsParaLados); só usado em exercício de 2 lados
+  repsFeitas?: Registros, // reps anotadas (docsParaRegistrosReps). Dado, ajusta a carga às reps de hoje (ver `estimada`)
 ) {
   const hoje = prescreverSessao(meso, semana, treino)?.exercicios[pos - 1]
   const alvo = hoje?.slot
@@ -50,7 +53,7 @@ export function cargaAnterior(
     const cargas = reg[e.slot.slotId]
     const corpo = pcs?.[chave]?.[e.slot.slotId] ?? 0
     const cels = dois ? cargas.map((c, i) => lerCelula(c, lados?.[chave]?.[e.slot.slotId]?.[i], corpo)) : null
-    const extra = cels ? cels.map((c) => c.esq) : corpo > 0 ? cargas.map((c) => (c == null ? null : Math.max(0, Math.round((c - corpo) * 100) / 100))) : cargas
+    const extra: (number | null | undefined)[] = [...(cels ? cels.map((c) => c.esq) : corpo > 0 ? cargas.map((c) => (c == null ? null : Math.max(0, Math.round((c - corpo) * 100) / 100))) : cargas)] // cópia: abaixo pode ser ajustada
     const fatiar = (v: (number | null | undefined)[]) => ({
       series: v.slice(0, e.n).map((x) => x ?? null),
       drops: hoje.drops.map(({ serie, etapa }) => {
@@ -59,8 +62,21 @@ export function cargaAnterior(
         return k >= 0 ? (v[e.n + k] ?? null) : null
       }),
     })
+    // Reps de hoje diferentes das daquele registro: a carga vira a equivalente pela tabela de RM (engine/rm.ts).
+    // Só série comum com carga total (sem lados, sem peso do corpo, sem isometria); drop fica como foi anotado.
+    let estimada = false
+    if (repsFeitas && !dois && !corpo && !isometrico(alvo)) {
+      const feitas = repsEfetivas(e.reps, repsFeitas[chave]?.[e.slot.slotId])
+      extra.forEach((c, k) => {
+        const kg = c != null && k < e.n && k < hoje.n ? cargaEquivalente(c, feitas[k], hoje.reps[k]) : null
+        if (kg != null && kg !== c) {
+          extra[k] = kg
+          estimada = true
+        }
+      })
+    }
     // `dir`: lado direito (só em 2 lados); `series`/`drops` ficam com o esquerdo.
-    return { ...fatiar(extra), ...(cels && { dir: fatiar(cels.map((c) => c.dir)) }), origem: { semana: w, treino: t } }
+    return { ...fatiar(extra), ...(cels && { dir: fatiar(cels.map((c) => c.dir)) }), origem: { semana: w, treino: t }, estimada }
   }
   for (let w = semana - 1; w >= 1; w--) {
     const r = tentar(w, treino)

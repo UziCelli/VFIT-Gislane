@@ -171,3 +171,37 @@ describe('cargaAnterior: exercício que reaparece em outro treino', () => {
     expect(cargaAnterior(m, { '1-1': { a: [40] } }, 2, 1, 1)).toMatchObject({ origem: { semana: 1, treino: 1 } })
   })
 })
+
+describe('cargaAnterior ajustada às reps de hoje (tabela de RM)', () => {
+  // Treino 1: Supino 10 reps (semana 1) e 8 reps (semana 2).
+  const m: Meso = {
+    frequencia: 1, semanas: 2, inicio: '2026-01-05', pausaS: 60,
+    divisao: [[slot('a', 'Supino')]],
+    progressao: { principais: [[10, 10], [8, 8]], auxiliares: [[10, 10], [8, 8]] },
+    metodos: [],
+  }
+  const regs = { '1-1': { a: [60, 60] } }
+  it('sem reps informadas, nada muda (comportamento antigo)', () => {
+    expect(cargaAnterior(m, regs, 2, 1, 1)).toMatchObject({ series: [60, 60], estimada: false })
+  })
+  it('menos reps hoje: carga sobe pela tabela e fica em múltiplo de 0,5', () => {
+    expect(cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, {})).toMatchObject({ series: [63, 63], estimada: true })
+  })
+  it('usa as reps realmente anotadas naquele dia, não as prescritas', () => {
+    const r = cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, { '1-1': { a: [8, 8] } })
+    expect(r).toMatchObject({ series: [60, 60], estimada: false }) // fez 8 e hoje são 8: igual
+  })
+  it('não altera os registros originais', () => {
+    const copia = structuredClone(regs)
+    cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, {})
+    expect(regs).toEqual(copia)
+  })
+  it('com peso do corpo no registro, não ajusta (a % vale para o total, não para o extra)', () => {
+    const r = cargaAnterior(m, { '1-1': { a: [90] } }, 2, 1, 1, { '1-1': { a: 76 } }, undefined, {})
+    expect(r).toMatchObject({ series: [14], estimada: false })
+  })
+  it('reps de origem acima de 12: mantém a carga anotada', () => {
+    const r = cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, { '1-1': { a: [15, 15] } })
+    expect(r).toMatchObject({ series: [60, 60], estimada: false })
+  })
+})

@@ -16,6 +16,7 @@ import { BotaoVoltar } from '../../voltar'
 import { comPrescricoesRegistradas } from '../../lib/prescricaoRegistrada'
 import { mesoAtual } from '../aluno/mesoAtual'
 import { fmt } from '../coach/semana/format'
+import { pontosRm, rirMedio, tendenciaRm } from '../../lib/rmEvolucao'
 import BotaoCompartilhar from './BotaoCompartilhar'
 import { IcMedalha } from '../../icones'
 
@@ -41,7 +42,7 @@ function Faixa({ frac, className = 'bg-marca-500' }: { frac: number; className?:
 
 const Titulo = ({ children }: { children: string }) => <h2 className="mb-3 font-semibold">{children}</h2>
 
-export function Painel({ uid, nome, voltar, compartilhar = false, resumido = false }: { uid: string; nome: string; voltar?: string; compartilhar?: boolean; resumido?: boolean }) {
+export function Painel({ uid, nome, voltar, compartilhar = false, resumido = false, coach = false }: { uid: string; nome: string; voltar?: string; compartilhar?: boolean; resumido?: boolean; coach?: boolean }) {
   const mesosL = useLista<MesoSalvo & { id: string }>(useMemo(() => query(collection(db, 'mesos'), where('alunoId', '==', uid)), [uid]))
   const regsL = useLista<RegistroEvolucao>(useMemo(() => query(collection(db, 'registros'), where('alunoId', '==', uid)), [uid]))
   const cardiosL = useLista<CardioDoc>(useMemo(() => query(collection(db, 'cardios'), where('alunoId', '==', uid)), [uid]))
@@ -73,6 +74,14 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
         }),
     [mesos, regsL.dados, mesoId, nomeSel],
   )
+
+  // Só para o coach: 1RM estimado (por baixo), tendência e esforço médio do exercício escolhido, em todos os mesos (ou só o atual).
+  const rmInfo = useMemo(() => {
+    if (!coach || !nomeSel) return null
+    const ms = (mesoId ? mesos.filter((x) => x.id === mesoId) : [...mesos]).sort((a, b) => a.meso.inicio.localeCompare(b.meso.inicio))
+    const ps = pontosRm(ms, regsL.dados, nomeSel)
+    return ps.length ? { ultimo: ps[ps.length - 1].rm, tendencia: tendenciaRm(ps.map((x) => x.rm)), esforco: rirMedio(ps), n: ps.length } : null
+  }, [coach, mesos, regsL.dados, mesoId, nomeSel])
 
   const cabeca = (
     <>
@@ -358,6 +367,29 @@ export function Painel({ uid, nome, voltar, compartilhar = false, resumido = fal
                 </table>
               </div>
             )}
+            {rmInfo && (
+              <div className="mt-3 border-t border-slate-800 pt-3 text-sm">
+                <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">1RM estimado (só coach)</h3>
+                <p>
+                  <span className="font-display text-lg font-bold">{fmt(Math.round(rmInfo.ultimo * 10) / 10)} kg</span>{' '}
+                  {rmInfo.tendencia ? (
+                    <span className={rmInfo.tendencia.sentido === 'subindo' ? 'text-emerald-400' : rmInfo.tendencia.sentido === 'caindo' ? 'text-amber-400' : 'text-slate-300'}>
+                      {rmInfo.tendencia.sentido === 'subindo' ? '↑ subindo' : rmInfo.tendencia.sentido === 'caindo' ? '↓ caindo' : '→ estável'} ({rmInfo.tendencia.pct > 0 ? '+' : ''}{(rmInfo.tendencia.pct * 100).toFixed(1).replace('.', ',')}%)
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">tendência com 3 ou mais treinos</span>
+                  )}
+                </p>
+                {rmInfo.esforco && (
+                  <p className="mt-1 text-slate-300">
+                    Esforço: costuma sobrar ~{rmInfo.esforco.media.toFixed(1).replace('.', ',')} {Math.round(rmInfo.esforco.media * 10) / 10 === 1 ? 'repetição' : 'repetições'} no fim da última série ({rmInfo.esforco.respostas} {rmInfo.esforco.respostas === 1 ? 'resposta' : 'respostas'}).
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-slate-500">
+                  Estimado pelas séries de até 15 repetições, <strong>por baixo</strong> (quem para antes da falha rende mais que isso). Maior 1RM implícito de cada treino, em {rmInfo.n} {rmInfo.n === 1 ? 'treino' : 'treinos'}.
+                </p>
+              </div>
+            )}
           </Cartao>
         </m.div>
         </>)}
@@ -372,5 +404,5 @@ export default function EvolucaoAluno({ uid, nome }: { uid: string; nome: string
 
 export function EvolucaoCoach({ uid }: { uid: string }) {
   const aluno = useDoc<Usuario>(useMemo(() => doc(db, 'usuarios', uid), [uid]))
-  return <Painel uid={uid} nome={aluno.dados?.nome ?? ''} voltar={`/aluno/${uid}`} />
+  return <Painel uid={uid} nome={aluno.dados?.nome ?? ''} voltar={`/aluno/${uid}`} coach />
 }

@@ -92,6 +92,7 @@ export interface RegistroDoc {
   cargas?: CargasDoc
   reps?: CargasDoc // reps feitas (opcional), mesmo formato das cargas
   lados?: CargasDoc // kg do lado esquerdo por série (formato novo de 2 lados); cargas continua o TOTAL
+  rir?: CargasDoc // repetições que ainda faria no fim da série (0, 1, 2 ou 3 = 3 ou mais), mesmo formato das cargas
   pc?: Record<string, number> // peso do corpo somado por exercício (slotId -> kg; 0 = desligado)
   realizado?: boolean
 }
@@ -116,6 +117,14 @@ export function docParaCargas(cargas: CargasDoc | undefined): Cargas {
 }
 
 export const docParaReps = docParaCargas
+
+// Repetições que sobraram (RIR) por série: só 0, 1, 2 ou 3 (3 = "3 ou mais"); o resto vira vazio. O aluno grava direto no
+// Firestore e as regras só conferem que `rir` é mapa, então o conteúdo é desconfiado na leitura, como `cargas`.
+export function docParaRir(rir: CargasDoc | undefined): Cargas {
+  const r = docParaCargas(rir)
+  for (const slotId of Object.keys(r)) r[slotId] = r[slotId].map((v) => (v != null && Number.isInteger(v) && v >= 0 && v <= 3 ? v : null))
+  return r
+}
 
 // Peso do corpo por exercício: o que não é número de 0 a 300 conta como 0 (desligado).
 export const lerPc = (pc: RegistroDoc['pc']): Record<string, number> =>
@@ -170,6 +179,9 @@ export const docsParaLados = (docs: RegistroDoc[]): Registros =>
 
 export const docsParaRegistrosReps = (docs: RegistroDoc[]): Registros =>
   Object.fromEntries(docs.map((d) => [`${d.semana}-${d.treino}`, docParaReps(d.reps)]))
+
+export const docsParaRegistrosRir = (docs: RegistroDoc[]): Registros =>
+  Object.fromEntries(docs.map((d) => [`${d.semana}-${d.treino}`, docParaRir(d.rir)]))
 
 // notas/{alunoId}: anotação do aluno por exercício (chave = nome do exercício; '' = sem nota).
 // datas: quando cada anotação foi escrita (anotações de antes de 12/11/2026 não têm).

@@ -5,6 +5,7 @@ import {
   docParaCargas,
   docParaMeso,
   docParaReps,
+  docParaRir,
   docsParaLados,
   docsParaRegistros,
   docsParaRegistrosReps,
@@ -257,5 +258,16 @@ describe('leitura blindada contra dado inválido', () => {
     const cargas = { a: { s1: 2 } }
     expect(normalizarCargas({ cargas, pc: { a: '5' } as never, realizado: true }, { a: 2 })).toEqual({ a: [2] })
     expect(normalizarCargas({ cargas, pc: { a: 1e9 } as never, realizado: true }, { a: 2 })).toEqual({ a: [2] })
+  })
+})
+
+describe('docParaRir (repetições que sobraram)', () => {
+  it('só 0, 1, 2 e 3 valem; o resto vira vazio', () => {
+    const r = docParaRir({ a: { s1: 0, s2: 2, s3: 3, s4: 4, s5: -1, s6: 1.5, s7: 'x' as unknown as number, s9: 1 } })
+    expect(r.a).toEqual([0, 2, 3, null, null, null, null, null, 1])
+  })
+  it('coluna fora de s1..s40 é ignorada e vazio dá mapa vazio', () => {
+    expect(docParaRir({ a: { s99: 1 } }).a).toEqual([])
+    expect(docParaRir(undefined)).toEqual({})
   })
 })

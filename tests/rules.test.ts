@@ -544,6 +544,12 @@ describe('registros', () => {
       assertSucceeds(criar({ ...registro('ana', 2, 1), reps: { sup: { s1: 12 } } })));
     it('permite lados (esquerdo) junto com o total em cargas', () =>
       assertSucceeds(criar({ ...registro('ana', 2, 1), cargas: { rosca: { s1: 12 } }, lados: { rosca: { s1: 6 } } })));
+    it('permite as repetições que sobraram (rir) junto', () =>
+      assertSucceeds(criar({ ...registro('ana', 2, 1), rir: { sup: { s3: 2 } } })));
+    it('nega rir que não é mapa', async () => {
+      await assertFails(criar({ ...registro('ana', 2, 1), rir: 2 }));
+      await assertFails(criar({ ...registro('ana', 2, 1), rir: 'x' }));
+    });
     it('nega lados que não é mapa', async () => {
       await assertFails(criar({ ...registro('ana', 2, 1), lados: 6 }));
       await assertFails(criar({ ...registro('ana', 2, 1), lados: 'x' }));
@@ -635,6 +641,13 @@ describe('registros', () => {
       await assertSucceeds(setDoc(r, { ...id, reps: { sup: { s2: null } }, atualizadoEm: serverTimestamp() }, { merge: true }));
     });
 
+    it('permite rir por setDoc merge (como registrarRir) e apagar', async () => {
+      const r = reg('ana', 'm_ana_s01_t1');
+      const id = { alunoId: 'ana', mesoId: 'm_ana', semana: 1, treino: 1 };
+      await assertSucceeds(setDoc(r, { ...id, rir: { sup: { s3: 1 } }, atualizadoEm: serverTimestamp() }, { merge: true }));
+      await assertSucceeds(setDoc(r, { ...id, rir: { sup: { s3: null } }, atualizadoEm: serverTimestamp() }, { merge: true }));
+    });
+
     it('permite carga por lado por setDoc merge (cargas + lados na mesma escrita) e apagar os dois', async () => {
       const r = reg('ana', 'm_ana_s01_t1');
       const id = { alunoId: 'ana', mesoId: 'm_ana', semana: 1, treino: 1 };
@@ -697,6 +710,7 @@ describe('registros', () => {
       await assertFails(updateDoc(r, { cargas: 'x', atualizadoEm: serverTimestamp() }));
       await assertFails(updateDoc(r, { reps: 3, atualizadoEm: serverTimestamp() }));
       await assertFails(updateDoc(r, { lados: 3, atualizadoEm: serverTimestamp() }));
+      await assertFails(updateDoc(r, { rir: 3, atualizadoEm: serverTimestamp() }));
     });
 
     it('nega mudar alunoId, mesoId, semana, treino ou campo extra', async () => {

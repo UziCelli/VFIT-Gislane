@@ -411,6 +411,17 @@ export const registrarReps = (
   n: number | null,
 ) => registro(mesoId, alunoId, semana, treino, { reps: { [slotId]: { [`s${coluna + 1}`]: n } } })
 
+// Repetições que o aluno ainda faria no fim da série (RIR: 0, 1, 2 ou 3 = 3 ou mais): rir.<slotId>.s<n>. null limpa.
+export const registrarRir = (
+  mesoId: string,
+  alunoId: string,
+  semana: number,
+  treino: number,
+  slotId: string,
+  coluna: number, // 0-based, como no motor
+  n: 0 | 1 | 2 | 3 | null,
+) => registro(mesoId, alunoId, semana, treino, { rir: { [slotId]: { [`s${coluna + 1}`]: n } } })
+
 // Peso do corpo usado no exercício com PC (0 = desligado): pc.<slotId>.
 // `cargas` (de `rebasear`) vai na MESMA gravação: pc e cargas nunca ficam meio trocados, nem num snapshot no meio.
 export const registrarPc = (

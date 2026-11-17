@@ -23,7 +23,7 @@ import { cancelarTreino, marcarInicio, marcarRealizado, reabrirTreino, registrar
 import { duracaoTreino, fimDaSessao, TETO_TREINO_MS } from '../../lib/resumo'
 import type { Usuario } from '../../lib/acesso'
 import { corpoEhCarga, fracaoPC, preencherCorpo, rebasear } from '../../lib/pesoCorporal'
-import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../lib/conversores'
+import { docParaCargas, docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, docsParaRegistrosRir, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../lib/conversores'
 import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from '../../lib/prescricaoRegistrada'
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
@@ -46,6 +46,7 @@ import CampoLados, { BotaoLadosDiferentes } from '../coach/semana/CampoLados'
 import { doisLados, ladosDiferentes, lerCelula } from '../../lib/lados'
 import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/presencial/EditarTreino'
 import AvisoEstimativaRm from './AvisoEstimativaRm'
+import PerguntaRir from './PerguntaRir'
 
 type RegistroFlag = RegistroDoc & { realizado?: boolean; inicioEm?: unknown; realizadoEm?: { toMillis(): number } | null; pc?: Record<string, number> }
 
@@ -485,6 +486,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
 
   const cargas = docsParaRegistros(docsRegistros, meso) // totais normalizados (ver normalizarCargas)
   const repsFeitas = docsParaRegistrosReps(docsRegistros)
+  const rirFeito = docsParaRegistrosRir(docsRegistros) // repetições que sobraram (0..3) por série
   const ladosFeitos = docsParaLados(docsRegistros) // lado esquerdo (formato novo de 2 lados)
   const chave = `${semana}-${treino}`
   const cs = cargas[chave] ?? {}
@@ -863,6 +865,9 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                       return (
                         <Fragment key={k}>
                           {linha(k)}
+                          {!coach && !iso && k === e.n - 1 && colunasCargas[k] != null && (
+                            <PerguntaRir mesoId={mesoId} uid={uid} semana={semana} treino={treino} slotId={slot} coluna={k} valor={rirFeito[chave]?.[slot]?.[k] ?? null} disabled={travado} />
+                          )}
                           {cols.length > 0 && (
                             <button
                               type="button"

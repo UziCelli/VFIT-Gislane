@@ -92,3 +92,49 @@ test('retirada de exercício em dois treinos mostra impactos antes de salvar', a
   await expect(page.getByText('Treino salvo no app.')).toBeVisible()
   expect(envios).toBe(2)
 })
+
+test('proposta do assistente aparece sozinha no app e abre a conferência', async ({ page }) => {
+  let pendente = true
+  await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', async (route) => {
+    const req = route.request(), cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+    if (req.url().includes('/prescricao/pendentes')) return route.fulfill({ headers: cors, json: { propostas: pendente ? [{ id: ID, nome: 'Força', alunoNome: 'Ana Exemplo', acao: 'criar', resumo: 'Treino', expiraEm: '2027-01-01T00:00:00Z', status: 'proposta' }] : [] } })
+    if (req.method() === 'GET') return route.fulfill({ headers: cors, json: { status: 'proposta', proposta } })
+    pendente = false
+    return route.fulfill({ headers: cors, json: { status: 'salva', resultado: { mesoId: 'x' } } })
+  })
+  await page.goto('/#/')
+  await page.getByLabel('E-mail').fill(COACH.email)
+  await page.getByLabel('Senha').fill(COACH.senha)
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await expect(page.getByText('o assistente preparou um treino para você conferir.', { exact: false })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Propostas/ }).first()).toBeVisible()
+  await page.getByRole('link', { name: 'Conferir treino' }).click()
+  await expect(page.getByText('Aluno: Ana Exemplo', { exact: false })).toBeVisible()
+  await page.getByRole('button', { name: 'Salvar treino' }).click()
+  await expect(page.getByText('Treino salvo no app.')).toBeVisible()
+  await page.getByRole('link', { name: 'Voltar ao início' }).click()
+  await expect(page.getByText('o assistente preparou um treino para você conferir.', { exact: false })).toHaveCount(0)
+  await expect(page.getByRole('link', { name: /Propostas/ })).toHaveCount(0)
+})
+test('lista do assistente: verificar agora consulta de novo e não há consulta periódica', async ({ page }) => {
+  let consultas = 0, pendente = false
+  await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', async (route) => {
+    const req = route.request(), cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }
+    if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+    consultas++
+    return route.fulfill({ headers: cors, json: { propostas: pendente ? [{ id: ID, nome: 'Força', alunoNome: 'Ana Exemplo', acao: 'criar', resumo: 'Treino', expiraEm: '2027-01-01T00:00:00Z', status: 'proposta' }] : [] } })
+  })
+  await page.goto('/#/confirmar-treino-mcp')
+  await page.getByLabel('E-mail').fill(COACH.email)
+  await page.getByLabel('Senha').fill(COACH.senha)
+  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  await expect(page.getByText('Nenhum treino aguardando.', { exact: false })).toBeVisible()
+  const inicial = consultas
+  await page.waitForTimeout(17_000) // antes consultava a cada 15 s
+  expect(consultas).toBe(inicial)
+  pendente = true
+  await page.getByRole('button', { name: 'Verificar agora' }).click()
+  await expect(page.getByText('Ana Exemplo', { exact: false }).first()).toBeVisible()
+  expect(consultas).toBe(inicial + 1)
+})

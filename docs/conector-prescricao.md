@@ -41,6 +41,15 @@ Exemplo com IDs fictícios:
 
 No editor, reduzir semanas ou dias retira métodos, trocas e adições do intervalo descartado antes de validar o salvamento. Sessões e cópias históricas permanecem preservadas. O estado “Salvo” aguarda a confirmação da gravação; enquanto ela estiver pendente, outro salvamento e o aviso ao aluno ficam desabilitados.
 
+## Propostas no app (sem depender do link)
+
+O app do coach mostra sozinho as propostas aguardando: aviso no topo de qualquer tela, entrada **Propostas de treino** no menu (só com proposta pendente) e lista em `#/confirmar-treino-mcp` (sem `id`). O link da resposta da IA continua válido. Listar ou abrir nunca salva: salvar segue exclusivo do botão **Salvar treino**.
+
+- **Índice por coach:** ao preparar, o Worker grava um resumo (id, aluno, nome, ação, prazo; nunca o treino) na instância `__indice:<uid>` da própria classe `PropostaTreino` (sem nova migração). Máximo de 20; um alarme próprio apaga os resumos vencidos há mais de 24 h (mesmo se o coach parar de usar o conector). Falha ao indexar não falha a proposta: o link continua valendo.
+- **`GET /prescricao/pendentes`:** mesmo login do coach com 2 etapas e App Check das demais rotas `/prescricao`. Devolve `{ propostas: [{ id, nome, alunoNome, acao, resumo, expiraEm, status }] }` só com `proposta` e `resultado_pendente`, na ordem de criação (mais nova primeiro). Salva, recusada, vencida ou inexistente saem da lista e do índice.
+- **Atualização:** sem consulta periódica (poupa Worker, Firestore e App Check). O app consulta ao abrir, ao voltar para ele depois de 30 s ou mais, ao recuperar a internet, após salvar e no botão **Verificar agora** (tela Treinos do assistente, atalho no Início). Aviso automático na hora exigiria notificação push ou marcador em tempo real no Firestore (fora de escopo).
+- **Decisões:** lista geral (todos os alunos), só pendentes (sem histórico). O Worker é único (`APP_URL` fixo), então a lista não é separada por marca.
+
 ## Histórico e concorrência
 
 - Qualquer documento de registro protege a sessão, inclusive registro parcial, carga zero, reps e carga por lado. A prescrição resolvida é guardada em `prescricoesRegistradas`; o plano futuro pode mudar sem alterar esses exercícios, séries, métodos e pausas.

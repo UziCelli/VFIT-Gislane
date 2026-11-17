@@ -8,6 +8,7 @@ import { tokenAppCheck } from './appcheck'
 import { ErroConector, Firestore } from './firestore'
 import { prepararPrescricao, type EntradaPrescricao } from './prescricao'
 import { PropostaTreino } from './proposta'
+import { pendentesDoCoach } from './pendentes'
 export { PropostaTreino } from './proposta'
 import { executar } from './execucao'
 import { criarServidor } from './servidor'
@@ -41,6 +42,7 @@ const rodar = (leitura: Parameters<typeof executar>[1], uid?: string) =>
   executar({ refreshToken: getMcpAuthContext()?.props.refreshToken, apiKey: E.FIREBASE_API_KEY, projeto: E.PROJETO, appId: E.FIREBASE_APP_ID, debugToken: E.APPCHECK_DEBUG_TOKEN, uid }, leitura)
 
 const propostaObjeto = (env: Env, id: string) => env.PROPOSTAS.get(env.PROPOSTAS.idFromName(id))
+const indiceDoCoach = (env: Env, uid: string) => propostaObjeto(env, `__indice:${uid}`)
 const idValido = (id: unknown): id is string => typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
 const negado = () => ({ isError: true as const, content: [{ type: 'text' as const, text: 'Reconecte o assistente para preparar treinos.' }] })
 const mcp = createMcpHandler(() => criarServidor(rodar, {
@@ -56,7 +58,9 @@ const mcp = createMcpHandler(() => criarServidor(rodar, {
       let expira: number
       try { expira = await propostaObjeto(E, id).guardar(id, uid, structuredClone(proposta), Date.now()) }
       catch (e) { if (e instanceof ErroConector) throw e; throw new ErroConector('Não foi possível armazenar a proposta. Nenhum treino foi alterado. Confira os limites e os bindings de PROPOSTAS na Cloudflare.', 'ARMAZENAMENTO', 'armazenamento') }
-      return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, expiraEm: new Date(expira).toISOString(), mensagem: 'O coach precisa conferir e salvar no app.' }
+      // O índice é só conveniência para o app mostrar a proposta sozinho; se falhar, o link continua valendo.
+      try { await indiceDoCoach(E, uid).indexar(uid, { id, nome: proposta.nome, alunoNome: proposta.alunoNome, acao: proposta.acao, resumo: proposta.resumo, expira }, Date.now()) } catch { /* link continua válido */ }
+      return { id, resumo: proposta.resumo, url: `${E.APP_URL}/#/confirmar-treino-mcp?id=${id}`, expiraEm: new Date(expira).toISOString(), mensagem: 'A proposta já aparece sozinha no app do coach (aviso na tela). Ele confere e salva lá; o link é só uma alternativa.' }
     }, uid)
   },
   consultar: async (id: string) => {
@@ -113,6 +117,23 @@ const loginHandler = {
       } catch (e) {
         if (e instanceof AuthorizationError && e.redirectTo) return Response.redirect(e.redirectTo, 302)
         return texto('Pedido de conexão inválido.', 400)
+      }
+    }
+    if (url.pathname === '/prescricao/pendentes' && request.method === 'GET') {
+      const idToken = request.headers.get('Authorization')?.replace(/^Bearer /, '')
+      if (typeof idToken !== 'string' || !idToken || idToken.length > 4096) return json({ erro: 'Pedido inválido.' }, 400, origem)
+      const quem = await verificarIdToken(idToken, (kid) => chaveDoGoogle(kid), Math.floor(agora / 1000), true)
+      if (!quem || quem.projeto !== env.PROJETO) return json({ erro: 'Entre novamente com o código de 2 etapas.' }, 403, origem)
+      try {
+        const appCheck = await tokenAppCheck({ projeto: env.PROJETO, apiKey: env.FIREBASE_API_KEY, appId: env.FIREBASE_APP_ID, debugToken: env.APPCHECK_DEBUG_TOKEN, buscar: fetch, agora })
+        const perfil = await new Firestore(env.PROJETO, idToken, fetch, appCheck).doc(`usuarios/${quem.uid}`)
+        if (perfil?.dados.papel !== 'coach') return json({ erro: 'Só o coach pode ver propostas de treino.' }, 403, origem)
+        const indice = indiceDoCoach(env, quem.uid)
+        const { visiveis, descartar } = await pendentesDoCoach(await indice.indice(quem.uid), (id) => propostaObjeto(env, id).ler(quem.uid, agora))
+        if (descartar.length) await indice.tirarDoIndice(quem.uid, descartar).catch(() => {})
+        return json({ propostas: visiveis }, 200, origem)
+      } catch (e) {
+        return json({ erro: e instanceof ErroConector ? e.message : 'Não foi possível listar as propostas. Tente novamente.' }, 503, origem)
       }
     }
     if ((url.pathname === '/prescricao' && request.method === 'GET') || (url.pathname === '/prescricao/confirmar' && request.method === 'POST')) {

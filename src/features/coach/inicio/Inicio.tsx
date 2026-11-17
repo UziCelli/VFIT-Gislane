@@ -24,6 +24,7 @@ import { Quadro } from '../../../vidro'
 import { useDores } from '../../fisio/useDores'
 import { useOrientacoes } from '../../fisio/useOrientacoes'
 import { prioridadesTreino } from './prioridades'
+import { CONECTOR_URL } from '../../../lib/propostasMcp'
 
 const saudacao = (d: Date) => {
   const h = Number(d.toLocaleString('pt-BR', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }))
@@ -120,6 +121,7 @@ export default function Inicio({ nome }: { nome: string }) {
         <IcQr className="size-5" /> QR Code de cadastro
       </Botao>
       {qr && <QrCadastro onFechar={() => setQr(false)} />}
+      {CONECTOR_URL && <a href="#/confirmar-treino-mcp" className={classesBotao('secundario', 'md', 'mb-3 flex w-full items-center justify-center gap-2 lg:max-w-md')}>Treinos do assistente (Claude/ChatGPT)</a>}
       {doresNovas.some((d) => nomeDe.has(d.alunoId)) && (
         <section className="mb-3 space-y-2 rounded-3xl border border-amber-600 bg-amber-950/50 p-4">
           <h2 className="font-semibold">Físio · relatos de dor novos</h2>

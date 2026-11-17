@@ -7,6 +7,9 @@ const VALIDADE_MS = 24 * 60 * 60 * 1000
 const RETENCAO_MS = 24 * 60 * 60 * 1000
 export type ResultadoProposta = { status: 'proposta'; proposta: PropostaPrescricao } | { status: 'expirada' } | { status: 'resultado_pendente' } | { status: 'recusada'; mensagem: string } | { status: 'salva'; resultado: { mesoId: string } }
 type Registro = { id: string; uid: string; expira: number; resultado: ResultadoProposta; tentativa?: PropostaPrescricao; tentativaEm?: number }
+// Resumo curto de cada proposta do coach (nunca o treino inteiro), para o app listar o que aguarda.
+export type ItemIndice = { id: string; nome: string; alunoNome: string; acao: string; resumo: string; expira: number }
+const LIMITE_INDICE = 20
 // Sem comprovante depois deste prazo, o commit perdido não existe mais: a proposta não foi salva.
 const PRAZO_COMPROVANTE_MS = 10 * 60 * 1000
 
@@ -29,6 +32,34 @@ export class PropostaTreino extends DurableObject {
         await tx.setAlarm(agora + VALIDADE_MS)
       })
       return agora + VALIDADE_MS
+    })
+  }
+
+  // Instância "__indice:<uid>" (outro nome, mesma classe): só guarda o resumo das propostas deste coach.
+  async indexar(uid: string, item: ItemIndice, agora: number): Promise<void> {
+    await this.serializar(async () => {
+      const atual = await this.ctx.storage.get<{ uid: string; itens: ItemIndice[] }>('indice')
+      const itens = atual?.uid === uid ? atual.itens : []
+      const novos = [item, ...itens.filter((i) => i.id !== item.id && i.expira + RETENCAO_MS > agora)].slice(0, LIMITE_INDICE)
+      await this.ctx.storage.transaction(async (tx) => {
+        await tx.put('indice', { uid, itens: novos })
+        // Limpeza própria: sem isso, nome do aluno e resumo ficariam guardados se o coach parasse de usar o conector.
+        await tx.setAlarm(Math.min(...novos.map((i) => i.expira)) + RETENCAO_MS)
+      })
+    })
+  }
+
+  async indice(uid: string): Promise<ItemIndice[]> {
+    return this.serializar(async () => {
+      const atual = await this.ctx.storage.get<{ uid: string; itens: ItemIndice[] }>('indice')
+      return atual?.uid === uid ? atual.itens : []
+    })
+  }
+
+  async tirarDoIndice(uid: string, ids: string[]): Promise<void> {
+    await this.serializar(async () => {
+      const atual = await this.ctx.storage.get<{ uid: string; itens: ItemIndice[] }>('indice')
+      if (atual?.uid === uid) await this.ctx.storage.put('indice', { uid, itens: atual.itens.filter((i) => !ids.includes(i.id)) })
     })
   }
 
@@ -131,7 +162,19 @@ export class PropostaTreino extends DurableObject {
   async alarm(): Promise<void> {
     await this.serializar(async () => {
       const registro = await this.ctx.storage.get<Registro>('registro')
-      if (!registro) return
+      if (!registro) {
+        // Instância de índice do coach: apaga os resumos vencidos há mais de 24 h e reagenda para o próximo.
+        const atual = await this.ctx.storage.get<{ uid: string; itens: ItemIndice[] }>('indice')
+        if (!atual) return
+        const agora = Date.now()
+        const itens = atual.itens.filter((i) => i.expira + RETENCAO_MS > agora)
+        if (!itens.length) { await this.ctx.storage.deleteAll(); return }
+        await this.ctx.storage.transaction(async (tx) => {
+          await tx.put('indice', { uid: atual.uid, itens })
+          await tx.setAlarm(Math.min(...itens.map((i) => i.expira)) + RETENCAO_MS)
+        })
+        return
+      }
       if (registro.resultado.status === 'proposta') {
         registro.resultado = { status: 'expirada' }
         await this.ctx.storage.transaction(async (tx) => {

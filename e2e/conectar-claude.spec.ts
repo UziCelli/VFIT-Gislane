@@ -19,8 +19,10 @@ async function conectorFalso(page: Page, versaoConsentimento?: number) {
   await page.route('https://vfit-conector.vfitcoach-site.workers.dev/**', async (route) => {
     const req = route.request()
     const rota = new URL(req.url()).pathname
-    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Content-Type' }
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'Authorization, Content-Type', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS' }
     if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, headers: cors })
+    // O painel do coach consulta as propostas do assistente ao abrir; não é um envio do app.
+    if (rota === '/prescricao/pendentes') return route.fulfill({ status: 200, headers: cors, json: { propostas: [] } })
     if (rota === '/volta') return route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>Voltou ao Claude</h1>' })
     if (rota === '/pedido') return route.fulfill({ status: 200, headers: cors, json: { cliente: 'Claude', host: 'claude.ai', versaoConsentimento } })
     enviados.push({ rota, corpo: req.postDataJSON() })

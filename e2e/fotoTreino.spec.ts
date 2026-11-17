@@ -25,7 +25,7 @@ test.beforeAll(async () => {
   })
 })
 
-test('foto no fim do treino: prévia, trocar e tirar', async ({ page }) => {
+test('foto no fim do treino: prévia, trocar e remover', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('E-mail').fill(ALUNO.email)
   await page.getByLabel('Senha').fill(ALUNO.senha)
@@ -37,15 +37,20 @@ test('foto no fim do treino: prévia, trocar e tirar', async ({ page }) => {
   await page.getByRole('button', { name: 'Sim, concluir' }).click()
   await expect(page.getByRole('heading', { name: 'Treino concluído' })).toBeVisible()
 
-  await page.locator('input[type="file"]').setInputFiles({ name: 'foto.png', mimeType: 'image/png', buffer: PNG })
+  // câmera e galeria são entradas separadas; a da câmera pede captura (abre a câmera no Android)
+  await expect(page.getByRole('button', { name: 'Tirar foto' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Da galeria' })).toBeVisible()
+  await expect(page.locator('input[type="file"][capture]')).toHaveCount(1)
+  await page.locator('input[type="file"][capture]').setInputFiles({ name: 'foto.png', mimeType: 'image/png', buffer: PNG })
   const previa = page.getByRole('img', { name: 'Prévia do story com a sua foto' })
   await expect(previa).toBeVisible()
   await expect(page.getByRole('button', { name: 'Compartilhar no story' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Trocar foto' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Nova foto' })).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
 
-  await page.getByRole('button', { name: 'Tirar foto' }).click()
+  await page.getByRole('button', { name: 'Remover foto' }).click()
   await expect(page.getByRole('heading', { name: 'Treino concluído' })).toBeVisible()
   await expect(previa).toBeHidden()
-  await expect(page.getByRole('button', { name: 'Adicionar foto' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Tirar foto' })).toBeVisible()
 })

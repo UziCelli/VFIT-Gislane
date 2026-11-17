@@ -28,6 +28,9 @@ test('aluno envia feedback e o coach vê, marca lido e copia o depoimento', asyn
   await criarAluno(BIA.nome, BIA.email, BIA.senha)
 
   const ana = await comoAluno(browser, ANA)
+  // Quem nunca respondeu vê o card grande na Início.
+  await ana.page.goto('/#/')
+  await expect(ana.page.getByRole('heading', { name: 'Como está sendo para você?' })).toBeVisible()
   // Entrando pela Conta rolada até embaixo: a tela abre no topo, com as estrelas à vista.
   await ana.page.setViewportSize({ width: 360, height: 640 })
   await ana.page.goto('/#/conta')
@@ -42,6 +45,10 @@ test('aluno envia feedback e o coach vê, marca lido e copia o depoimento', asyn
   await ana.page.getByLabel(/Autorizo usar meu depoimento/).check()
   await ana.page.getByRole('button', { name: 'Enviar', exact: true }).click()
   await expect(ana.page.getByRole('heading', { name: 'Valeu, Ana!' })).toBeVisible()
+  // Depois de responder, a Início volta à faixa pequena.
+  await ana.page.goto('/#/')
+  await expect(ana.page.getByRole('link', { name: 'O que melhorar no app? Conte em 1 minuto' })).toBeVisible()
+  await expect(ana.page.getByRole('heading', { name: 'Como está sendo para você?' })).toHaveCount(0)
   // A gravação segue em segundo plano (sem await): as abas dos alunos ficam abertas até o coach ver os dois.
 
   const bia = await comoAluno(browser, BIA)

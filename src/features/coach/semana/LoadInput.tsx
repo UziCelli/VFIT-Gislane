@@ -28,6 +28,9 @@ export default function LoadInput({
   const campoRef = useRef<HTMLInputElement>(null)
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined)
   useEffect(() => () => clearTimeout(timer.current), [])
+  // A pergunta não sobrevive a campo desabilitado (treino cancelado ou travado) nem a outro valor chegando na célula
+  // (o coach no presencial, outro aparelho): "Está certo" nunca grava por cima.
+  useEffect(() => setConferir(null), [disabled, valor])
   function commit(campo: HTMLInputElement) {
     setConferir(null) // qualquer nova saída do campo invalida a pergunta anterior (ela guardava o valor velho)
     const t = campo.value.trim().replace(',', '.')
@@ -66,7 +69,7 @@ export default function LoadInput({
       onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
       className={`w-full rounded border border-slate-700 bg-slate-950 px-1 py-1 text-center font-display text-base font-bold text-slate-100 outline-none focus:border-marca-500 disabled:opacity-50`}
     />
-    {conferir != null && (
+    {conferir != null && !disabled && (
       <div role="alert" className="absolute left-0 top-full z-20 mt-1 w-44 rounded-lg border border-amber-500/60 bg-slate-900 p-2 text-left text-xs text-slate-200 shadow-lg">
         <p>Confere? {fmt(conferir)} kg está bem diferente de {referencia != null ? fmt(referencia) : '—'} kg.</p>
         <div className="mt-2 flex gap-2">
@@ -76,6 +79,7 @@ export default function LoadInput({
             onClick={() => {
               const v = conferir
               setConferir(null)
+              if (disabled) return
               onSalvar(v)
               setSalvo(true)
               clearTimeout(timer.current)

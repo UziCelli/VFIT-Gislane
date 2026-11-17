@@ -1,8 +1,8 @@
 import marca from '@marca/marca.json'
 import { collection, limit, orderBy, query, where, type Timestamp } from 'firebase/firestore'
 import { useMemo, useState } from 'react'
-import type { Usuario } from '../../../lib/acesso'
-import { apagarFeedback, marcarFeedbackLido } from '../../../lib/acoes'
+import { coroaAtiva, type Usuario } from '../../../lib/acesso'
+import { apagarFeedback, darCoroa, marcarFeedbackLido } from '../../../lib/acoes'
 import { filtrar, rotuloAssunto, rotuloTipo, resumoNotas, textoDepoimento, textoParaCopiar, type Feedback, type Filtro } from '../../../lib/feedback'
 import { db } from '../../../lib/firebase'
 import { registrarErro } from '../../../lib/log'
@@ -40,7 +40,8 @@ const Estrelas = ({ nota }: { nota: number }) => (
 )
 
 // nome: null = aluno com nome ainda carregando (ou fora da lista); aí não há Imagem nem "Copiar depoimento".
-function Cartao({ f, nome, aviso }: { f: Feedback; nome: string | null; aviso: (t: string) => void }) {
+// aluno: perfil de quem enviou com nome (para mostrar se já tem a coroa); anônimo não recebe prêmio.
+function Cartao({ f, nome, aluno, aviso }: { f: Feedback; nome: string | null; aluno?: Usuario; aviso: (t: string) => void }) {
   const falhou = (e: { code?: string }) => registrarErro('gravacao', `feedback: ${e?.code ?? e}`, e)
   // Copia direto no clique (exigência do iPhone).
   const copiar = (t: string) =>
@@ -65,6 +66,11 @@ function Cartao({ f, nome, aviso }: { f: Feedback; nome: string | null; aviso: (
           </>
         )}
         {f.texto && <Botao onClick={() => copiar(textoParaCopiar(f))}>Copiar texto</Botao>}
+        {f.alunoId && aluno && (
+          <Botao tipo={coroaAtiva(aluno) ? 'vidro' : 'primario'} onClick={() => darCoroa(f.alunoId as string).then(() => aviso('Coroa por 30 dias e ajuste prioritário liberados')).catch(falhou)}>
+            {coroaAtiva(aluno) ? 'Renovar coroa' : 'Dar coroa + ajuste prioritário'}
+          </Botao>
+        )}
         <Botao onClick={() => marcarFeedbackLido(f.id, !f.lido).catch(falhou)}>{f.lido ? 'Não lido' : 'Lido'}</Botao>
         <Botao tipo="alerta" onClick={() => window.confirm('Apagar este feedback?') && apagarFeedback(f.id).catch(falhou)}>Apagar</Botao>
       </div>
@@ -79,6 +85,7 @@ export default function Feedbacks() {
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [msg, setMsg] = useState('')
   const nomes = useMemo(() => new Map(alunos.dados.map((a) => [a.id, a.nome])), [alunos.dados])
+  const perfis = useMemo(() => new Map(alunos.dados.map((a) => [a.id, a])), [alunos.dados])
   const { media, total, porNota } = resumoNotas(fb.dados)
   const novos = fb.dados.filter((f) => !f.lido).length
   const lista = filtrar(fb.dados, filtro)
@@ -114,7 +121,7 @@ export default function Feedbacks() {
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {lista.map((f) => (
-            <Cartao key={f.id} f={f} nome={f.alunoId ? (nomes.get(f.alunoId) ?? null) : 'Anônimo'} aviso={(t) => { setMsg(t); setTimeout(() => setMsg(''), 2500) }} />
+            <Cartao key={f.id} f={f} nome={f.alunoId ? (nomes.get(f.alunoId) ?? null) : 'Anônimo'} aluno={f.alunoId ? perfis.get(f.alunoId) : undefined} aviso={(t) => { setMsg(t); setTimeout(() => setMsg(''), 2500) }} />
           ))}
         </div>
       )}

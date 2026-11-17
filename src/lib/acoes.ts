@@ -43,7 +43,7 @@ import {
   writeBatch,
 } from 'firebase/firestore'
 import type { Meso, SessaoEditada } from '../engine'
-import { fimDoDiaSaoPaulo, hojeMaisDias, proximoVencimento, type Usuario } from './acesso'
+import { DIAS_COROA, fimDoDiaSaoPaulo, hojeMaisDias, proximoVencimento, type Usuario } from './acesso'
 import { CHAVE_RASCUNHO, VERSAO_ANAMNESE, type Respostas } from './anamnese'
 import { arquivadosVencidos } from './alertas'
 import { paraDoc, somarDias, type AvaliacaoForm } from './avaliacao'
@@ -432,6 +432,11 @@ export const salvarPeso = (uid: string, kg: number) => updateDoc(doc(db, 'usuari
 // Perfil do aluno (aba Conta). Nome: 1..80 caracteres (nomeValido nas regras).
 export const salvarNome = (uid: string, nome: string) => updateDoc(doc(db, 'usuarios', uid), { nome: nome.trim().slice(0, 80) })
 export const salvarSelo = (uid: string, selo: boolean) => updateDoc(doc(db, 'usuarios', uid), { selo })
+
+// Prêmio por feedback (só o coach grava; o aluno não tem permissão nas regras): coroa por 30 dias + ajuste de treino na frente.
+export const darCoroa = (uid: string, agoraMs = Date.now()) =>
+  updateDoc(doc(db, 'usuarios', uid), { vozDoAppAte: Timestamp.fromMillis(agoraMs + DIAS_COROA * 86_400_000), ajustePrioritario: true })
+export const concluirAjustePrioritario = (uid: string) => updateDoc(doc(db, 'usuarios', uid), { ajustePrioritario: deleteField() })
 // img: data URL JPEG já reduzida (reduzirFoto em src/lib/foto.ts).
 export const salvarFoto = (uid: string, img: string) => setDoc(doc(db, 'fotos', uid), { img, atualizadoEm: serverTimestamp() })
 export const apagarFoto = (uid: string) => deleteDoc(doc(db, 'fotos', uid))

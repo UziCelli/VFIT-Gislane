@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Timestamp } from 'firebase/firestore'
-import { CARENCIA_DIAS, diasParaVencer, emAtraso, faltaSegundoFator, fimDoDiaSaoPaulo, hojeMaisDias, liberado, proximoVencimento, vencePerto, type Usuario } from './acesso'
+import { CARENCIA_DIAS, coroaAtiva, diasParaVencer, emAtraso, faltaSegundoFator, fimDoDiaSaoPaulo, hojeMaisDias, liberado, proximoVencimento, vencePerto, type Usuario } from './acesso'
 
 const sp = (iso: string) => new Date(`${iso}-03:00`)
 const ts = (d: Date) => Timestamp.fromDate(d)
@@ -128,5 +128,19 @@ describe('proximoVencimento (+1 mês, calendário de São Paulo)', () => {
   })
   it('vira o ano', () => {
     expect(proximoVencimento(pago('2026-12-15'), sp('2026-12-01T12:00'))).toBe('2027-01-15')
+  })
+})
+
+describe('coroaAtiva', () => {
+  const agora = sp('2026-11-17T12:00').getTime()
+  it('sem data ou sem perfil: sem coroa', () => {
+    expect(coroaAtiva(undefined, agora)).toBe(false)
+    expect(coroaAtiva({}, agora)).toBe(false)
+  })
+  it('vale até a data e some sozinha depois', () => {
+    const ate = ts(sp('2026-12-17T12:00'))
+    expect(coroaAtiva({ vozDoAppAte: ate }, agora)).toBe(true)
+    expect(coroaAtiva({ vozDoAppAte: ate }, ate.toMillis())).toBe(false)
+    expect(coroaAtiva({ vozDoAppAte: ate }, ate.toMillis() + 1)).toBe(false)
   })
 })

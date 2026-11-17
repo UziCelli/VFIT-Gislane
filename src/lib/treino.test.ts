@@ -53,11 +53,11 @@ describe('cargaAnterior', () => {
   }
 
   it('semana anterior mais recente com o mesmo nome, pelo slotId daquela semana', () => {
-    expect(cargaAnterior(meso, registros, 4, 1, 2)).toEqual({ series: [90, null], drops: [] }) // s4 b4 ← s3 b
+    expect(cargaAnterior(meso, registros, 4, 1, 2)).toMatchObject({ series: [90, null], drops: [] }) // s4 b4 ← s3 b
   })
   it('pula semana sem carga e semana com exercício trocado', () => {
-    expect(cargaAnterior(meso, registros, 4, 1, 1)).toEqual({ series: [40, 42], drops: [] }) // s3 vazia, s2 Remada
-    expect(cargaAnterior(meso, registros, 3, 1, 2)).toEqual({ series: [80], drops: [] }) // s2 b = []
+    expect(cargaAnterior(meso, registros, 4, 1, 1)).toMatchObject({ series: [40, 42], drops: [] }) // s3 vazia, s2 Remada
+    expect(cargaAnterior(meso, registros, 3, 1, 2)).toMatchObject({ series: [80], drops: [] }) // s2 b = []
   })
   it('null quando não há carga anterior', () => {
     expect(cargaAnterior(meso, registros, 1, 1, 1)).toBeNull()
@@ -67,9 +67,9 @@ describe('cargaAnterior', () => {
   })
   it('com pcs, devolve só o extra: total menos o peso do corpo DAQUELE registro (não o de hoje)', () => {
     const pcs = { '3-1': { b: 76 }, '1-1': { b: 0 } }
-    expect(cargaAnterior(meso, registros, 4, 1, 2, pcs)).toEqual({ series: [14, null], drops: [] }) // 90 - 76
-    expect(cargaAnterior(meso, registros, 3, 1, 2, pcs)).toEqual({ series: [80], drops: [] }) // s1 b: pc 0, total = extra
-    expect(cargaAnterior(meso, { '3-1': { b: [70, 90] } }, 4, 1, 2, pcs)).toEqual({ series: [0, 14], drops: [] }) // nunca negativo
+    expect(cargaAnterior(meso, registros, 4, 1, 2, pcs)).toMatchObject({ series: [14, null], drops: [] }) // 90 - 76
+    expect(cargaAnterior(meso, registros, 3, 1, 2, pcs)).toMatchObject({ series: [80], drops: [] }) // s1 b: pc 0, total = extra
+    expect(cargaAnterior(meso, { '3-1': { b: [70, 90] } }, 4, 1, 2, pcs)).toMatchObject({ series: [0, 14], drops: [] }) // nunca negativo
   })
   it('separa séries e drops pelo n da semana anterior (3 séries + D1 vs. 4 séries hoje)', () => {
     const m: Meso = {
@@ -79,7 +79,7 @@ describe('cargaAnterior', () => {
       metodos: [{ semana: 1, treino: 1, exercicio: 1, metodo: 'Dropset', ativo: true, escopo: 'Últimas 2 séries', etapas: 1 }],
     }
     const r = cargaAnterior(m, { '1-1': { a: [50, 50, 50, 30] } }, 2, 1, 1)
-    expect(r).toEqual({ series: [50, 50, 50], drops: [] }) // hoje não tem drop
+    expect(r).toMatchObject({ series: [50, 50, 50], drops: [] }) // hoje não tem drop
     expect(r!.series[3]).toBeUndefined() // S4 não herda o D1
     const comDrop = { ...m, metodos: [...m.metodos, { ...m.metodos[0], semana: 2 }] }
     expect(cargaAnterior(comDrop, { '1-1': { a: [50, 50, 50, 30] } }, 2, 1, 1)!.drops).toEqual([30]) // D1 da S3 → D1 da S4
@@ -109,8 +109,8 @@ describe('cargaAnterior com treino ajustado no presencial', () => {
   }
   it('acha o mesmo exercício em outra posição da semana anterior', () => {
     const regs = { '1-1': { A: [50, 52], B: [30, null] } }
-    expect(cargaAnterior(m, regs, 2, 1, 1)).toEqual({ series: [30, null], drops: [] })
-    expect(cargaAnterior(m, regs, 2, 1, 2)).toEqual({ series: [50, 52], drops: [] })
+    expect(cargaAnterior(m, regs, 2, 1, 1)).toMatchObject({ series: [30, null], drops: [] })
+    expect(cargaAnterior(m, regs, 2, 1, 2)).toMatchObject({ series: [50, 52], drops: [] })
   })
 })
 
@@ -126,7 +126,7 @@ describe('cargaAnterior com 2 lados', () => {
   })
   it('célula nova: devolve o esquerdo e o direito por lado', () => {
     const r = cargaAnterior(meso, { '1-1': { r: [12, 14] } }, 2, 1, 1, undefined, { '1-1': { r: [6, 6] } })
-    expect(r).toEqual({ series: [6, 6], drops: [], dir: { series: [6, 8], drops: [] } })
+    expect(r).toMatchObject({ series: [6, 6], drops: [], dir: { series: [6, 8], drops: [] } })
   })
   it('com corpo no registro de origem, o direito sai de total - corpo - esquerdo', () => {
     const r = cargaAnterior(meso, { '1-1': { r: [92] } }, 2, 1, 1, { '1-1': { r: 80 } }, { '1-1': { r: [6] } })
@@ -138,7 +138,36 @@ describe('cargaAnterior com 2 lados', () => {
     expect(r!.series).toEqual([5])
   })
   it('exercício comum não muda (sem dir)', () => {
-    expect(cargaAnterior(meso, { '1-1': { s: [50] } }, 2, 1, 2)).toEqual({ series: [50], drops: [] })
+    expect(cargaAnterior(meso, { '1-1': { s: [50] } }, 2, 1, 2)).toMatchObject({ series: [50], drops: [] })
   })
 })
 
+
+describe('cargaAnterior: exercício que reaparece em outro treino', () => {
+  // Treino 1: Supino (a) e Remada (b). Treino 2: Supino (c) e Agachamento (d).
+  const m: Meso = {
+    frequencia: 2, semanas: 3, inicio: '2026-01-05', pausaS: 60,
+    divisao: [[slot('a', 'Supino'), slot('b', 'Remada')], [slot('c', 'Supino'), slot('d', 'Agachamento')]],
+    progressao: { principais: [[10, 10], [10, 10], [10, 10]], auxiliares: [[10, 10], [10, 10], [10, 10]] },
+    metodos: [],
+  }
+  it('treino novo para o exercício: usa a carga de outro treino da mesma semana', () => {
+    const r = cargaAnterior(m, { '1-1': { a: [60, 62] } }, 1, 2, 1)
+    expect(r).toMatchObject({ series: [60, 62], origem: { semana: 1, treino: 1 } })
+  })
+  it('o mesmo treino da semana anterior continua tendo prioridade (mesma prescrição)', () => {
+    const regs = { '1-2': { c: [70] }, '2-1': { a: [50] } }
+    expect(cargaAnterior(m, regs, 2, 2, 1)).toMatchObject({ series: [70], origem: { semana: 1, treino: 2 } })
+  })
+  it('sem o mesmo treino antes, a semana atual vence as semanas passadas', () => {
+    const regs = { '1-1': { a: [40] }, '2-1': { a: [50] } }
+    expect(cargaAnterior(m, regs, 2, 2, 1)).toMatchObject({ series: [50], origem: { semana: 2, treino: 1 } })
+  })
+  it('não olha treinos posteriores da semana nem exercício diferente', () => {
+    expect(cargaAnterior(m, { '1-2': { c: [70] } }, 1, 1, 1)).toBeNull() // treino 2 ainda não veio
+    expect(cargaAnterior(m, { '1-1': { b: [30] } }, 1, 2, 2)).toBeNull() // Agachamento nunca foi feito
+  })
+  it('mesmo treino: origem é o próprio treino', () => {
+    expect(cargaAnterior(m, { '1-1': { a: [40] } }, 2, 1, 1)).toMatchObject({ origem: { semana: 1, treino: 1 } })
+  })
+})

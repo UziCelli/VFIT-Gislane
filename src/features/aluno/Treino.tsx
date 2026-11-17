@@ -715,6 +715,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                 </button>
               ))}
               {!coach && <RelatarDor uid={uid} exercicio={e.slot.nome.trim()} sessao={{ mesoId, semana, treino }} slots={{ [e.slot.nome.trim()]: e.slot.slotId }} />}
+              {anterior && anterior.origem.treino !== treino && <p className="mb-2 text-xs text-slate-400">Cargas em cinza: última vez no Treino {anterior.origem.treino} · {anterior.origem.semana === semana ? 'esta semana' : `semana ${anterior.origem.semana}`}</p>}
               <div className="space-y-2">
                 {(() => {
                 // Colunas do drop pendurado na série s (1-based); drop sem série (exercício sem séries) vai para o fim.

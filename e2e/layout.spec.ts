@@ -168,12 +168,12 @@ for (const vp of [
     if (lateral) {
       await expect(menuLateral).toBeVisible()
       await expect(abas).toBeHidden()
-      for (const n of ['Início', 'Alunos', 'Alertas', 'Ranking', 'Métodos', 'Minha conta']) await expect(menuLateral.getByRole('link', { name: n })).toBeVisible()
+      for (const n of ['Início', 'Alunos', 'Alertas', 'Ranking', 'Consultas', 'Minha conta']) await expect(menuLateral.getByRole('link', { name: n })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible()
     } else {
       await expect(abas).toBeVisible()
       await expect(menuLateral).toBeHidden()
-      for (const n of ['Início', 'Alunos', 'Alertas', 'Opiniões', 'Métodos', 'Conta']) await expect(abas.getByRole('link', { name: new RegExp(`^${n}`) })).toBeVisible()
+      for (const n of ['Início', 'Alunos', 'Alertas', 'Opiniões', 'Guias', 'Conta']) await expect(abas.getByRole('link', { name: new RegExp(`^${n}`) })).toBeVisible()
       await expect(abas.getByRole('link', { name: 'Início' })).toHaveAttribute('aria-current', 'page')
       // Nenhum rótulo da barra cortado.
       const cortados = await abas.locator('span').evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth).map((e) => e.textContent))
@@ -254,7 +254,7 @@ test('coach iPhone 390x844: barra de abas na mesma altura em todas as telas', as
     ['Alunos', /^Alunos/],
     ['Alertas', /^Alertas/],
     ['Opiniões', /^Opiniões/],
-    ['Métodos', /^Métodos/],
+    ['Guias', /^Guias/],
     ['Conta', /^Conta/],
   ]
   const medidas: number[] = []

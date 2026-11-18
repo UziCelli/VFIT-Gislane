@@ -6,6 +6,7 @@ Não ler tudo: escolha apenas o assunto da tarefa. Guias ativos são curtos; rel
 |---|---|
 | Regras comuns e entrega | [AGENTS.md](../AGENTS.md) |
 | Guia exclusivo | Codex: `CODEX.md`; Claude: `CLAUDE.md`. Leia somente o seu. |
+| Fila do GitHub Actions | [actions.md](actions.md) |
 | Segurança e incidentes | [SECURITY.md](../SECURITY.md) |
 | Estilo | [CODE_STYLE.md](../CODE_STYLE.md) |
 | Arquitetura e fluxo | [ARCHITETURE.md](../ARCHITETURE.md) |

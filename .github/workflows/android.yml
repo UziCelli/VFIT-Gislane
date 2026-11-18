@@ -5,6 +5,11 @@ name: Testar APK no Android
 on:
   workflow_dispatch:
 
+concurrency:
+  group: repository-workflows
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: write
 

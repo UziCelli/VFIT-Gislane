@@ -27,6 +27,11 @@ on:
         description: E-mail do coach (só para desativar-coach)
         required: false
 
+concurrency:
+  group: repository-workflows
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: read
 

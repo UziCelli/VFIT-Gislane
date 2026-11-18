@@ -13,6 +13,11 @@ on:
           - gravar
         default: simular
 
+concurrency:
+  group: repository-workflows
+  cancel-in-progress: false
+  queue: max
+
 permissions:
   contents: read
 

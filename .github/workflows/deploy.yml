@@ -9,8 +9,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: publicar
+  group: repository-workflows
   cancel-in-progress: false
+  queue: max
 
 permissions:
   contents: read

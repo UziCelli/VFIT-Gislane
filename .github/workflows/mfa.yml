@@ -51,7 +51,7 @@ jobs:
             gislane) echo "p=gislane-personal-trainer" >> "$GITHUB_OUTPUT" ;;
             *) echo "Marca inválida: '$MARCA'"; exit 1 ;;
           esac
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Instalar dependências

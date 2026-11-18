@@ -14,9 +14,11 @@ execuções de CI de commits diferentes, não evita conflitos entre agentes e n�
 substitui revisão de YAML antes do envio.
 
 No app, o conector é disparado por `workflow_run` depois de `Publicar`
-terminar com sucesso na main do próprio repositório, inclusive quando apenas
-arquivos fora dos antigos filtros de caminho mudam. Ele usa o mesmo commit
-publicado e recusa versão ultrapassada. Não aguarda outro workflow com a fila
+terminar na main do próprio repositório (com sucesso ou com falha de outro
+job, como o da Gislane; cancelado ou pulado não dispara), inclusive quando
+apenas arquivos fora dos antigos filtros de caminho mudam. A trava confere que
+o job `deploy` do app e das regras passou. Ele usa o mesmo commit publicado e
+recusa versão ultrapassada. Não aguarda outro workflow com a fila
 ocupada. A execução manual exige o app e as regras desse commit já publicados;
 se não estiverem, falha imediatamente e deve ser repetida após a publicação.
 O identificador BUILD_ID corresponde ao commit do app publicado.

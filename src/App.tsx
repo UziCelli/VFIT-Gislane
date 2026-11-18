@@ -251,7 +251,7 @@ function Menu({ rota, propostas }: { rota: string; propostas: number }) {
         abas={itens
           // Celular: 6 abas (7 não cabem). Ranking e Propostas só aparecem no menu lateral; no celular a proposta chega pelo aviso do topo e pelo selo do Início.
           .filter((i) => i.id !== 'ranking' && i.id !== 'propostas')
-          .map((i) => ({ rotulo: i.id === 'conta' ? 'Conta' : i.id === 'feedbacks' ? 'Opiniões' : i.rotulo, href: i.href, Icone: i.Icone, ativo: (at === 'ranking' || at === 'propostas' ? 'inicio' : at) === i.id, selo: i.id === 'inicio' ? propostas : i.selo }))}
+          .map((i) => ({ rotulo: i.id === 'conta' ? 'Conta' : i.id === 'feedbacks' ? 'Opiniões' : i.id === 'metodos' ? 'Guias' : i.rotulo, href: i.href, Icone: i.Icone, ativo: (at === 'ranking' || at === 'propostas' ? 'inicio' : at) === i.id, selo: i.id === 'inicio' ? propostas : i.selo }))}
       />
     </>
   )

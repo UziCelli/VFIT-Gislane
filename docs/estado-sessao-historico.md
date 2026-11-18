@@ -174,7 +174,7 @@ Leia antes: `CLAUDE.md`, `docs/mapa.md`. Branch de trabalho: recriada a partir d
 - Convite para opinar em bons momentos (recorde, fim de ciclo), no máximo 1 vez a cada 60 dias por aparelho.
 - Privacidade: Política ganhou "Sua opinião e depoimentos" (versão 2026-11-09, o app pede aceite de novo); "apagar de vez" e a limpeza LGPD removem os com nome.
 - Testes: regras (`rules` e `ataques`), `feedback.test.ts`, LGPD.
-- Falta o Victor: mandar o link "Avaliar no Google" (dele e da Gislane) para colocar em `marcas/*/marca.json` → `avaliarGoogle` (hoje vazio).
+- Link "Avaliar no Google": VFit e Gislane preenchidos em `marcas/*/marca.json` → `avaliarGoogle` (Gislane em 18/11/2026).
 
 ## 10/11/2026 — Assistente de voz (IA)
 - Pedido do Victor: chave da API da Anthropic (Haiku) nos dois apps (VFit e Gislane, mesmo código) para montar treino falando.

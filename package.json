@@ -18,7 +18,7 @@
     "icones:gislane": "MARCA=gislane pwa-assets-generator"
   },
   "dependencies": {
-    "firebase": "^12.19.0",
+    "firebase": "^13.3.0",
     "motion": "^13.4.6",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",

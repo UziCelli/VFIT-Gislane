@@ -94,7 +94,7 @@ jobs:
       - name: Guardar backup novo
         if: steps.limpeza.outputs.apagados != '0'
         id: up
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PREFIXO }}-${{ steps.data.outputs.d }}-lgpd
           path: backup.json.enc

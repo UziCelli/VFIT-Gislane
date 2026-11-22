@@ -5,7 +5,7 @@ import { enviarFeedback } from '../../lib/acoes'
 import { ASSUNTOS, TEXTO_MAX, TIPOS, marcarConvite, marcarEnviado, montarFeedback, podeDepoimento, primeiroNome, type Assunto, type TipoFeedback } from '../../lib/feedback'
 import { registrarErro } from '../../lib/log'
 import { voltar } from '../../rota'
-import { Botao, classesBotao, classesOpcao, Pagina } from '../../ui'
+import { Botao, classesOpcao, Pagina } from '../../ui'
 import { Quadro } from '../../vidro'
 import { BotaoVoltar } from '../../voltar'
 
@@ -68,12 +68,7 @@ export default function EnviarFeedback({ uid, nome }: { uid: string; nome: strin
                 ? `Obrigado pela sinceridade. ${primeiroNome(marca.responsavel.nome)} lê pessoalmente.`
                 : 'Obrigado pela sua opinião. Ela ajuda o app a crescer.'}
           </p>
-          {enviado === 5 && marca.avaliarGoogle && (
-            <a href={marca.avaliarGoogle} target="_blank" rel="noopener noreferrer" className={classesBotao('primario', 'lg', 'flex items-center justify-center')}>
-              Avaliar no Google
-            </a>
-          )}
-          <Botao tipo={enviado === 5 && marca.avaliarGoogle ? 'fantasma' : 'primario'} tamanho={enviado === 5 && marca.avaliarGoogle ? 'md' : 'lg'} className="w-full" onClick={() => voltar('/')}>{enviado === 5 && marca.avaliarGoogle ? 'Agora não' : 'Fechar'}</Botao>
+          <Botao tipo="primario" tamanho="lg" className="w-full" onClick={() => voltar('/')}>Fechar</Botao>
         </Quadro>
       </Pagina>
     )

@@ -45,6 +45,8 @@ test('aluno envia feedback e o coach vê, marca lido e copia o depoimento', asyn
   await ana.page.getByLabel(/Autorizo usar meu depoimento/).check()
   await ana.page.getByRole('button', { name: 'Enviar', exact: true }).click()
   await expect(ana.page.getByRole('heading', { name: 'Valeu, Ana!' })).toBeVisible()
+  await expect(ana.page.getByRole('link', { name: /avaliar no google/i })).toHaveCount(0)
+  await expect(ana.page.getByRole('button', { name: 'Fechar', exact: true })).toBeVisible()
   // Depois de responder, a Início volta à faixa pequena.
   await ana.page.goto('/#/')
   await expect(ana.page.getByRole('link', { name: 'O que melhorar no app? Conte em 1 minuto' })).toBeVisible()
@@ -59,6 +61,8 @@ test('aluno envia feedback e o coach vê, marca lido e copia o depoimento', asyn
   await expect(bia.page.getByLabel(/Autorizo usar meu depoimento/)).toHaveCount(0)
   await bia.page.getByRole('button', { name: 'Enviar', exact: true }).click()
   await expect(bia.page.getByText('lê pessoalmente')).toBeVisible()
+  await expect(bia.page.getByRole('link', { name: /avaliar no google/i })).toHaveCount(0)
+  await expect(bia.page.getByRole('button', { name: 'Fechar', exact: true })).toBeVisible()
 
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] })
   const page = await ctx.newPage()

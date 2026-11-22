@@ -161,7 +161,7 @@ export function useDescanso() {
     return () => clearInterval(id)
   }, [fimEm])
 
-  // Os bipes seguem o relógio do AudioContext, que para quando o app sai da tela (iPhone): os pendentes
+  // Os bipes seguem o relógio do AudioContext, que para quando o app sai da tela (iPhone e Android): os pendentes
   // tocariam atrasados, até fora do app (#229). Ao sair, cancela; ao voltar, reagenda pelo relógio real.
   useEffect(() => {
     if (fimEm == null) return

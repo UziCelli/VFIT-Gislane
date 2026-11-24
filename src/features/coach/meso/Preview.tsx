@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react'
 import type { Meso } from '../../../engine'
 import { acimaDoLimite, fmtMin } from '../../../lib/tempo'
 import { IcSeta } from '../../../icones'
@@ -48,8 +49,20 @@ export function BarraTempo({ meso, semana, onSemana, treino, onTreino }: {
   )
 }
 
+// Tela bem larga (2xl do Tailwind): prévia sempre aberta ao lado do editor.
+const LARGA = '(min-width: 96rem)'
+const useTelaLarga = () =>
+  useSyncExternalStore(
+    (avisar) => {
+      const mq = window.matchMedia(LARGA)
+      mq.addEventListener('change', avisar)
+      return () => mq.removeEventListener('change', avisar)
+    },
+    () => window.matchMedia(LARGA).matches,
+  )
+
 // Prévia do aluno: o treino escolhido como ele aparece no app do aluno, atualizado a cada edição (sem salvar).
-// Celular/tablet: recolhível. Tela larga (xl): sempre aberta, ao lado do editor (quem posiciona é o EditorMeso).
+// Celular/tablet: recolhível. Tela bem larga (2xl, ≥1536 px): sempre aberta, ao lado do editor (quem posiciona é o EditorMeso).
 export default function Preview({ meso, semana, treino, aberta, onAlternar }: {
   meso: Meso
   semana: number
@@ -57,19 +70,22 @@ export default function Preview({ meso, semana, treino, aberta, onAlternar }: {
   aberta: boolean
   onAlternar: () => void
 }) {
+  const larga = useTelaLarga()
   return (
-    <Cartao className="space-y-3 !p-2 xl:!p-3">
-      <button type="button" aria-expanded={aberta} onClick={onAlternar} className="flex min-h-11 w-full items-center gap-2 text-left font-semibold xl:pointer-events-none">
-        <IcSeta className={`size-4 transition-transform xl:hidden ${aberta ? 'rotate-90' : ''}`} />
+    <Cartao className="space-y-3 !p-2 2xl:!p-3">
+      <button type="button" aria-expanded={aberta} onClick={onAlternar} className="flex min-h-11 w-full items-center gap-2 text-left font-semibold 2xl:pointer-events-none">
+        <IcSeta className={`size-4 transition-transform 2xl:hidden ${aberta ? 'rotate-90' : ''}`} />
         Prévia do aluno
         <span className="ml-auto text-xs font-normal text-slate-400">Treino {treino} · semana {semana}</span>
       </button>
-      <div className={aberta ? '' : 'hidden xl:block'}>
-        <div className="mx-auto max-h-[70dvh] max-w-[390px] overflow-y-auto overscroll-contain rounded-xl border border-slate-800 xl:rounded-[28px] xl:border-4 xl:max-h-[calc(100dvh-12rem)]">
+      {(aberta || larga) && (
+      <div>
+        <div className="mx-auto max-h-[70dvh] max-w-[390px] overflow-y-auto overscroll-contain rounded-xl border border-slate-800 2xl:rounded-[28px] 2xl:border-4 2xl:max-h-[calc(100dvh-12rem)]">
           <PreviaAluno meso={meso} semana={semana} treino={treino} />
         </div>
         <p className="mt-2 text-center text-xs text-slate-500">Só para ver: os botões não funcionam aqui.</p>
       </div>
+      )}
     </Cartao>
   )
 }

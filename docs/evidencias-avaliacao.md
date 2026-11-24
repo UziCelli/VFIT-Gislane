@@ -41,6 +41,10 @@ pequenos ou populações diferentes; **sem evidência de causa** = nada liga dir
 - Frequência com volume igualado: diferença pequena (Schoenfeld et al., 2019). [doi:10.1080/02640414.2018.1555906](https://doi.org/10.1080/02640414.2018.1555906)
 - Proximidade da falha (Robinson et al., 2024). [doi:10.1007/s40279-024-02069-2](https://doi.org/10.1007/s40279-024-02069-2)
 
+- Aeróbico: 150 min/semana moderado ou 75 min vigoroso (OMS 2020). [doi:10.1136/bjsports-2020-102955](https://doi.org/10.1136/bjsports-2020-102955)
+
+Cálculo: `src/lib/esqueletoTreino.ts` (cartão na anamnese do coach).
+
 **Limite:** amostras na maioria de homens jovens; o algoritmo que junta as respostas é decisão de projeto, não validado.
 
 ## 4. Oscilações × dor × perímetros

@@ -10,6 +10,7 @@ import { registrarErro } from '../../lib/log'
 import { Aviso, Botao, campoBase, Centro } from '../../ui'
 import { BotaoVoltar } from '../../voltar'
 import { Conteudo } from './AnamneseAluno'
+import EsqueletoTreino from './EsqueletoTreino'
 import FichaAnamnese from './FichaAnamnese'
 
 const quando = (a: Anamnese) => (a.em == null ? 'agora' : dataBR(new Date(diaSP(a.em) * 86_400_000).toISOString().slice(0, 10)))
@@ -68,6 +69,7 @@ export default function AnamneseCoach({ uid }: { uid: string }) {
             </Aviso>
           )}
           <FichaAnamnese r={atual.r} />
+          <EsqueletoTreino r={atual.r} />
           <Anotacao key={atual.id} a={atual} />
           {an.dados.length > 1 && (
             <section className="space-y-2">

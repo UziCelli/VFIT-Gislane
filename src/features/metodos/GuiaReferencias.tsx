@@ -125,6 +125,49 @@ export default function GuiaReferencias() {
         </Cartao>
 
         <Cartao>
+          <Titulo>Sugestão de esqueleto do treino (anamnese)</Titulo>
+          <p className="mb-2">
+            Com as respostas da anamnese, o app sugere ao coach a divisão pelos dias disponíveis, as séries por semana de cada grupo (6 a 10 para iniciantes, 10 a 14 intermediários, 12 a 20 avançados; regiões
+            priorizadas no topo), as repetições pelo objetivo e a distância da falha. O volume é cortado para caber no tempo do treino. Dores, sinais ao esforço e doenças viram cuidados.
+          </p>
+          <ul className="mb-2 list-disc space-y-1 pl-5">
+            <li>Nível de evidência: moderado para as doses (meta-análises, a maioria com homens jovens).</li>
+            <li>A combinação das regras é decisão do app, não foi validada: é ponto de partida, e o coach decide.</li>
+          </ul>
+          <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">Fontes</h3>
+          <ul className="list-disc space-y-1 pl-5">
+            <Fonte>
+              Schoenfeld BJ, Ogborn D, Krieger JW. Dose-response relationship between weekly resistance training volume and increases in muscle mass. J Sports Sci. 2017;35(11):1073-1082.{' '}
+              <a className={link} href="https://doi.org/10.1080/02640414.2016.1210197" target="_blank" rel="noreferrer">doi:10.1080/02640414.2016.1210197</a>
+            </Fonte>
+            <Fonte>
+              Schoenfeld BJ, Grgic J, Krieger J. How many times per week should a muscle be trained to maximize muscle hypertrophy? J Sports Sci. 2019;37(11):1286-1295.{' '}
+              <a className={link} href="https://doi.org/10.1080/02640414.2018.1555906" target="_blank" rel="noreferrer">doi:10.1080/02640414.2018.1555906</a>
+            </Fonte>
+            <Fonte>
+              Pelland JC, Remmert JF, Robinson ZP et al. The resistance training dose response: meta-regressions exploring the effects of weekly volume and frequency. Sports Med. 2026;56(2):481-505.{' '}
+              <a className={link} href="https://doi.org/10.1007/s40279-025-02344-w" target="_blank" rel="noreferrer">doi:10.1007/s40279-025-02344-w</a>
+            </Fonte>
+            <Fonte>
+              Robinson ZP, Pelland JC, Remmert JF et al. Exploring the dose-response relationship between estimated resistance training proximity to failure, strength gain, and muscle hypertrophy. Sports Med. 2024;54(9):2209-2231.{' '}
+              <a className={link} href="https://doi.org/10.1007/s40279-024-02069-2" target="_blank" rel="noreferrer">doi:10.1007/s40279-024-02069-2</a>
+            </Fonte>
+            <Fonte>
+              Bull FC, Al-Ansari SS, Biddle S et al. World Health Organization 2020 guidelines on physical activity and sedentary behaviour. Br J Sports Med. 2020;54(24):1451-1462 (aeróbico semanal).{' '}
+              <a className={link} href="https://doi.org/10.1136/bjsports-2020-102955" target="_blank" rel="noreferrer">doi:10.1136/bjsports-2020-102955</a>
+            </Fonte>
+            <Fonte>
+              Hayden JA, Ellis J, Ogilvie R et al. Exercise therapy for chronic low back pain. Cochrane Database Syst Rev. 2021;9:CD009790.{' '}
+              <a className={link} href="https://doi.org/10.1002/14651858.CD009790.pub2" target="_blank" rel="noreferrer">doi:10.1002/14651858.CD009790.pub2</a>
+            </Fonte>
+            <Fonte>
+              Silbernagel KG, Thomeé R, Eriksson BI, Karlsson J. Continued sports activity, using a pain-monitoring model, during rehabilitation in patients with Achilles tendinopathy. Am J Sports Med. 2007;35(6):897-906.{' '}
+              <a className={link} href="https://doi.org/10.1177/0363546506298279" target="_blank" rel="noreferrer">doi:10.1177/0363546506298279</a>
+            </Fonte>
+          </ul>
+        </Cartao>
+
+        <Cartao>
           <Titulo>Peso do corpo nos exercícios</Titulo>
           <p className="mb-2">
             Em exercícios em que o corpo é a carga, o app soma ao que o aluno digita uma fração do peso corporal (por exemplo, 64% na flexão de braços). Os valores vêm da massa dos segmentos corporais e de estudos de força em flexões.

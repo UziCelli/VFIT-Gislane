@@ -12,7 +12,7 @@ import { cicloTerminou, diasDesdeFim, fimISO, RELATORIO_DIAS } from './relatorio
 export const CHAVE_RASCUNHO = 'anamnese-rascunho-'
 
 // Sobe quando as perguntas mudarem (e as regras junto).
-export const VERSAO_ANAMNESE = 1
+export const VERSAO_ANAMNESE = 2
 
 type Opcao = { id: string; rotulo: string }
 type Base = { id: string; rotulo: string }
@@ -57,6 +57,35 @@ export const PERGUNTAS: readonly Etapa[] = [
       },
       { id: 'cirurgia12m', rotulo: 'Fez alguma cirurgia nos últimos 12 meses?', tipo: 'simnao' },
       { id: 'fuma', rotulo: 'Fuma?', tipo: 'simnao' },
+      // Versão 2 (24/11/2026): triagem do ACSM (Riebe et al., 2015) e PAR-Q+. Evidências: docs/evidencias-avaliacao.md.
+      {
+        id: 'condicoes',
+        rotulo: 'Tem diagnóstico de alguma destas condições?',
+        tipo: 'multi',
+        opcoes: [
+          { id: 'hipertensao', rotulo: 'Pressão alta' },
+          { id: 'diabetes', rotulo: 'Diabetes' },
+          { id: 'cardiaca', rotulo: 'Doença do coração' },
+          { id: 'renal', rotulo: 'Doença dos rins' },
+          { id: 'respiratoria', rotulo: 'Asma ou doença do pulmão' },
+          { id: 'osteoporose', rotulo: 'Osteoporose' },
+          { id: 'artrose', rotulo: 'Artrose' },
+          { id: 'hernia', rotulo: 'Hérnia de disco' },
+          { id: 'outra', rotulo: 'Outra' },
+        ],
+      },
+      {
+        id: 'sintomasEsforco',
+        rotulo: 'Ao fazer esforço, sente algum destes sinais?',
+        tipo: 'multi',
+        opcoes: [
+          { id: 'faltaAr', rotulo: 'Falta de ar fora do normal' },
+          { id: 'palpitacao', rotulo: 'Coração disparado ou irregular' },
+          { id: 'inchaco', rotulo: 'Inchaço nos tornozelos' },
+          { id: 'dorPerna', rotulo: 'Dor na perna ao caminhar, que passa ao parar' },
+        ],
+      },
+      { id: 'ativo3m', rotulo: 'Nos últimos 3 meses, fez exercício (30 min ou mais) em pelo menos 3 dias por semana?', tipo: 'simnao' },
     ],
   },
   {
@@ -76,6 +105,33 @@ export const PERGUNTAS: readonly Etapa[] = [
           { id: 'joelho', rotulo: 'Joelho' },
           { id: 'tornozelo', rotulo: 'Tornozelo' },
           { id: 'outra', rotulo: 'Outra' },
+        ],
+      },
+      // As 3 abaixo aparecem só com alguma dor marcada (perguntaAtiva).
+      { id: 'dorIntensidade', rotulo: 'De 0 a 10, quanto dói no pior momento?', tipo: 'inteiro', min: 0, max: 10 },
+      {
+        id: 'dorTempo',
+        rotulo: 'Há quanto tempo sente essa dor?',
+        tipo: 'opcao',
+        opcoes: [
+          { id: 'menos6s', rotulo: 'Menos de 6 semanas' },
+          { id: '6sa3m', rotulo: '6 semanas a 3 meses' },
+          { id: 'mais3m', rotulo: 'Mais de 3 meses' },
+        ],
+      },
+      {
+        id: 'dorPiora',
+        rotulo: 'O que piora a dor?',
+        tipo: 'multi',
+        opcoes: [
+          { id: 'agachar', rotulo: 'Agachar' },
+          { id: 'acimaCabeca', rotulo: 'Levantar o braço acima da cabeça' },
+          { id: 'empurrar', rotulo: 'Empurrar' },
+          { id: 'puxar', rotulo: 'Puxar' },
+          { id: 'curvarTronco', rotulo: 'Curvar o tronco' },
+          { id: 'impacto', rotulo: 'Correr ou saltar' },
+          { id: 'sentado', rotulo: 'Ficar muito tempo sentado' },
+          { id: 'escada', rotulo: 'Subir escada' },
         ],
       },
       { id: 'lesoes', rotulo: 'Lesões antigas e o que piora a dor', tipo: 'texto', max: 500 },
@@ -166,6 +222,32 @@ export const PERGUNTAS: readonly Etapa[] = [
           { id: 'mais60', rotulo: 'Mais de 60 min' },
         ],
       },
+      {
+        id: 'prioridades',
+        rotulo: 'Quais regiões quer priorizar?',
+        tipo: 'multi',
+        opcoes: [
+          { id: 'gluteos', rotulo: 'Glúteos' },
+          { id: 'pernas', rotulo: 'Pernas' },
+          { id: 'costas', rotulo: 'Costas' },
+          { id: 'peito', rotulo: 'Peito' },
+          { id: 'ombros', rotulo: 'Ombros' },
+          { id: 'bracos', rotulo: 'Braços' },
+          { id: 'abdomen', rotulo: 'Abdômen e core' },
+        ],
+      },
+      {
+        id: 'preferencias',
+        rotulo: 'Do que mais gosta de treinar?',
+        tipo: 'multi',
+        opcoes: [
+          { id: 'maquinas', rotulo: 'Máquinas' },
+          { id: 'pesoLivre', rotulo: 'Peso livre' },
+          { id: 'pesoCorpo', rotulo: 'Peso do corpo' },
+          { id: 'aerobico', rotulo: 'Exercício aeróbico' },
+        ],
+      },
+      { id: 'evitar', rotulo: 'Algum exercício que não gosta ou não pode fazer?', tipo: 'texto', max: 300 },
       { id: 'outrasAtividades', rotulo: 'Faz outras atividades físicas? Quais?', tipo: 'texto', max: 300 },
       { id: 'algoMais', rotulo: 'Algo mais que seu treinador deva saber?', tipo: 'texto', max: 1000 },
       { id: 'declaracao', rotulo: 'Respondi com verdade e aviso se algo mudar.', tipo: 'aceite', obrigatoria: true },
@@ -176,6 +258,15 @@ export const PERGUNTAS: readonly Etapa[] = [
 ]
 
 export const TODAS: readonly Pergunta[] = PERGUNTAS.flatMap((e) => e.perguntas)
+
+const SO_COM_DOR = ['dorIntensidade', 'dorTempo', 'dorPiora']
+// Pergunta que aparece só em certas respostas (a tela e a ficha usam a mesma regra).
+export function perguntaAtiva(p: Pergunta, r: Respostas): boolean {
+  if (p.id === 'parqQual') return avisoMedico(r)
+  if (p.id === 'tempoParado') return r.experiencia !== 'nunca'
+  if (SO_COM_DOR.includes(p.id)) return Array.isArray(r.dores) && r.dores.length > 0
+  return true
+}
 
 export type Resposta = boolean | number | string | string[]
 export type Respostas = Record<string, Resposta>
@@ -265,10 +356,17 @@ export function sinaisAtencao(r: Respostas): string[] {
   const s = PARQ_ORDEM.filter((k) => r[k] === true).map((k) => FRASE_PARQ[k])
   if (r.gestante === 'sim') s.push('Gestante ou com bebê de até 6 meses')
   if (r.cirurgia12m === true) s.push('Cirurgia nos últimos 12 meses')
-  if (Array.isArray(r.dores) && r.dores.length > 0) s.push(`Dor: ${r.dores.join(', ')}`)
+  if (Array.isArray(r.dores) && r.dores.length > 0) s.push(`Dor: ${r.dores.join(', ')}${typeof r.dorIntensidade === 'number' ? ` (${r.dorIntensidade}/10)` : ''}`)
+  if (Array.isArray(r.condicoes) && r.condicoes.length > 0) s.push(`Condições: ${rotulos('condicoes', r.condicoes)}`)
+  // ACSM: sinal ou sintoma ao esforço pede liberação médica antes de subir a intensidade.
+  if (Array.isArray(r.sintomasEsforco) && r.sintomasEsforco.length > 0) s.push(`Sinais ao esforço: ${rotulos('sintomasEsforco', r.sintomasEsforco)}`)
   return s
 }
 
+const rotulos = (id: string, xs: string[]) => {
+  const p = TODAS.find((x) => x.id === id)
+  return xs.map((x) => (p && 'opcoes' in p ? p.opcoes.find((o) => o.id === x)?.rotulo : null) ?? x).join(', ')
+}
 const tem = (a: Anamnese) => sinaisAtencao(a.r).length > 0
 const emOuAgora = (a: Anamnese) => a.em ?? Infinity
 

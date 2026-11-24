@@ -13,6 +13,7 @@ import {
   PARQ_GRAVES,
   maisRecente,
   motivoAnamnese,
+  perguntaAtiva,
   PERGUNTAS,
   precisaAtualizar,
   resumoAnamnese,
@@ -353,5 +354,19 @@ describe('fichaAnamnese', () => {
     const f = fichaAnamnese(completa())
     expect(f.length).toBe(5)
     expect(f.flatMap((e) => e.itens).some((i) => i.pergunta.startsWith('Respondi'))).toBe(false)
+  })
+})
+
+describe('versão 2: perguntas condicionais e sinais', () => {
+  const p = (id: string) => TODAS.find((x) => x.id === id)!
+  it('detalhes da dor só com alguma dor marcada', () => {
+    expect(perguntaAtiva(p('dorIntensidade'), minima())).toBe(false)
+    expect(perguntaAtiva(p('dorPiora'), { ...minima(), dores: ['joelho'] })).toBe(true)
+  })
+  it('sinais ao esforço e condições viram pontos de atenção', () => {
+    const s = sinaisAtencao({ ...minima(), sintomasEsforco: ['faltaAr'], condicoes: ['diabetes'], dores: ['lombar'], dorIntensidade: 6 })
+    expect(s).toContain('Sinais ao esforço: Falta de ar fora do normal')
+    expect(s).toContain('Condições: Diabetes')
+    expect(s).toContain('Dor: lombar (6/10)')
   })
 })

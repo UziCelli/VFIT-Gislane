@@ -106,6 +106,25 @@ export default function GuiaReferencias() {
         </Cartao>
 
         <Cartao>
+          <Titulo>Anamnese</Titulo>
+          <p className="mb-2">
+            As perguntas de prontidão seguem o PAR-Q (com versão brasileira validada do PAR-Q+). A triagem do ACSM acrescenta o que mais muda o risco: se a pessoa já é ativa, se tem doença do coração, metabólica ou
+            dos rins e se sente sinais ao esforço. Sinal ao esforço aparece para o coach como ponto de atenção, para pedir liberação médica antes de subir a intensidade. Nível de evidência: alto (diretriz e validação).
+          </p>
+          <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">Fontes</h3>
+          <ul className="list-disc space-y-1 pl-5">
+            <Fonte>
+              Schwartz J, Oh P, Takito MY, Saunders B et al. Translation, cultural adaptation, and reproducibility of the PAR-Q+: the Brazilian Portuguese version. Front Cardiovasc Med. 2021;8:712696.{' '}
+              <a className={link} href="https://doi.org/10.3389/fcvm.2021.712696" target="_blank" rel="noreferrer">doi:10.3389/fcvm.2021.712696</a>
+            </Fonte>
+            <Fonte>
+              Riebe D, Franklin BA, Thompson PD et al. Updating ACSM's recommendations for exercise preparticipation health screening. Med Sci Sports Exerc. 2015;47(11):2473-2479.{' '}
+              <a className={link} href="https://doi.org/10.1249/MSS.0000000000000664" target="_blank" rel="noreferrer">doi:10.1249/MSS.0000000000000664</a>
+            </Fonte>
+          </ul>
+        </Cartao>
+
+        <Cartao>
           <Titulo>Peso do corpo nos exercícios</Titulo>
           <p className="mb-2">
             Em exercícios em que o corpo é a carga, o app soma ao que o aluno digita uma fração do peso corporal (por exemplo, 64% na flexão de braços). Os valores vêm da massa dos segmentos corporais e de estudos de força em flexões.

@@ -21,22 +21,44 @@ const extensora: AparelhoNivel = { id: 'e', nome: 'Extensora', local: 'Condomín
 const semKg: AparelhoNivel = { id: 's', nome: 'Remada', local: 'Condomínio X', tipo: 'maquina', unidade: 'nivel', niveis: 8 }
 
 describe('arredondarNoAparelho', () => {
-  it('kg: vai ao incremento mais próximo, dentro dos limites; empate desce', () => {
+  it('kg: vai ao incremento mais próximo, dentro dos limites; empate sobe', () => {
     expect(arredondarNoAparelho(polia, 23)).toBe(25)
-    expect(arredondarNoAparelho(polia, 22.5)).toBe(20)
+    expect(arredondarNoAparelho(polia, 22.5)).toBe(25)
     expect(arredondarNoAparelho(polia, 2)).toBe(5)
     expect(arredondarNoAparelho(polia, 130)).toBe(100)
     const foraDaGrade: AparelhoKg = { ...polia, minimo: 5, maximo: 12 }
     expect(arredondarNoAparelho(foraDaGrade, 15)).toBe(10)
     expect(proximoValor(foraDaGrade, 10, 1)).toBeNull()
-    expect(arredondarNoAparelho(halter, 8)).toBe(7) // halteres 1, 3, 5, 7, 9: 8 fica no meio e desce
+    expect(arredondarNoAparelho(halter, 8)).toBe(9) // halteres 1, 3, 5, 7, 9: 8 fica no meio e sobe
+    expect(arredondarNoAparelho(halter, 7.8)).toBe(7)
     expect(arredondarNoAparelho(halter, 8.2)).toBe(9)
   })
   it('nível: inteiro entre 1 e o máximo', () => {
     expect(arredondarNoAparelho(extensora, 4.4)).toBe(4)
-    expect(arredondarNoAparelho(extensora, 4.5)).toBe(4)
+    expect(arredondarNoAparelho(extensora, 4.5)).toBe(5)
     expect(arredondarNoAparelho(extensora, 0)).toBe(1)
     expect(arredondarNoAparelho(extensora, 15)).toBe(10)
+  })
+})
+
+describe('plaquinhas complementares (Life Fitness)', () => {
+  const lf: AparelhoKg = { id: 'lf', nome: 'Polia', local: 'Condomínio Y', tipo: 'polia', unidade: 'kg', incremento: 2.5, minimo: 1.25, maximo: 50, complementos: [0.625, 0.625] }
+  it('cabe o meio do degrau: 11,25 → 12,5 em vez de 13,75', () => {
+    expect(arredondarNoAparelho(lf, 12.4)).toBe(12.5)
+    expect(arredondarNoAparelho(lf, 11.9)).toBe(11.875)
+    expect(arredondarNoAparelho(lf, 13.75)).toBe(13.75)
+    expect(arredondarNoAparelho(lf, 60)).toBe(50) // 48,75 + 1,25; nunca acima do máximo
+  })
+  it('anda uma plaquinha por vez', () => {
+    expect(proximoValor(lf, 11.25, 1)).toBe(11.875)
+    expect(proximoValor(lf, 12.5, 1)).toBe(13.75) // 11,25 + as 2 plaquinhas; depois o próximo degrau
+    expect(proximoValor(lf, 11.25, -1)).toBe(10) // 8,75 + as 2 plaquinhas
+    expect(proximoValor(lf, 1.25, -1)).toBeNull()
+    expect(proximoValor(lf, 50, 1)).toBeNull()
+  })
+  it('valida as plaquinhas', () => {
+    expect(problemasAparelho(lf)).toEqual([])
+    expect(problemasAparelho({ ...lf, complementos: [0] })).toContain('complementos: até 4 plaquinhas maiores que 0')
   })
 })
 
@@ -72,9 +94,9 @@ describe('kgDoNivel', () => {
 })
 
 describe('nivelParaKg e sugestaoNoAparelho', () => {
-  it('escolhe o nível de kg mais perto; empate fica no mais leve', () => {
+  it('escolhe o nível de kg mais perto; empate fica no mais pesado', () => {
     expect(nivelParaKg(extensora, 24)).toBe(5)
-    expect(nivelParaKg(extensora, 12.5)).toBe(2)
+    expect(nivelParaKg(extensora, 12.5)).toBe(3)
     expect(nivelParaKg(extensora, 80)).toBe(7)
     expect(nivelParaKg(semKg, 20)).toBeNull()
   })

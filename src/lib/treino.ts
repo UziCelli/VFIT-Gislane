@@ -99,31 +99,43 @@ export function cargaAnterior(
     if (ajusta && !corpo && !iso && !emNivel) {
       const feitas = repsEfetivas(e.reps, (doAnterior ? f.reps : repsFeitas)?.[chave]?.[e.slot.slotId])
       const fino = dois ? 0.001 : passo // 2 lados: conta sem arredondar; arredonda cada lado no fim
-      const media0 = cels ? cels.map((c) => (c.esq != null && c.dir != null ? (c.esq + c.dir) / 2 : null)) : null
-      const base = media0 ? [...media0] : extra
-      // Grava a carga estimada `kg` (média por lado em 2 lados) na série k; true se mudou.
+      // 2 lados: cópias de esquerdo e direito; a digitação é corrigida em CADA lado (600 num braço só não mexe no outro).
+      const esq0 = cels ? cels.map((c) => c.esq) : null
+      const dir0 = cels ? cels.map((c) => c.dir) : null
+      if (esq0 && dir0 && dirs) {
+        for (const [lado, saida] of [[esq0, extra], [dir0, dirs]] as const) {
+          const limpa = corrigirDigitacao(lado.slice(0, e.n), feitas.slice(0, e.n), fino)
+          limpa.trocadas.forEach((k) => {
+            lado[k] = limpa.series[k]
+            saida[k] = noLado(limpa.series[k]!)
+          })
+          if (limpa.trocadas.length) estimada = true
+        }
+      }
+      const media0 = esq0 && dir0 ? esq0.map((x, k) => (x != null && dir0[k] != null ? (x + dir0[k]!) / 2 : null)) : null
+      const base = media0 ?? extra
+      // Grava a carga estimada `kg` (média por lado em 2 lados, na proporção entre os lados daquela série) na série k; true se mudou.
       const gravar = (k: number, kg: number) => {
-        if (!cels || !dirs) {
+        if (!esq0 || !dir0 || !dirs) {
           const v = noAparelho(kg)
           if (v === extra[k]) return false
           extra[k] = v
           return true
         }
         const m = media0![k]
-        const esq = noLado(m ? (cels[k].esq! * kg) / m : kg)
-        const dir = noLado(m ? (cels[k].dir! * kg) / m : kg)
+        const esq = noLado(m ? (esq0[k]! * kg) / m : kg)
+        const dir = noLado(m ? (dir0[k]! * kg) / m : kg)
         if (esq === extra[k] && dir === dirs[k]) return false
         extra[k] = esq
         dirs[k] = dir
         return true
       }
-      // 1º, digitação óbvia (600 em vez de 60) vira a carga equivalente da mediana das séries.
-      const limpa = corrigirDigitacao(base.slice(0, e.n), feitas.slice(0, e.n), fino)
-      limpa.trocadas.forEach((k) => {
-        gravar(k, limpa.series[k]!)
-        if (media0) base[k] = limpa.series[k] // 1 lado: `base` é o próprio `extra`, já gravado
-      })
-      if (limpa.trocadas.length) estimada = true
+      // 1º, digitação óbvia (600 em vez de 60) vira a carga equivalente da mediana das séries (1 lado; 2 lados já foi acima).
+      if (!media0) {
+        const limpa = corrigirDigitacao(extra.slice(0, e.n), feitas.slice(0, e.n), fino)
+        limpa.trocadas.forEach((k) => gravar(k, limpa.series[k]!))
+        if (limpa.trocadas.length) estimada = true
+      }
       // 2º, reps de hoje diferentes das daquele registro: a carga vira a equivalente. Com o modelo pessoal do aluno (curva dele,
       // presa a −12%/+8% da tabela); sem dado suficiente, pela tabela de RM (engine/rm.ts). Reps iguais: fica como foi anotado.
       base.forEach((c, k) => {

@@ -166,6 +166,12 @@ describe('cargaAnterior com 2 lados ajustada às reps de hoje', () => {
     expect(passoPorLado('Cadeira Extensora')).toBe(2.5)
     expect(passoPorLado('Remada Articulada')).toBe(1.25)
   })
+  it('digitação errada num lado só: corrige esse lado e não mexe no outro', () => {
+    const m = m2('Remada Articulada')
+    const mm = { ...m, progressao: { principais: [[10, 10, 10], [10, 10, 10]], auxiliares: [[10, 10, 10], [10, 10, 10]] } }
+    const r = cargaAnterior(mm, { '1-1': { r: [40, 40, 220] } }, 2, 1, 1, undefined, { '1-1': { r: [20, 20, 200] } }, {})
+    expect(r).toMatchObject({ series: [20, 20, 20], dir: { series: [20, 20, 20] }, estimada: true })
+  })
   it('reps iguais: fica como foi anotado', () => {
     const m = m2('Remada Articulada')
     const r = cargaAnterior({ ...m, progressao: { principais: [[10], [10]], auxiliares: [[10], [10]] } }, { '1-1': { r: [40] } }, 2, 1, 1, undefined, { '1-1': { r: [22] } }, {})

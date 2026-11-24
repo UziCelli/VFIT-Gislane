@@ -1,9 +1,10 @@
 // Monta os pontos (carga x reps por série) de cada exercício a partir dos registros e ajusta o modelo pessoal (engine/rmPessoal.ts).
-// Fora do modelo: peso do corpo, 2 lados, isometria e drops (ver docs/estimativa-rm.md). Exercício casa pelo nome
-// normalizado + 2 lados + isometria, a mesma regra de `cargaAnterior` para o meso anterior.
+// Fora do modelo: peso do corpo, isometria e drops (ver docs/estimativa-rm.md). 2 lados entra pela MÉDIA por lado
+// ((esq + dir) / 2), só célula no formato novo (a antiga não diz se era por lado ou total). Exercício casa pelo nome
+// normalizado + 2 lados + isometria, a mesma regra de `cargaAnterior` para o meso anterior (modelo de 2 lados é outro).
 import { ajustarRm, isometrico, prescreverSessao, repsEfetivas, type ModeloRm, type PontoRm } from '../engine'
 import { normalizar } from './iaTreino'
-import { doisLados } from './lados'
+import { doisLados, lerCelula } from './lados'
 import { corpoEhCarga } from './pesoCorporal'
 import type { Fonte } from './treino'
 
@@ -20,14 +21,15 @@ function pontosDe(f: Fonte, deslocamento: number, antes: { semana: number; trein
     for (const e of prescreverSessao(f.meso, w, t)?.exercicios ?? []) {
       const dois = doisLados(e.slot)
       const iso = isometrico(e.slot)
-      if (dois || iso || corpoEhCarga(e.slot.nome) || (f.pcs?.[chave]?.[e.slot.slotId] ?? 0) > 0) continue
+      if (iso || corpoEhCarga(e.slot.nome) || (f.pcs?.[chave]?.[e.slot.slotId] ?? 0) > 0) continue
       const cargas = reg[e.slot.slotId]
       if (!cargas) continue
       const feitas = repsEfetivas(e.reps, f.reps?.[chave]?.[e.slot.slotId])
       const tempo = w + (t - 1) / Math.max(1, f.meso.frequencia) + deslocamento
       const k = chaveModelo(e.slot.nome, dois, iso)
       for (let s = 0; s < e.n; s++) {
-        const kg = cargas[s]
+        const cel = dois ? lerCelula(cargas[s], f.lados?.[chave]?.[e.slot.slotId]?.[s]) : null
+        const kg = cel ? (cel.esq != null && cel.dir != null ? (cel.esq + cel.dir) / 2 : null) : cargas[s]
         if (kg == null || !(kg > 0)) continue
         out.set(k, [...(out.get(k) ?? []), { t: tempo, sessao: `${deslocamento}|${chave}`, kg, reps: feitas[s], serie: s }])
       }

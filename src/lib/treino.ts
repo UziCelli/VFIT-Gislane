@@ -1,5 +1,5 @@
 // Ajudas da tela do aluno. Funções puras.
-import { arredondarNoAparelho, cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, passoDoAparelho, prescreverSessao, REPS_MAX_ORIGEM, repsEfetivas, type Aparelho, type Meso, type ModeloRm, type Registros } from '../engine'
+import { arredondarKg, arredondarNoAparelho, cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, passoDoAparelho, passoPorLado, prescreverSessao, REPS_MAX_ORIGEM, repsEfetivas, type Aparelho, type Meso, type ModeloRm, type Registros } from '../engine'
 import { diaSP } from './acesso'
 import { normalizar } from './iaTreino'
 import { doisLados, lerCelula } from './lados'
@@ -55,11 +55,15 @@ export function cargaAnterior(
   const nomeAlvo = normalizar(alvo.nome)
   const ajusta = !!repsFeitas
   const modelo = ajusta ? opcoes?.modelos?.get(chaveModelo(alvo.nome, dois, iso)) : undefined
-  const ap = opcoes?.aparelho
-  const emNivel = ap?.unidade === 'nivel'
+  const emNivel = opcoes?.aparelho?.unidade === 'nivel'
+  // 2 lados: o aparelho do catálogo só vale se for por lado (`porLado`); senão, o degrau por lado do tipo (passoPorLado).
+  // SUPOSIÇÃO: aparelho de 2 lados cadastrado sem `porLado` tem incremento do total, que não serve para um lado só.
+  const ap = opcoes?.aparelho && (!dois || opcoes.aparelho.porLado) ? opcoes.aparelho : null
   // Com aparelho do catálogo em kg: conta fina e arredonda no aparelho (incremento, mínimo e máximo dele).
   const passo = ap ? 0.001 : passoDoAparelho(alvo.nome)
   const noAparelho = (kg: number | null) => (kg == null || !ap ? kg : arredondarNoAparelho(ap, kg))
+  const passoLado = passoPorLado(alvo.nome)
+  const noLado = (kg: number) => (ap ? arredondarNoAparelho(ap, kg) : arredondarKg(kg, passoLado))
   const tentar = (f: Fonte, w: number, t: number, doAnterior: boolean) => {
     const chave = `${w}-${t}`
     const reg = f.registros[chave]
@@ -87,33 +91,55 @@ export function cargaAnterior(
         return k >= 0 ? (v[e.n + k] ?? null) : null
       }),
     })
-    // Só série comum com carga total (sem lados, sem peso do corpo, sem isometria); drop fica como foi anotado.
+    // Ajuste às reps de hoje: série comum, sem peso do corpo, sem isometria, sem aparelho em nível; drop fica como foi anotado.
+    // 2 lados: a conta é feita na MÉDIA por lado ((esq + dir) / 2) e a mesma proporção vale para o esquerdo e o direito
+    // (10 | 8 vira, por exemplo, 11 | 9), cada lado no degrau por lado (passoPorLado).
     let estimada = false
-    if (ajusta && !dois && !corpo && !iso && !emNivel) {
+    const dirs = cels ? cels.map((c) => c.dir) : null // cópia: abaixo pode ser ajustada
+    if (ajusta && !corpo && !iso && !emNivel) {
       const feitas = repsEfetivas(e.reps, (doAnterior ? f.reps : repsFeitas)?.[chave]?.[e.slot.slotId])
+      const fino = dois ? 0.001 : passo // 2 lados: conta sem arredondar; arredonda cada lado no fim
+      const media0 = cels ? cels.map((c) => (c.esq != null && c.dir != null ? (c.esq + c.dir) / 2 : null)) : null
+      const base = media0 ? [...media0] : extra
+      // Grava a carga estimada `kg` (média por lado em 2 lados) na série k; true se mudou.
+      const gravar = (k: number, kg: number) => {
+        if (!cels || !dirs) {
+          const v = noAparelho(kg)
+          if (v === extra[k]) return false
+          extra[k] = v
+          return true
+        }
+        const m = media0![k]
+        const esq = noLado(m ? (cels[k].esq! * kg) / m : kg)
+        const dir = noLado(m ? (cels[k].dir! * kg) / m : kg)
+        if (esq === extra[k] && dir === dirs[k]) return false
+        extra[k] = esq
+        dirs[k] = dir
+        return true
+      }
       // 1º, digitação óbvia (600 em vez de 60) vira a carga equivalente da mediana das séries.
-      const limpa = corrigirDigitacao(extra.slice(0, e.n), feitas.slice(0, e.n), passo)
-      limpa.trocadas.forEach((k) => (extra[k] = noAparelho(limpa.series[k])))
+      const limpa = corrigirDigitacao(base.slice(0, e.n), feitas.slice(0, e.n), fino)
+      limpa.trocadas.forEach((k) => {
+        gravar(k, limpa.series[k]!)
+        if (media0) base[k] = limpa.series[k] // 1 lado: `base` é o próprio `extra`, já gravado
+      })
       if (limpa.trocadas.length) estimada = true
       // 2º, reps de hoje diferentes das daquele registro: a carga vira a equivalente. Com o modelo pessoal do aluno (curva dele,
       // presa a −12%/+8% da tabela); sem dado suficiente, pela tabela de RM (engine/rm.ts). Reps iguais: fica como foi anotado.
-      extra.forEach((c, k) => {
+      base.forEach((c, k) => {
         if (k >= e.n || k >= hoje.n) return
         // Reps iguais, ou fora de 1..15 no registro de origem (0, vazio ou acima de 15 não servem de base, nem para o modelo):
         // fica como foi anotado.
         const baseValida = feitas[k] >= 1 && feitas[k] <= REPS_MAX_ORIGEM
         if (c != null && (feitas[k] === hoje.reps[k] || !baseValida)) return
-        const kg = noAparelho((modelo ? cargaPessoal(modelo, hoje.reps[k], k, passo) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k], passo) : null))
-        if (kg != null && kg !== c) {
-          extra[k] = kg
-          estimada = true
-        }
+        const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k, fino) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k], fino) : null)
+        if (kg != null && gravar(k, kg)) estimada = true
       })
     }
     // `dir`: lado direito (só em 2 lados); `series`/`drops` ficam com o esquerdo.
     return {
       ...fatiar(extra),
-      ...(cels && { dir: fatiar(cels.map((c) => c.dir)) }),
+      ...(dirs && { dir: fatiar(dirs) }),
       origem: { semana: w, treino: t, ...(doAnterior && { anterior: true as const }) } as Origem,
       estimada,
     }

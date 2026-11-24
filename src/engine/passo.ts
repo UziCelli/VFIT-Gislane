@@ -31,3 +31,11 @@ export function passoDoAparelho(nome: string): Passo {
   if (equip === 'maquina' && DE_ANILHA.some((p) => norm(nome).includes(p))) return PASSO_ANILHA
   return PASSOS[equip]
 }
+
+// Degrau de UM lado em exercício de 2 lados (2 halteres, articulada). Halter já é por halter; anilha por lado sobe
+// 1,25 kg (a menor anilha), não 2,5 (que conta os dois lados juntos). Confirmado pelo Celli. Seletora/polia: cada lado
+// tem a sua pilha, então fica o degrau do tipo.
+export function passoPorLado(nome: string): Passo {
+  const p = passoDoAparelho(nome)
+  return p === PASSO_ANILHA ? PASSO_ANILHA / 2 : p
+}

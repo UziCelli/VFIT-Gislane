@@ -143,6 +143,41 @@ describe('cargaAnterior com 2 lados', () => {
 })
 
 
+describe('cargaAnterior com 2 lados ajustada às reps de hoje', () => {
+  // Semana 1: 10 reps; semana 2: 8 reps.
+  const m2 = (nome: string, extra: Partial<Slot> = { doisLados: true }): Meso => ({
+    frequencia: 1, semanas: 2, inicio: '2026-01-05', pausaS: 60,
+    divisao: [[{ slotId: 'r', nome, ...extra }]],
+    progressao: { principais: [[10, 10], [8, 8]], auxiliares: [[10, 10], [8, 8]] },
+    metodos: [],
+  })
+  it('halter: média por lado sobe pela tabela, cada lado no degrau do halter', () => {
+    const r = cargaAnterior(m2('Supino Reto Halter'), { '1-1': { r: [56, 56] } }, 2, 1, 1, undefined, { '1-1': { r: [28, 28] } }, {})
+    expect(r).toMatchObject({ series: [30, 30], dir: { series: [30, 30] }, estimada: true }) // 28 × ~1,05 = 29,4 → halter de 2 em 2
+  })
+  it('articulada: lados diferentes mantêm a proporção, de 1,25 em 1,25 por lado', () => {
+    const r = cargaAnterior(m2('Remada Articulada'), { '1-1': { r: [40] } }, 2, 1, 1, undefined, { '1-1': { r: [22] } }, {})
+    expect(r).toMatchObject({ series: [22.5], dir: { series: [18.75] }, estimada: true }) // 22 | 18 × ~1,05 = 23,1 | 18,9
+  })
+  it('reps iguais: fica como foi anotado', () => {
+    const m = m2('Remada Articulada')
+    const r = cargaAnterior({ ...m, progressao: { principais: [[10], [10]], auxiliares: [[10], [10]] } }, { '1-1': { r: [40] } }, 2, 1, 1, undefined, { '1-1': { r: [22] } }, {})
+    expect(r).toMatchObject({ series: [22], dir: { series: [18] }, estimada: false })
+  })
+  it('com peso do corpo no registro: sem ajuste (como antes)', () => {
+    const r = cargaAnterior(m2('Remada Articulada'), { '1-1': { r: [120] } }, 2, 1, 1, { '1-1': { r: 80 } }, { '1-1': { r: [20] } }, {})
+    expect(r).toMatchObject({ series: [20], dir: { series: [20] }, estimada: false })
+  })
+  it('aparelho do catálogo: só vale em 2 lados se for por lado', () => {
+    const ap: Aparelho = { id: 'x', nome: 'Articulada', local: 'X', tipo: 'maquina', unidade: 'kg', incremento: 5 }
+    const regs = { '1-1': { r: [40] } }
+    const lados = { '1-1': { r: [20] } }
+    // sem porLado: ignora o catálogo e usa 1,25 por lado (20 × ~1,05 = 21 → 21,25)
+    expect(cargaAnterior(m2('Remada Articulada'), regs, 2, 1, 1, undefined, lados, {}, { aparelho: ap })).toMatchObject({ series: [21.25], dir: { series: [21.25] } })
+    expect(cargaAnterior(m2('Remada Articulada'), regs, 2, 1, 1, undefined, lados, {}, { aparelho: { ...ap, porLado: true } })).toMatchObject({ series: [20], dir: { series: [20] } })
+  })
+})
+
 describe('cargaAnterior: exercício que reaparece em outro treino', () => {
   // Treino 1: Supino (a) e Remada (b). Treino 2: Supino (c) e Agachamento (d).
   const m: Meso = {

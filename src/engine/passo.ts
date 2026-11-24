@@ -3,8 +3,9 @@
 // - halter: de 1 em 1 kg até 10 kg; acima, de 2 em 2 kg.
 // - barra e aparelho de anilha (leg press, smith, hack, articulada, pêndulo): anilhas de 1,25, 2,5, 5, 10... A menor
 //   (1,25) dos dois lados = 2,5 kg. Confirmado pelo Celli.
-// - máquina de placas (cadeira, flexora, extensora, peck deck...): 5 kg.
-// - polia e duas polias: placa de 5 kg (por lado, em duas polias).
+// - máquina seletora (MTS: cadeira, flexora, extensora, peck deck...) e polia móvel: 2,5 kg (confirmado pelo Celli).
+//   Exceções de fabricante (ex.: polia Life Fitness, que sobe de 0,625 em 0,625) entram pelo catálogo de aparelhos
+//   (engine/aparelho.ts, campo `incremento`), não por aqui.
 // Sempre para o valor mais próximo (confirmado).
 // - peso do corpo / não reconhecido: 0,5 kg (como antes, nada muda).
 // Aparelho sem etiqueta de peso (só níveis 1, 2, 3...) fica para o catálogo de aparelhos.
@@ -16,9 +17,9 @@ const halter = (kg: number) => (kg <= 10 ? 1 : 2)
 export const PASSOS: Record<Equipamento, Passo> = {
   halter,
   barra: 2.5,
-  maquina: 5,
-  polia: 5,
-  duasPolias: 5,
+  maquina: 2.5,
+  polia: 2.5,
+  duasPolias: 2.5,
   pesoCorporal: PASSO_KG,
 }
 

@@ -106,6 +106,25 @@ describe('polimento com meta de volume e tempo', () => {
     expect(prescreverSessao(salvo, 4, 1)).toEqual(prescreverSessao(m, 4, 1))
     const metodos = metodosDaSessao(salvo, 3, 1)
     expect(metodos).toEqual([vizinho])
+    // O coach edita Métodos depois de salvar o polimento: a configuração antiga ainda está no ciclo.
+    for (const metodoIncompativel of ['Clusterset', 'Biset'] as const) {
+      const novoMetodo = { ...metodo, metodo: metodoIncompativel, blocos: 2, repsPorBloco: 6, pausaInternaS: 15 }
+      const misturado = { ...salvo, metodos: [...salvo.metodos, novoMetodo] }
+      const misturadoNormal = { ...misturado, polimentos: {} }
+      expect(metodosDaSessao(misturado, 3, 1)).toEqual(misturado.metodos.filter(x => x.semana === 3))
+      expect(prescreverSessao(misturado, 3, 1)).toEqual(prescreverSessao(misturadoNormal, 3, 1))
+      const sessaoMista = prescreverSessao(misturado, 3, 1)!
+      expect(sessaoMista.exercicios[0].folgaPolimento).toBeUndefined()
+      expect(sessaoMista.exercicios[0].drops.length).toBeGreaterThan(0)
+      expect(sessaoMista.exercicios[1]).toEqual(sessao.exercicios[1])
+      const previa = planejarPolimento(misturado, {
+        pct: 40, semanas: [3], alvo: { tipo: 'exercicio', slotId: 'sup' }, tipo: 'degrau', degraus: 0, folga: 3, hoje: '2026-10-15',
+        historico: { meso: misturado, completos: new Set(), protegidos: new Set(), cargas: {}, reps: {} },
+      })
+      expect(previa.linhas[0]).toMatchObject({ ignorados: 1, semIntensificadores: 0, tempoAntes: sessaoMista.tempoMin, tempoDepois: sessaoMista.tempoMin })
+      expect(prescreverSessao(previa.meso, 3, 1)).toEqual(sessaoMista)
+      expect(prescreverSessao({ ...previa.meso, metodos: salvo.metodos }, 3, 1)).toEqual(sessao)
+    }
     expect(lerPrescricaoRegistrada(JSON.stringify({ versao: 1, sessao, metodos }))?.metodos).toEqual([vizinho])
     expect(resultado(0, 0).meso).toBe(m)
     expect(resultado(3, 0, ['3-1']).meso).toBe(m)

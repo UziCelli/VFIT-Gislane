@@ -76,7 +76,11 @@ export function slotsDaSessao(meso: Meso, semana: number, treino: number): SlotS
 
 // Linhas de método do dia (ativas ou não): as da sessão editada, senão as do plano.
 export const esforcoPolimento = (p?: Pick<PolimentoExercicio, 'folga' | 'degraus'>) => !!(p?.folga || p?.degraus)
-export const intensificadorPolimento = (m: AplicacaoMetodo) => m.metodo === 'Dropset' || m.metodo === 'Rest-pause'
+const intensificadorPolimento = (m: AplicacaoMetodo) => m.metodo === 'Dropset' || m.metodo === 'Rest-pause'
+
+// Chamadores passam somente os métodos ativos de um exercício. Métodos mistos não entram no modo leve.
+export const podeSuspenderIntensificadores = (ativos: AplicacaoMetodo[]) =>
+  ativos.length > 0 && ativos.every(intensificadorPolimento)
 
 export function metodosDaSessao(meso: Meso, semana: number, treino: number): AplicacaoMetodo[] {
   const preservada = copiaDoDia(meso, semana, treino)
@@ -88,12 +92,13 @@ export function metodosDaSessao(meso: Meso, semana: number, treino: number): Apl
   if (!pol) return doTreino
   const slots = slotsDaSessao(meso, semana, treino)
   // A mesma lista efetiva alimenta prescrição, contador, tela e a cópia histórica criada ao iniciar.
-  return doTreino.filter(m => {
-    if (!m.ativo || !intensificadorPolimento(m)) return true
-    const slot = slots[m.exercicio - 1]
-    const p = slot && pol[slot.slotId]
-    return !(p && esforcoPolimento(p) && p.nome === slot.nome && !isometrico(slot))
-  })
+  const suspensos = new Set<number>()
+  for (const [i, slot] of slots.entries()) {
+    const p = pol[slot.slotId]
+    if (p && esforcoPolimento(p) && p.nome === slot.nome && !isometrico(slot) &&
+      podeSuspenderIntensificadores(doTreino.filter(m => m.ativo && m.exercicio === i + 1))) suspensos.add(i + 1)
+  }
+  return doTreino.filter(m => !m.ativo || !suspensos.has(m.exercicio))
 }
 
 export function prescreverSessao(meso: Meso, semana: number, treino: number): Sessao | null {

@@ -1,7 +1,7 @@
 import { lerCelula } from './celulaLados'
 import { cargaPolimento } from './degrauPolimento'
 import { isometrico } from './isometria'
-import { esforcoPolimento, intensificadorPolimento, metodosDaSessao, prescreverSessao } from './sessao'
+import { esforcoPolimento, metodosDaSessao, podeSuspenderIntensificadores, prescreverSessao } from './sessao'
 import type { AlvoVolume, ExercicioPrescrito, Meso, PolimentoExercicio, Registros } from './tipos'
 import { fracaoPolimento, type TipoPolimento } from './volume'
 
@@ -72,7 +72,7 @@ export function planejarPolimento(meso: Meso, { pct, semanas, alvo, tipo, degrau
       return s.exercicios.filter(e => selecionado(meso,alvo,t,e)).map(e => {
         const ativos = metodos.filter(m => m.exercicio === e.pos)
         const esforco = !isometrico(e.slot) && (!!folga || (degraus > 0 && !h.semKgNoPlano?.(e)))
-        const viraReta = esforco && ativos.length > 0 && ativos.every(intensificadorPolimento)
+        const viraReta = esforco && podeSuspenderIntensificadores(ativos)
         return {
           t, k, e, esforco, viraReta,
           podeMudar: !congelado && !meso.sessoes?.[k],

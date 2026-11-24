@@ -77,3 +77,22 @@ tronco (tórax, cintura, abdômen) de 1 cm também no relatório (`LIMIAR_TRONCO
   [doi:10.1093/ajcn/72.3.796](https://doi.org/10.1093/ajcn/72.3.796)
 
 Cálculo: `src/lib/areaMuscular.ts`. Texto para o usuário: aba Consultas › Referências.
+
+## 6. Equações de dobras por perfil e ETM (pedido do dono, 24/11/2026)
+
+Nível: **moderado** para a escolha por população (validação de cada equação e estudos de validação cruzada);
+as regras de ETM são **estatísticas** (repetibilidade), com tolerâncias de referência.
+
+- Equações generalizadas valem na faixa de idade e adiposidade de origem (Jackson & Pollock, 1982); erram mais
+  em atletas (Withers et al., 1987, [doi:10.1007/BF00640643](https://doi.org/10.1007/BF00640643)) e em corredoras
+  (Thompson et al., 1993, [doi:10.1002/ajhb.1310050306](https://doi.org/10.1002/ajhb.1310050306)).
+- Durnin & Womersley, 1974: 16 a 72 anos, magros a obesos. [doi:10.1079/bjn19740060](https://doi.org/10.1079/bjn19740060)
+- Slaughter et al., 1988: 8 a 18 anos.
+- ETM e tolerâncias (dobras 5%, perímetros 1%, intra-avaliador): Ulijaszek & Kerr, 1999.
+  [doi:10.1017/s0007114599001348](https://doi.org/10.1017/s0007114599001348)
+- Erro entre avaliadores muito maior que dentro do mesmo avaliador (dobras 2,1 a 5,4 mm × 0,6 a 1,0 mm):
+  Adams et al., 2002. [doi:10.1016/s0895-4356(01)00492-9](https://doi.org/10.1016/s0895-4356(01)00492-9)
+
+Escolha automática (`src/lib/equacoesDobras.ts`): menor de 18 → Slaughter; acima de 61 (H) / 55 (M) ou IMC ≥ 30 →
+Durnin & Womersley; senão Pollock 7 (ou 3). O coach pode fixar outra. ETM (`src/lib/etm.ts`): 2 medidas por ponto,
+média; ETM = √(Σd²/2n) com os pares do aluno; com ≥ 5 pares, menor mudança real = 1,96 × √2 × ETM vira o limiar.

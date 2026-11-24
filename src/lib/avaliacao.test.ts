@@ -58,7 +58,7 @@ describe('resultado', () => {
   })
 
   it('sem as 7 dobras, sexo ou idade: usa a bioimpedância', () => {
-    const seis = { ...dobras(10), coxa: undefined }
+    const seis = { ...dobras(10), coxa: undefined, biceps: undefined }
     expect(resultado(av({ sexo: 'M', idade: 30, dobras: seis, bio: { gorduraPct: 18 } }))).toMatchObject({ gorduraPct: 18, fonte: 'bio', somaDobras: null })
     expect(resultado(av({ idade: 30, dobras: dobras(10), bio: { gorduraPct: 18 } })).fonte).toBe('bio')
     expect(resultado(av({ sexo: 'M', dobras: dobras(10) }))).toMatchObject({ gorduraPct: null, fonte: null, massaMagraKg: null })
@@ -151,7 +151,7 @@ describe('relatorioAvaliacao', () => {
 
   it('métodos diferentes de gordura não são comparados', () => {
     const r = relatorioAvaliacao([primeira, anterior], 'a1')!
-    expect(r.texto.join('\n')).toContain('O % de gordura desta avaliação veio de outro método; por isso não é comparado com o anterior.')
+    expect(r.texto.join('\n')).toContain('O % de gordura desta avaliação veio de outro método ou de outra equação; por isso não é comparado com o anterior.')
     expect(r.grupos[0].linhas.find((l) => l.rotulo === 'Gordura')!.delta).toBeNull()
   })
 
@@ -220,6 +220,8 @@ describe('firestore.rules', () => {
   it.each([
     ['perimetros', PERIMETROS],
     ['dobras', DOBRAS],
+    ['perimetros2', PERIMETROS],
+    ['dobras2', DOBRAS],
     ['bio', BIO],
   ] as const)('as chaves de %s são as mesmas das regras', (campo, ids) => {
     expect(regras).toContain(`'${campo}', ${lista(ids)}`)

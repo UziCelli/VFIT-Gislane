@@ -47,60 +47,61 @@ export default function GuiaReferencias() {
         </Cartao>
 
         <Cartao>
-          <Titulo>% de gordura (avaliação física)</Titulo>
+          <Titulo>% de gordura: equações por perfil (avaliação física)</Titulo>
           <p className="mb-2">
-            Pelas 7 dobras cutâneas (peitoral, axilar média, tríceps, subescapular, abdominal, supra-ilíaca e coxa), que precisam de sexo e idade: a soma das dobras dá a densidade corporal (equação de Jackson &amp; Pollock para
-            homens; Jackson, Pollock &amp; Ward para mulheres) e a densidade vira % de gordura pela equação de Siri: <strong>%G = (4,95 ÷ densidade − 4,5) × 100</strong>. Sem as dobras, vale o % da bioimpedância, e o app avisa a
-            fonte usada.
+            Cada equação de dobras vale para a população em que foi validada; fora dela o erro cresce. O coach pode escolher a equação ou deixar o app escolher pelo perfil, entre as que têm as dobras medidas:
+          </p>
+          <ul className="mb-2 list-disc space-y-1 pl-5">
+            <li><strong>Menos de 18 anos:</strong> Slaughter (tríceps + panturrilha).</li>
+            <li><strong>Acima de 61 anos (homens) ou 55 (mulheres), ou IMC de 30 ou mais:</strong> Durnin &amp; Womersley (bíceps, tríceps, subescapular, supra-ilíaca), validada de 16 a 72 anos e de magros a obesos.</li>
+            <li><strong>Adultos na faixa:</strong> Jackson &amp; Pollock de 7 dobras; com só 3 dobras, a versão de 3.</li>
+          </ul>
+          <p className="mb-2">
+            A densidade vira % de gordura pela equação de Siri: <strong>%G = (4,95 ÷ densidade − 4,5) × 100</strong>. Sem dobras, vale a bioimpedância. Avaliações com equações diferentes não são comparadas. Em atletas e em
+            pessoas com obesidade, as equações generalizadas erram mais.
           </p>
           <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">Fontes</h3>
           <ul className="list-disc space-y-1 pl-5">
             <Fonte>Jackson AS, Pollock ML. Generalized equations for predicting body density of men. Br J Nutr. 1978;40(3):497-504.</Fonte>
             <Fonte>Jackson AS, Pollock ML, Ward A. Generalized equations for predicting body density of women. Med Sci Sports Exerc. 1980;12(3):175-181.</Fonte>
+            <Fonte>Jackson AS, Pollock ML. Steps toward the development of generalized equations for predicting body composition of adults. Can J Appl Sport Sci. 1982;7(3):189-196.</Fonte>
+            <Fonte>
+              Durnin JV, Womersley J. Body fat assessed from total body density and its estimation from skinfold thickness: measurements on 481 men and women aged from 16 to 72 years. Br J Nutr. 1974;32(1):77-97.{' '}
+              <a className={link} href="https://doi.org/10.1079/bjn19740060" target="_blank" rel="noreferrer">doi:10.1079/bjn19740060</a>
+            </Fonte>
+            <Fonte>Slaughter MH, Lohman TG, Boileau RA et al. Skinfold equations for estimation of body fatness in children and youth. Hum Biol. 1988;60(5):709-723.</Fonte>
+            <Fonte>
+              Withers RT, Craig NP, Bourdon PC, Norton KI. Relative body fat and anthropometric prediction of body density of male athletes. Eur J Appl Physiol. 1987;56(2):191-200 (equações publicadas erram em atletas).{' '}
+              <a className={link} href="https://doi.org/10.1007/BF00640643" target="_blank" rel="noreferrer">doi:10.1007/BF00640643</a>
+            </Fonte>
+            <Fonte>
+              Thompson DL, Snead DB, Weltman A. The utility of generalized girth and skinfold equations to predict body composition in women runners. Am J Hum Biol. 1993;5(3):283-290.{' '}
+              <a className={link} href="https://doi.org/10.1002/ajhb.1310050306" target="_blank" rel="noreferrer">doi:10.1002/ajhb.1310050306</a>
+            </Fonte>
             <Fonte>Siri WE. Body composition from fluid spaces and density: analysis of methods. In: Brozek J, Henschel A, eds. Techniques for Measuring Body Composition. Washington: National Academy of Sciences; 1961. p. 223-244.</Fonte>
           </ul>
         </Cartao>
 
         <Cartao>
-          <Titulo>Músculo estimado e dobras dos dois lados (avaliação física)</Titulo>
+          <Titulo>Erro técnico de medição (ETM)</Titulo>
           <p className="mb-2">
-            As dobras são medidas de um lado só (o direito) e valem para os dois, porque a gordura sob a pele costuma ser simétrica. Com elas, o app tira a gordura do perímetro:{' '}
-            <strong>perímetro corrigido = perímetro − π × dobra</strong>. Daí saem a área muscular do braço (tríceps), a da coxa (dobra da coxa) e a massa muscular do corpo (braço, coxa e panturrilha).
+            Cada ponto pode ser medido 2 vezes; vale a média. Com os pares de todas as avaliações do aluno, o app calcula <strong>ETM = √(Σd² ÷ 2n)</strong> e o ETM% (ETM ÷ média × 100). Tolerância: até 5% nas dobras e
+            1% nos perímetros; se as 2 medidas de um ponto passam disso, o app pede a 3ª. Com 5 pares ou mais, a <strong>menor mudança real (95%) = 1,96 × √2 × ETM</strong> vira o limiar das setas e leituras: abaixo
+            dele, a variação é tratada como erro de medida.
           </p>
           <ul className="mb-2 list-disc space-y-1 pl-5">
-            <li>Nos braços, a mão dominante pode deixar um lado maior; por isso o lado esquerdo vem marcado "dobra da direita".</li>
-            <li>Com lipedema marcado na região, não há estimativa: a gordura não é simétrica nem representada pela dobra.</li>
-            <li>A área da coxa superestima o valor absoluto, mas acompanha a mudança com o treino. Use para a tendência.</li>
-            <li>A massa muscular do corpo só aparece com IMC abaixo de 30 e sem ajuste de etnia (o app não pergunta).</li>
-            <li>Nível de evidência: moderado para as áreas musculares; baixo a moderado para a simetria das dobras.</li>
+            <li>As regras são estatísticas (repetibilidade); as tolerâncias seguem a referência da ISAK citada na revisão abaixo.</li>
+            <li>Entre avaliadores diferentes o erro das dobras é bem maior (2 a 5 mm contra menos de 1 mm do mesmo avaliador): prefira o mesmo avaliador.</li>
           </ul>
           <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">Fontes</h3>
           <ul className="list-disc space-y-1 pl-5">
             <Fonte>
-              Heymsfield SB, McManus C, Smith J, Stevens V, Nixon DW. Anthropometric measurement of muscle mass: revised equations for calculating bone-free arm muscle area. Am J Clin Nutr. 1982;36(4):680-690.{' '}
-              <a className={link} href="https://doi.org/10.1093/ajcn/36.4.680" target="_blank" rel="noreferrer">doi:10.1093/ajcn/36.4.680</a>
+              Ulijaszek SJ, Kerr DA. Anthropometric measurement error and the assessment of nutritional status. Br J Nutr. 1999;82(3):165-177.{' '}
+              <a className={link} href="https://doi.org/10.1017/s0007114599001348" target="_blank" rel="noreferrer">doi:10.1017/s0007114599001348</a>
             </Fonte>
             <Fonte>
-              Lee RC, Wang Z, Heo M, Ross R, Janssen I, Heymsfield SB. Total-body skeletal muscle mass: development and cross-validation of anthropometric prediction models. Am J Clin Nutr. 2000;72(3):796-803.{' '}
-              <a className={link} href="https://doi.org/10.1093/ajcn/72.3.796" target="_blank" rel="noreferrer">doi:10.1093/ajcn/72.3.796</a>
-            </Fonte>
-            <Fonte>
-              Knapik JJ, Staab JS, Harman EA. Validity of an anthropometric estimate of thigh muscle cross-sectional area. Med Sci Sports Exerc. 1996;28(12):1523-1530.{' '}
-              <a className={link} href="https://doi.org/10.1097/00005768-199612000-00013" target="_blank" rel="noreferrer">doi:10.1097/00005768-199612000-00013</a>
-            </Fonte>
-            <Fonte>
-              DeFreitas JM, Beck TW, Stock MS et al. A comparison of techniques for estimating training-induced changes in muscle cross-sectional area. J Strength Cond Res. 2010;24(9):2383-2389.{' '}
-              <a className={link} href="https://doi.org/10.1519/JSC.0b013e3181ec86f3" target="_blank" rel="noreferrer">doi:10.1519/JSC.0b013e3181ec86f3</a>
-            </Fonte>
-            <Fonte>Housh DJ, Housh TJ, Weir JP et al. Anthropometric estimation of thigh muscle cross-sectional area. Med Sci Sports Exerc. 1995;27(5):784-791.</Fonte>
-            <Fonte>
-              Moreno LA, Rodríguez G, Guillén J et al. Anthropometric measurements in both sides of the body in the assessment of nutritional status in prepubertal children. Eur J Clin Nutr. 2002;56(12):1208-1215 (diferença entre lados menor que o erro de medida).{' '}
-              <a className={link} href="https://doi.org/10.1038/sj.ejcn.1601493" target="_blank" rel="noreferrer">doi:10.1038/sj.ejcn.1601493</a>
-            </Fonte>
-            <Fonte>Malina RM, Buschang PH. Anthropometric asymmetry in normal and mentally retarded males. Ann Hum Biol. 1984;11(6):515-531 (assimetria maior nos braços que nas pernas).</Fonte>
-            <Fonte>
-              Faerber G et al. S2k guideline lipedema. J Dtsch Dermatol Ges. 2024;22(9):1303-1315.{' '}
-              <a className={link} href="https://doi.org/10.1111/ddg.15513" target="_blank" rel="noreferrer">doi:10.1111/ddg.15513</a>
+              Adams C, Burke V, Beilin LJ. Accuracy of blood pressure measurement and anthropometry among volunteer observers in a large community survey. J Clin Epidemiol. 2002;55(4):338-344.{' '}
+              <a className={link} href="https://doi.org/10.1016/s0895-4356(01)00492-9" target="_blank" rel="noreferrer">doi:10.1016/s0895-4356(01)00492-9</a>
             </Fonte>
           </ul>
         </Cartao>

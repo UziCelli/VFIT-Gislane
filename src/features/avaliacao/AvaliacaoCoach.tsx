@@ -4,7 +4,7 @@ import { diaSP, type Usuario } from '../../lib/acesso'
 import { apagarAvaliacao, novaAvaliacaoId, recolherAvaliacao, salvarAvaliacao } from '../../lib/acoes'
 import {
   BIO, cicloDaAvaliacao, DOBRAS, FAIXA, lerAvaliacao, LIPEDEMA, PERIMETROS, relatorioAvaliacao,
-  type Avaliacao as Av, type AvaliacaoForm, type Lipedema,
+  efetiva, etmDoAluno, resultado, type Avaliacao as Av, type AvaliacaoForm, type Lipedema,
 } from '../../lib/avaliacao'
 import { linkEmail, linkWhatsApp, primeiroNome } from '../../lib/contato'
 import { db } from '../../lib/firebase'
@@ -18,6 +18,8 @@ import { useDadosAluno } from '../relatorio/useDadosAluno'
 import Avaliacao, { BotaoPdfAvaliacao } from './Avaliacao'
 import { useAvaliacoesDoAluno } from './AvaliacoesCoach'
 import OscilacoesCoach from './OscilacoesCoach'
+import { EQUACOES, escolherEquacao, type EquacaoId } from '../../lib/equacoesDobras'
+import { foraDaTolerancia, MIN_PARES, TOLERANCIA } from '../../lib/etm'
 import { useDores } from '../fisio/useDores'
 
 const botaoLink = 'grid min-h-11 flex-1 place-items-center rounded-lg bg-slate-800 px-3 py-2 text-center text-sm font-semibold text-slate-100 hover:bg-slate-700'
@@ -87,10 +89,15 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
     ...Object.fromEntries([
       ...PERIMETROS.map((p) => ['p_' + p.id, txt(ficha?.perimetros[p.id])]),
       ...DOBRAS.map((d) => ['d_' + d.id, txt(ficha?.dobras[d.id])]),
+      ...PERIMETROS.map((p) => ['p2_' + p.id, txt(ficha?.perimetros2?.[p.id])]),
+      ...DOBRAS.map((d) => ['d2_' + d.id, txt(ficha?.dobras2?.[d.id])]),
       ...BIO.map((b) => ['b_' + b.id, txt(ficha?.bio[b.id])]),
     ]),
   }))
   const [lipedema, setLipedema] = useState<Lipedema[]>(base?.lipedema ?? [])
+  // 2ª medida de cada ponto (ETM): ligada se a avaliação já tem alguma, ou se a anterior usou.
+  const [duplo, setDuplo] = useState(() => !!(base?.dobras2 || base?.perimetros2))
+  const [equacao, setEquacao] = useState<EquacaoId | ''>(ficha?.equacao ?? base?.equacao ?? '')
   const [existe, setExiste] = useState(!!ficha)
   const [liberado, setLiberado] = useState(!!ficha?.liberado)
   // Trocar a rota remonta a tela: a mensagem do 1º salvar atravessa pelo `flash`.
@@ -106,6 +113,8 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
     ['peso', FAIXA.peso], ['altura', FAIXA.altura], ['idade', FAIXA.idade],
     ...PERIMETROS.map((p): [string, Faixa] => ['p_' + p.id, FAIXA.perimetro]),
     ...DOBRAS.map((d): [string, Faixa] => ['d_' + d.id, FAIXA.dobra]),
+    ...PERIMETROS.map((p): [string, Faixa] => ['p2_' + p.id, FAIXA.perimetro]),
+    ...DOBRAS.map((d): [string, Faixa] => ['d2_' + d.id, FAIXA.dobra]),
     ...BIO.map((b): [string, Faixa] => ['b_' + b.id, [0.1, b.max]]),
   ]
   const ruim = (k: string) => {
@@ -125,6 +134,9 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
         idade: num(v.idade),
         perimetros: pega('p_', PERIMETROS),
         dobras: pega('d_', DOBRAS),
+        ...(duplo && Object.keys(pega('p2_', PERIMETROS)).length ? { perimetros2: pega('p2_', PERIMETROS) } : {}),
+        ...(duplo && Object.keys(pega('d2_', DOBRAS)).length ? { dobras2: pega('d2_', DOBRAS) } : {}),
+        ...(equacao ? { equacao } : {}),
         bio: pega('b_', BIO),
         lipedema,
         comentario: v.comentario,
@@ -152,16 +164,31 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
     }
   }
   const aviso = `Oi, ${primeiroNome(aluno.nome)}! Sua avaliação física está pronta no app. Abra o Início para ver.`
-  const secao = (titulo: string, itens: { id: string; rotulo: string }[], pre: string) => (
+  // `pre2`: prefixo da 2ª medida (com "Medir 2 vezes" ligado, cada ponto ocupa a linha: 1ª e 2ª lado a lado).
+  const secao = (titulo: string, itens: { id: string; rotulo: string }[], pre: string, pre2?: string) => (
     <fieldset className="space-y-2">
       <legend className="mb-2 font-semibold">{titulo}</legend>
       <div className="grid grid-cols-2 gap-3">
-        {itens.map((i) => (
-          <Num key={i.id} rotulo={i.rotulo} v={v[pre + i.id]} onChange={set(pre + i.id)} ruim={ruim(pre + i.id)} />
-        ))}
+        {itens.map((i) =>
+          duplo && pre2 ? (
+            <div key={i.id} className="col-span-2 grid grid-cols-2 gap-3">
+              <Num rotulo={`${i.rotulo} (1ª)`} v={v[pre + i.id]} onChange={set(pre + i.id)} ruim={ruim(pre + i.id)} />
+              <Num rotulo="2ª medida" v={v[pre2 + i.id]} onChange={set(pre2 + i.id)} ruim={ruim(pre2 + i.id)} />
+            </div>
+          ) : (
+            <Num key={i.id} rotulo={i.rotulo} v={v[pre + i.id]} onChange={set(pre + i.id)} ruim={ruim(pre + i.id)} />
+          ),
+        )}
       </div>
     </fieldset>
   )
+  // Equação automática (o que o app escolheria sem a chave) e ETM do aluno com esta avaliação.
+  const auto = form?.sexo && form.idade != null ? escolherEquacao({ sexo: form.sexo, idade: form.idade, dobras: efetiva({ ...form, id, liberado }).dobras, imc: resultado({ ...form, id, liberado }).imc }) : null
+  const erro = form ? etmDoAluno([...outras.filter((a) => a.id !== id), { ...form, id, liberado }]) : null
+  const refazer = form ? [
+    ...foraDaTolerancia(form.dobras, form.dobras2, 'dobra').map((x) => ({ ...x, rotulo: DOBRAS.find((d) => d.id === x.id)!.rotulo, un: 'mm' })),
+    ...foraDaTolerancia(form.perimetros, form.perimetros2, 'perimetro').map((x) => ({ ...x, rotulo: PERIMETROS.find((p) => p.id === x.id)!.rotulo, un: 'cm' })),
+  ] : []
 
   return (
     <div className="space-y-4">
@@ -198,8 +225,37 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
             </label>
           ))}
         </fieldset>
-        {secao('Perímetros (cm)', [...PERIMETROS], 'p_')}
-        {secao('Dobras cutâneas (mm, lado direito)', [...DOBRAS], 'd_')}
+        <label className="flex min-h-11 items-center gap-3 text-sm">
+          <input type="checkbox" checked={duplo} onChange={(e) => setDuplo(e.target.checked)} className="size-6 shrink-0 accent-marca-500" />
+          Medir 2 vezes cada ponto (calcula o ETM; vale a média)
+        </label>
+        {secao('Perímetros (cm)', [...PERIMETROS], 'p_', 'p2_')}
+        {secao('Dobras cutâneas (mm, lado direito)', [...DOBRAS], 'd_', 'd2_')}
+        <label className="flex min-w-0 flex-col gap-1 text-sm">
+          <span className="text-slate-400">Equação do % de gordura</span>
+          <select value={equacao} onChange={(e) => setEquacao(e.target.value as EquacaoId | '')} className={`${campoBase} min-h-11 w-full min-w-0 px-3 py-2 outline-none focus:border-marca-500`}>
+            <option value="">Automática{auto ? `: ${EQUACOES[auto.eq].curto} (${auto.motivo})` : ''}</option>
+            {(Object.keys(EQUACOES) as EquacaoId[]).map((k) => (
+              <option key={k} value={k}>{EQUACOES[k].nome}</option>
+            ))}
+          </select>
+          <span className="text-xs text-slate-400">{EQUACOES[(equacao || auto?.eq || 'jp7') as EquacaoId].populacao}.</span>
+        </label>
+        {(refazer.length > 0 || erro?.dobra || erro?.perimetro) && (
+          <div className="space-y-1 rounded-xl border border-slate-800 p-3 text-sm">
+            <p className="font-semibold">Erro técnico de medição (ETM)</p>
+            {([['Dobras', erro?.dobra, TOLERANCIA.dobra], ['Perímetros', erro?.perimetro, TOLERANCIA.perimetro]] as const).map(([nome, e, tol]) =>
+              e ? (
+                <p key={nome} className={e.dentro ? 'text-slate-300' : 'text-amber-300'}>
+                  {nome}: {e.pct.toLocaleString('pt-BR')}% ({e.n} {e.n === 1 ? 'par' : 'pares'}; tolerância até {tol}%){e.n < MIN_PARES ? ' · ainda poucos pares para ajustar os limites' : ''}
+                </p>
+              ) : null,
+            )}
+            {refazer.map((x) => (
+              <p key={x.id} className="text-amber-300">{x.rotulo}: {x.a} e {x.b} {x.un} ({x.pct}% de diferença). Meça a 3ª vez e use as 2 mais próximas.</p>
+            ))}
+          </div>
+        )}
         {secao('Bioimpedância', BIO.map((b) => ({ id: b.id, rotulo: `${b.rotulo}${b.un ? ` (${b.un})` : ''}` })), 'b_')}
       </section>
 

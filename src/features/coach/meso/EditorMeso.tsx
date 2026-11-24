@@ -280,11 +280,12 @@ export default function EditorMeso({ id }: { id: string }) {
       </div>
 
       {/* Tela larga: editor à esquerda e prévia do aluno fixa à direita, para ver o resultado enquanto edita. */}
-      <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_25rem] xl:items-start xl:gap-6">
-      <aside className="order-first xl:sticky xl:top-20 xl:order-last">
+      <div className="flex flex-col gap-4 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_25rem] 2xl:items-start 2xl:gap-6">
+      <aside className="order-first 2xl:sticky 2xl:top-20 2xl:order-last">
         <Preview meso={meso} semana={semana} treino={treinoVisto} aberta={previaAberta} onAlternar={alternarPrevia} />
       </aside>
-      <div className="min-w-0">
+      {/* @container: as abas se ajustam à largura que sobra ao lado da prévia, não à da tela. */}
+      <div className="@container min-w-0">
       <AnimatePresence mode="wait" initial={false}>
         <m.div
           key={aba}

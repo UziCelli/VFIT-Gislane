@@ -24,6 +24,9 @@ describe('arredondarNoAparelho', () => {
     expect(arredondarNoAparelho(polia, 22.5)).toBe(20)
     expect(arredondarNoAparelho(polia, 2)).toBe(5)
     expect(arredondarNoAparelho(polia, 130)).toBe(100)
+    const foraDaGrade: AparelhoKg = { ...polia, minimo: 5, maximo: 12 }
+    expect(arredondarNoAparelho(foraDaGrade, 15)).toBe(10)
+    expect(proximoValor(foraDaGrade, 10, 1)).toBeNull()
     expect(arredondarNoAparelho(halter, 8)).toBe(7) // halteres 1, 3, 5, 7, 9: 8 fica no meio e desce
     expect(arredondarNoAparelho(halter, 8.2)).toBe(9)
   })

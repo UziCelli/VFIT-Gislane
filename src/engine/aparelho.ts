@@ -49,9 +49,10 @@ export const kgSentido = (ap: Aparelho, kgEtiqueta: number) => (ap.polia === '2:
 export function arredondarNoAparelho(ap: Aparelho, valor: number): number {
   if (ap.unidade === 'nivel') return Math.min(ap.niveis, Math.max(1, Math.ceil(valor - 0.5)))
   const min = ap.minimo ?? ap.incremento
-  const passos = Math.ceil((valor - min) / ap.incremento - 0.5)
-  const kg = arred(min + Math.max(0, passos) * ap.incremento)
-  return ap.maximo != null ? Math.min(kg, ap.maximo) : kg
+  let passos = Math.max(0, Math.ceil((valor - min) / ap.incremento - 0.5))
+  // Máximo fora da grade (ex.: 5 em 5 até 12): para no último passo que existe (10), nunca no próprio máximo.
+  if (ap.maximo != null) passos = Math.min(passos, Math.max(0, Math.floor((ap.maximo - min) / ap.incremento + 1e-9)))
+  return arred(min + passos * ap.incremento)
 }
 
 // Próximo valor acima (+1) ou abaixo (-1); null se já está no limite.

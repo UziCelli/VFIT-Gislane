@@ -1,5 +1,5 @@
 import marca from '@marca/marca.json'
-import { dataBR, fmtDeltaUn, fmtMedida, NOME_FONTE, type RelatorioAvaliacao, type Seta, type Tom } from '../../lib/avaliacao'
+import { dataBR, fmtDeltaUn, fmtMedida, nomeFonte, type RelatorioAvaliacao, type Seta, type Tom } from '../../lib/avaliacao'
 import { textoCarga } from '../../lib/segmentos'
 import { primeiroNome } from '../../lib/contato'
 import { ARTE, corParte, LEGENDA, LEGENDA_FRACA, REGIOES, SILHUETA, TAMANHO, VISTAS } from './corpoPaths'
@@ -212,6 +212,6 @@ export async function gerarPdfAvaliacao({ r, aluno, comentario }: EntradaPdfAval
   divisoria(f)
   f.y += 10
   for (const t of r.texto) f.paragrafo(t, sans(24), MUDO, 36)
-  f.paragrafo(`${r.res.fonte ? `Percentual de gordura: ${NOME_FONTE[r.res.fonte]}. ` : ''}Estimativa; não substitui avaliação médica.`, sans(24), MUDO, 36)
+  f.paragrafo(`${r.res.fonte ? `Percentual de gordura: ${nomeFonte(r.res)}. ` : ''}Estimativa; não substitui avaliação médica.`, sans(24), MUDO, 36)
   return f.fechar()
 }

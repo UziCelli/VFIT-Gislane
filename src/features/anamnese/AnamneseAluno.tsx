@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { avisoMedico, CHAVE_RASCUNHO, parqGrave, PARQ_GRAVES, PERGUNTAS, TODAS, validarRespostas, type Pergunta, type Respostas } from '../../lib/anamnese'
+import { avisoMedico, CHAVE_RASCUNHO, parqGrave, PARQ_GRAVES, perguntaAtiva, PERGUNTAS, TODAS, validarRespostas, type Pergunta, type Respostas } from '../../lib/anamnese'
 import { enviarAnamnese, novaVersaoCoach } from '../../lib/acoes'
 import { registrarErro } from '../../lib/log'
 import { IcCheck } from '../../icones'
@@ -102,7 +102,7 @@ export function Conteudo({ uid, ultima, anotacao = '', motivo, coach }: { uid: s
 
   const ativas = (e: number) =>
     PERGUNTAS[e].perguntas.filter(
-      (p) => !('soMenor' in p) && !(p.id === 'parqQual' && !avisoMedico(r)) && !(p.id === 'tempoParado' && r.experiencia === 'nunca'),
+      (p) => !('soMenor' in p) && perguntaAtiva(p, r),
     )
   // "Sim" numa pergunta grave (do aluno; o coach lança direto) só vale depois de 2 confirmações; mudar para "Não" é direto.
   const pedir = (p: Pergunta, v: unknown) => (!coach && v === true && PARQ_GRAVES.includes(p.id) && r[p.id] !== true ? setConfirma({ p, passo: 1 }) : mudar(p.id, v))

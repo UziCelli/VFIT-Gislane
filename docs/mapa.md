@@ -133,7 +133,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 - `AvaliacaoAluno.tsx` (`#/avaliacao/:id`, só as liberadas; `useAvaliacoesLiberadas`)
 - `pdfAvaliacao.ts` — PDF da avaliação, com as folhas de `relatorio/folhasPdf.ts`
 - `CorpoSvg.tsx` + `corpoPaths.ts` — desenho do corpo (frente e costas) colorido por veredito: imagem + polígonos. `corpo-frente.png` e `corpo-costas.png` são a arte-linha; `corpoPaths.ts` guarda a silhueta (recorte) e os polígonos de região em pixels do PNG, fonte única (tela em SVG com `clipPath`, PDF em canvas com `Path2D`). Segmento novo em `segmentos.ts` precisa de região aqui (o teste cobra)
-- Cálculo em `src/lib/avaliacao.ts` (+ teste): leitura com desconfiança, IMC, % de gordura (Pollock 7 dobras ou bioimpedância), comparação, texto, ciclo de referência e lembrete do coach
+- Cálculo em `src/lib/avaliacao.ts` (+ teste): leitura com desconfiança, IMC, % de gordura (Pollock 7 dobras ou bioimpedância), comparação, texto, ciclo de referência e lembrete do coach; músculo estimado (áreas de braço e coxa, massa muscular de Lee) em `src/lib/areaMuscular.ts`, com as dobras de um lado valendo para os dois (evidências em `docs/evidencias-avaliacao.md`)
 - `src/lib/segmentos.ts` (+ `segmentos.test.ts`): carga × medida por segmento (cartões "Sua evolução")
 
 ### `src/features/anamnese/` — Anamnese (PAR-Q+, saúde, dores, rotina, treino; 10/11/2026)

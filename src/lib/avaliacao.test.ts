@@ -58,7 +58,7 @@ describe('resultado', () => {
   })
 
   it('sem as 7 dobras, sexo ou idade: usa a bioimpedância', () => {
-    const seis = { ...dobras(10), coxa: undefined }
+    const seis = { ...dobras(10), coxa: undefined, biceps: undefined }
     expect(resultado(av({ sexo: 'M', idade: 30, dobras: seis, bio: { gorduraPct: 18 } }))).toMatchObject({ gorduraPct: 18, fonte: 'bio', somaDobras: null })
     expect(resultado(av({ idade: 30, dobras: dobras(10), bio: { gorduraPct: 18 } })).fonte).toBe('bio')
     expect(resultado(av({ sexo: 'M', dobras: dobras(10) }))).toMatchObject({ gorduraPct: null, fonte: null, massaMagraKg: null })
@@ -151,7 +151,7 @@ describe('relatorioAvaliacao', () => {
 
   it('métodos diferentes de gordura não são comparados', () => {
     const r = relatorioAvaliacao([primeira, anterior], 'a1')!
-    expect(r.texto.join('\n')).toContain('O % de gordura desta avaliação veio de outro método; por isso não é comparado com o anterior.')
+    expect(r.texto.join('\n')).toContain('O % de gordura desta avaliação veio de outro método ou de outra equação; por isso não é comparado com o anterior.')
     expect(r.grupos[0].linhas.find((l) => l.rotulo === 'Gordura')!.delta).toBeNull()
   })
 
@@ -165,12 +165,12 @@ describe('relatorioAvaliacao', () => {
 
   it('só mostra linhas com medida e a soma das dobras', () => {
     const r = relatorioAvaliacao([atual], 'a2')!
-    expect(r.grupos.map((g) => g.titulo)).toEqual(['Composição corporal', 'Tronco', 'Braços', 'Pernas', 'Dobras cutâneas'])
+    expect(r.grupos.map((g) => g.titulo)).toEqual(['Composição corporal', 'Tronco', 'Braços', 'Pernas', 'Dobras cutâneas', 'Músculo estimado'])
     expect(r.grupos.map((g) => g.linhas.length > 0)).not.toContain(false)
     expect(r.grupos[1].linhas.map((l) => l.rotulo)).toEqual(['Cintura'])
     expect(r.grupos[2].linhas.map((l) => l.rotulo)).toEqual(['Braço direito'])
     expect(r.grupos[3].linhas.map((l) => l.rotulo)).toEqual(['Quadril', 'Coxa direita'])
-    expect(r.grupos.at(-1)!.linhas.at(-1)).toMatchObject({ rotulo: 'Soma das 7 dobras', atual: 112 })
+    expect(r.grupos.find((g) => g.titulo === 'Dobras cutâneas')!.linhas.at(-1)).toMatchObject({ rotulo: 'Soma das 7 dobras', atual: 112 })
   })
 })
 
@@ -220,6 +220,8 @@ describe('firestore.rules', () => {
   it.each([
     ['perimetros', PERIMETROS],
     ['dobras', DOBRAS],
+    ['perimetros2', PERIMETROS],
+    ['dobras2', DOBRAS],
     ['bio', BIO],
   ] as const)('as chaves de %s são as mesmas das regras', (campo, ids) => {
     expect(regras).toContain(`'${campo}', ${lista(ids)}`)

@@ -2,7 +2,7 @@ import marca from '@marca/marca.json'
 import { m, useReducedMotion } from 'motion/react'
 import { useState } from 'react'
 import { IcSeta } from '../../icones'
-import { dataBR, fmtDeltaUn, fmtMedida, NOME_FONTE, type Grupo, type Linha, type RelatorioAvaliacao, type ResultadoSegmento, type Seta, type Tom } from '../../lib/avaliacao'
+import { dataBR, fmtDeltaUn, fmtMedida, nomeFonte, type Grupo, type Linha, type RelatorioAvaliacao, type ResultadoSegmento, type Seta, type Tom } from '../../lib/avaliacao'
 import { textoCarga } from '../../lib/segmentos'
 import { cascata, item, Painel } from '../../ui'
 import BotaoCompartilhar from '../evolucao/BotaoCompartilhar'
@@ -147,7 +147,9 @@ export default function Avaliacao({ r, aluno, comentario }: { r: RelatorioAvalia
       </section>
 
       <p className="text-xs text-slate-400">
-        {r.res.fonte && `% de gordura calculado por ${NOME_FONTE[r.res.fonte]}. `}Estimativa; não substitui avaliação médica.
+        {r.res.fonte && `% de gordura calculado por ${nomeFonte(r.res)}. `}Estimativa; não substitui avaliação médica.
+        {r.grupos.some((g) => g.titulo === 'Músculo estimado') &&
+          ' Músculo estimado: perímetro sem a gordura da dobra, medida de um lado e usada nos dois. Serve para acompanhar a tendência, não para o valor exato.'}
       </p>
     </article>
   )

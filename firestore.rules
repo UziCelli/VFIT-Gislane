@@ -482,7 +482,7 @@ service cloud.firestore {
         || (own(resource.data) && resource.data.liberado == true && liberado());
       allow delete: if isCoach();
       allow create, update: if isCoach()
-        && request.resource.data.keys().hasOnly(['alunoId', 'data', 'pesoKg', 'alturaCm', 'sexo', 'idade', 'perimetros', 'dobras', 'bio', 'lipedema', 'comentario', 'liberado', 'liberadoEm', 'atualizadoEm'])
+        && request.resource.data.keys().hasOnly(['alunoId', 'data', 'pesoKg', 'alturaCm', 'sexo', 'idade', 'perimetros', 'dobras', 'perimetros2', 'dobras2', 'equacao', 'bio', 'lipedema', 'comentario', 'liberado', 'liberadoEm', 'atualizadoEm'])
         && request.resource.data.keys().hasAll(['alunoId', 'data', 'pesoKg', 'comentario', 'liberado', 'liberadoEm', 'atualizadoEm'])
         && request.resource.data.alunoId is string
         && get(/databases/$(database)/documents/usuarios/$(request.resource.data.alunoId)).data.papel == 'aluno'
@@ -495,7 +495,11 @@ service cloud.firestore {
             || (request.resource.data.idade is int && request.resource.data.idade >= 10 && request.resource.data.idade <= 100))
         && (!('sexo' in request.resource.data) || request.resource.data.sexo in ['M', 'F'])
         && mapaDe(request.resource.data, 'perimetros', ['ombro', 'torax', 'cintura', 'abdomen', 'quadril', 'bracoD', 'bracoE', 'antebracoD', 'antebracoE', 'coxaD', 'coxaE', 'panturrilhaD', 'panturrilhaE'])
-        && mapaDe(request.resource.data, 'dobras', ['peitoral', 'axilar', 'triceps', 'subescapular', 'abdominal', 'suprailiaca', 'coxa'])
+        && mapaDe(request.resource.data, 'dobras', ['peitoral', 'axilar', 'triceps', 'subescapular', 'abdominal', 'suprailiaca', 'coxa', 'biceps', 'panturrilha'])
+        // 2ª medida de cada ponto (ETM; as mesmas chaves) e a equação de % de gordura escolhida pelo coach.
+        && mapaDe(request.resource.data, 'perimetros2', ['ombro', 'torax', 'cintura', 'abdomen', 'quadril', 'bracoD', 'bracoE', 'antebracoD', 'antebracoE', 'coxaD', 'coxaE', 'panturrilhaD', 'panturrilhaE'])
+        && mapaDe(request.resource.data, 'dobras2', ['peitoral', 'axilar', 'triceps', 'subescapular', 'abdominal', 'suprailiaca', 'coxa', 'biceps', 'panturrilha'])
+        && (!('equacao' in request.resource.data) || request.resource.data.equacao in ['jp7', 'jp3', 'dw', 'slaughter'])
         && mapaDe(request.resource.data, 'bio', ['gorduraPct', 'massaMuscularKg', 'visceral'])
         // Lipedema (condição de saúde, marcada só pelo coach): lista com até 2 itens, só braços e pernas.
         && (!('lipedema' in request.resource.data)
@@ -523,14 +527,20 @@ service cloud.firestore {
     // Ao mudar as perguntas, só acrescentar chaves e opções: remover algo recusa envios offline antigos.
     function respostasValidas(r) {
       return r is map
-        && r.keys().hasOnly(['coracao', 'dorPeito', 'tontura', 'doencaCronica', 'remedio', 'ossoArticulacao', 'supervisaoMedica', 'parqQual', 'gestante', 'cirurgia12m', 'fuma', 'dores', 'lesoes', 'sono', 'trabalho', 'estresse', 'objetivo', 'experiencia', 'tempoParado', 'diasSemana', 'minutos', 'outrasAtividades', 'algoMais', 'declaracao', 'responsavelConfirmou'])
+        && r.keys().hasOnly(['coracao', 'dorPeito', 'tontura', 'doencaCronica', 'remedio', 'ossoArticulacao', 'supervisaoMedica', 'parqQual', 'gestante', 'cirurgia12m', 'fuma', 'condicoes', 'sintomasEsforco', 'ativo3m', 'dores', 'dorIntensidade', 'dorTempo', 'dorPiora', 'lesoes', 'sono', 'trabalho', 'estresse', 'objetivo', 'experiencia', 'tempoParado', 'diasSemana', 'minutos', 'prioridades', 'preferencias', 'evitar', 'outrasAtividades', 'algoMais', 'declaracao', 'responsavelConfirmou'])
         && r.keys().hasAll(['coracao', 'dorPeito', 'tontura', 'doencaCronica', 'remedio', 'ossoArticulacao', 'supervisaoMedica', 'declaracao'])
         && simNao(r, 'coracao') && simNao(r, 'dorPeito') && simNao(r, 'tontura') && simNao(r, 'doencaCronica')
         && simNao(r, 'remedio') && simNao(r, 'ossoArticulacao') && simNao(r, 'supervisaoMedica')
         && texto(r, 'parqQual', 500)
         && opcao(r, 'gestante', ['sim', 'nao', 'naoSeAplica'])
         && simNao(r, 'cirurgia12m') && simNao(r, 'fuma')
+        && multi(r, 'condicoes', ['hipertensao', 'diabetes', 'cardiaca', 'renal', 'respiratoria', 'osteoporose', 'artrose', 'hernia', 'outra'])
+        && multi(r, 'sintomasEsforco', ['faltaAr', 'palpitacao', 'inchaco', 'dorPerna'])
+        && simNao(r, 'ativo3m')
         && multi(r, 'dores', ['ombro', 'cotovelo', 'punho', 'cervical', 'lombar', 'quadril', 'joelho', 'tornozelo', 'outra'])
+        && inteiro(r, 'dorIntensidade', 0, 10)
+        && opcao(r, 'dorTempo', ['menos6s', '6sa3m', 'mais3m'])
+        && multi(r, 'dorPiora', ['agachar', 'acimaCabeca', 'empurrar', 'puxar', 'curvarTronco', 'impacto', 'sentado', 'escada'])
         && texto(r, 'lesoes', 500)
         && opcao(r, 'sono', ['ate5', '5a7', '7a8', 'mais8'])
         && opcao(r, 'trabalho', ['sentado', 'emPe', 'bracal'])
@@ -540,6 +550,9 @@ service cloud.firestore {
         && opcao(r, 'tempoParado', ['treinando', 'ate3m', '3a12m', 'mais1a'])
         && inteiro(r, 'diasSemana', 1, 7)
         && opcao(r, 'minutos', ['ate30', '30a45', '45a60', 'mais60'])
+        && multi(r, 'prioridades', ['gluteos', 'pernas', 'costas', 'peito', 'ombros', 'bracos', 'abdomen'])
+        && multi(r, 'preferencias', ['maquinas', 'pesoLivre', 'pesoCorpo', 'aerobico'])
+        && texto(r, 'evitar', 300)
         && texto(r, 'outrasAtividades', 300)
         && texto(r, 'algoMais', 1000)
         && aceite(r, 'declaracao')

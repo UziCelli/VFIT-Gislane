@@ -2,7 +2,8 @@
 // Só descreve; nunca diz "piorou". Funções puras.
 import catalogo from '../data/exercicios.json'
 import { diaSP } from './acesso'
-import { DESCE, fmtDelta, fmtNum, lerSegmento, PAR_DOBRA, PERIMETROS, REGIAO, type Avaliacao, type Leitura, type Tom } from './avaliacao'
+import { mudancaReal, type Etm } from './etm'
+import { DESCE, fmtDelta, fmtNum, lerSegmento, LIMIAR_TRONCO_CM, PAR_DOBRA, TRONCO_PERIM, PERIMETROS, REGIAO, type Avaliacao, type Leitura, type Tom } from './avaliacao'
 import { norm } from './busca'
 import type { Ocorrencia } from './evolucao'
 
@@ -104,16 +105,20 @@ export function cruzar(medida: Leitura | null, carga: ClasseCarga | null): Cruza
 }
 
 // Medida do segmento entre duas avaliações: média dos deltas dos perímetros medidos nas duas.
-export function medidaSegmento(seg: (typeof SEGMENTOS)[number], atual: Avaliacao, ant: Avaliacao) {
+// `erro`: ETM do aluno (etmDoAluno); com pares suficientes, a menor mudança real sobe os limiares (perímetro e dobra).
+export function medidaSegmento(seg: (typeof SEGMENTOS)[number], atual: Avaliacao, ant: Avaliacao, erro?: { dobra: Etm | null; perimetro: Etm | null }) {
   const ps = seg.perimetros.filter((p) => atual.perimetros[p] != null && ant.perimetros[p] != null)
   if (!ps.length) return null
+  const tronco = seg.perimetros.some((p) => TRONCO_PERIM.has(p))
+  const limiarCm = Math.max(tronco ? LIMIAR_TRONCO_CM : 0.5, ...ps.map((p) => mudancaReal(erro?.perimetro ?? null, atual.perimetros[p]!) ?? 0))
   const delta = Math.round((ps.reduce((s, p) => s + atual.perimetros[p]! - ant.perimetros[p]!, 0) / ps.length) * 10) / 10
   const par = PAR_DOBRA[seg.perimetros[0]]
   const dDobra = par && atual.dobras[par] != null && ant.dobras[par] != null ? Math.round((atual.dobras[par]! - ant.dobras[par]!) * 10) / 10 : null
   const lip = REGIAO[seg.perimetros[0]].lipedema
   const comLip = !!lip && !!atual.lipedema?.includes(lip)
   const desce = comLip || seg.perimetros.some((p) => DESCE.has(p))
-  return { rotulo: 'Medida', delta: `${fmtDelta(delta)} cm`, leitura: lerSegmento(desce ? 'descer' : 'subir', delta, dDobra, comLip) }
+  const limiarMm = Math.max(1, (par && atual.dobras[par] != null && mudancaReal(erro?.dobra ?? null, atual.dobras[par]!)) || 0)
+  return { rotulo: 'Medida', cm: delta, limiarCm, delta: `${fmtDelta(delta)} cm`, leitura: lerSegmento(desce ? 'descer' : 'subir', delta, dDobra, comLip, limiarCm, limiarMm) }
 }
 
 // "Leg Press 45: 200 → 230 kg (+15%)" do melhor exercício.

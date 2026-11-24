@@ -28,6 +28,8 @@ export interface AparelhoKg extends AparelhoBase {
   incremento: number // de quanto em quanto sobe (ex.: 2.5, 5)
   minimo?: number // menor carga possível; sem valor = um incremento
   maximo?: number
+  // Plaquinhas que somam por cima do degrau, cada uma 1 vez (ex.: Life Fitness [0.625, 0.625]: 11,25 → 11,875 → 12,5 → 13,75).
+  complementos?: number[]
 }
 
 export interface AparelhoNivel extends AparelhoBase {
@@ -46,23 +48,55 @@ const positivo = (x: unknown): x is number => typeof x === 'number' && Number.is
 // Peso que o aluno de fato move a partir do kg da etiqueta (polia 2:1 = metade). Serve para comparar aparelhos.
 export const kgSentido = (ap: Aparelho, kgEtiqueta: number) => (ap.polia === '2:1' ? arred(kgEtiqueta / 2) : kgEtiqueta)
 
-// Valor válido mais próximo no aparelho: múltiplo do incremento (kg) ou nível inteiro, dentro dos limites.
-// Em empate, desce (lado seguro).
-export function arredondarNoAparelho(ap: Aparelho, valor: number): number {
-  if (ap.unidade === 'nivel') return Math.min(ap.niveis, Math.max(1, Math.ceil(valor - 0.5)))
-  const min = ap.minimo ?? ap.incremento
-  let passos = Math.max(0, Math.ceil((valor - min) / ap.incremento - 0.5))
-  // Máximo fora da grade (ex.: 5 em 5 até 12): para no último passo que existe (10), nunca no próprio máximo.
-  if (ap.maximo != null) passos = Math.min(passos, Math.max(0, Math.floor((ap.maximo - min) / ap.incremento + 1e-9)))
-  return arred(min + passos * ap.incremento)
+// Somas possíveis das plaquinhas complementares (cada uma usada no máximo 1 vez), com 0. Ex.: [0.625, 0.625] → 0, 0.625, 1.25.
+function somasComplementos(c: number[] = []): number[] {
+  let somas = [0]
+  for (const x of c) somas = [...somas, ...somas.map((s) => arred(s + x))]
+  return [...new Set(somas)].sort((a, b) => a - b)
 }
 
-// Próximo valor acima (+1) ou abaixo (-1); null se já está no limite.
+// Cargas que existem no aparelho em kg perto de `valor`: degraus da pilha (mínimo + n × incremento, até o máximo)
+// mais as plaquinhas complementares (ex.: Life Fitness 0,625 kg).
+function cargasPerto(ap: AparelhoKg, valor: number): number[] {
+  const min = ap.minimo ?? ap.incremento
+  const out = new Set<number>()
+  // Para cada soma de plaquinhas, os degraus perto de (valor - soma): plaquinha maior que o incremento alcança degraus abaixo.
+  for (const s of somasComplementos(ap.complementos)) {
+    // Último degrau que, com esta soma, não passa do máximo (máximo fora da grade: 5 em 5 até 12 para no 10).
+    const ultimo = ap.maximo != null ? Math.floor((ap.maximo - s - min) / ap.incremento + 1e-9) : Infinity
+    if (ultimo < 0) continue
+    const p0 = Math.floor((valor - s - min) / ap.incremento)
+    for (let p = p0 - 1; p <= p0 + 2; p++) out.add(arred(min + Math.min(Math.max(0, p), ultimo) * ap.incremento + s))
+  }
+  return [...out].sort((a, b) => a - b)
+}
+
+// Valor válido mais próximo no aparelho: carga que existe (kg) ou nível inteiro, dentro dos limites.
+// Empate sobe, como o Math.round do arredondamento padrão do app.
+export function arredondarNoAparelho(ap: Aparelho, valor: number): number {
+  if (ap.unidade === 'nivel') return Math.min(ap.niveis, Math.max(1, Math.round(valor)))
+  let melhor = ap.minimo ?? ap.incremento
+  let dist = Infinity
+  for (const kg of cargasPerto(ap, valor)) {
+    const d = Math.abs(kg - valor)
+    if (d <= dist + 1e-9) {
+      melhor = kg
+      dist = d
+    }
+  }
+  return melhor
+}
+
+// Próximo valor acima (+1) ou abaixo (-1); null se já está no limite. Com plaquinhas, anda uma plaquinha por vez.
 export function proximoValor(ap: Aparelho, valor: number, direcao: 1 | -1): number | null {
   const atual = arredondarNoAparelho(ap, valor)
-  const passo = ap.unidade === 'nivel' ? 1 : ap.incremento
-  const novo = arredondarNoAparelho(ap, atual + direcao * passo)
-  return novo === atual ? null : novo
+  if (ap.unidade === 'nivel') {
+    const novo = atual + direcao
+    return novo < 1 || novo > ap.niveis ? null : novo
+  }
+  const lista = cargasPerto(ap, atual)
+  const novo = direcao > 0 ? lista.find((kg) => kg > atual + 1e-9) : [...lista].reverse().find((kg) => kg < atual - 1e-9)
+  return novo ?? null
 }
 
 // kg estimado de um nível. Nível sem kg anotado, entre dois anotados: interpola em linha reta (SUPOSIÇÃO: a pilha sobe
@@ -82,7 +116,7 @@ export function kgDoNivel(ap: AparelhoNivel, nivel: number): number | null {
   return arred(ka + ((kb - ka) * (nivel - 1 - a)) / (b - a))
 }
 
-// Nível cujo kg estimado fica mais perto do kg pedido (sugestão do motor). Empate: o nível mais leve.
+// Nível cujo kg estimado fica mais perto do kg pedido (sugestão do motor). Empate: o nível mais pesado (igual ao Math.round).
 // null se nenhum nível tem kg estimado.
 export function nivelParaKg(ap: AparelhoNivel, kg: number): number | null {
   let melhor: number | null = null
@@ -91,7 +125,7 @@ export function nivelParaKg(ap: AparelhoNivel, kg: number): number | null {
     const k = kgDoNivel(ap, n)
     if (k == null) continue
     const d = Math.abs(k - kg)
-    if (d < dist - 1e-9) {
+    if (d <= dist + 1e-9) {
       melhor = n
       dist = d
     }
@@ -166,6 +200,8 @@ export function problemasAparelho(x: unknown): string[] {
     if (a.maximo != null && !positivo(a.maximo)) p.push('máximo deve ser maior que 0')
     const menor = a.minimo ?? a.incremento // sem mínimo, a menor carga é um incremento
     if (positivo(menor) && positivo(a.maximo) && a.maximo < menor) p.push('máximo menor que a menor carga')
+    const c = a.complementos
+    if (c != null && (!Array.isArray(c) || c.length > 4 || c.some((x) => !positivo(x)))) p.push('complementos: até 4 plaquinhas maiores que 0')
   } else if (a.unidade === 'nivel') {
     if (!Number.isInteger(a.niveis) || (a.niveis as number) < 1) p.push('níveis deve ser inteiro de 1 para cima')
     const kg = a.kgNivel

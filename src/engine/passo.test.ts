@@ -9,8 +9,10 @@ describe('passoDoAparelho', () => {
     expect(arred(7.4, 'Rosca Direta Halter')).toBe(7)
     expect(arred(16.9, 'Rosca Direta Halter')).toBe(16)
   })
-  it('barra 2 kg, máquina e polia 5 kg', () => {
-    expect(arred(63, 'Supino Reto Barra')).toBe(64)
+  it('barra e aparelho de anilha 2,5 kg; placas e polia 5 kg', () => {
+    expect(arred(63, 'Supino Reto Barra')).toBe(62.5)
+    expect(arred(101, 'Leg Press 45')).toBe(100)
+    expect(arred(48.9, 'Remada Articulada')).toBe(50)
     expect(arred(63, 'Cadeira Extensora')).toBe(65)
     expect(arred(31, 'Tríceps Pulley Corda')).toBe(30)
     expect(arred(12, 'Crossover')).toBe(10)

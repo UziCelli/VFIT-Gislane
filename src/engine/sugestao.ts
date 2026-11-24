@@ -13,7 +13,7 @@ export interface PropostaMetodo {
   tempoDepois: number
 }
 
-const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+export const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
 const grupoDe = new Map(catalogo.flatMap((g) => g.exercicios.map((e) => [norm(e.nome), g.grupo] as const)))
 
 export function classificarEquipamento(nome: string): Equipamento {

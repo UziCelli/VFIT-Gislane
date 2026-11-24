@@ -1,8 +1,6 @@
-import SeletorGuia from '../metodos/SeletorGuia'
 import { useState } from 'react'
 import { AVISO_FISIO, METODOS_FISIO, QUEIXAS, REGRAS_FISIO, linkPubmed, opcional, type Nivel, type QueixaId, type Ref } from '../../data/fisio'
 import { Aviso, Cartao } from '../../ui'
-import { BotaoVoltar } from '../../voltar'
 
 const SELO: Record<Nivel, string> = {
   ALTO: 'bg-emerald-950 text-emerald-300 ring-emerald-700',
@@ -32,9 +30,7 @@ export default function GuiaFisio() {
   const chip = (ativo: boolean) =>
     ativo ? 'border-marca-400 bg-marca-500 text-white' : 'border-slate-600 bg-slate-800 text-slate-200'
   return (
-    <main className="mx-auto max-w-md px-4 py-4">
-      <BotaoVoltar para="/metodos" />
-      <SeletorGuia ativo="fisio" />
+    <div>
       <h1 className="mb-3 text-lg font-bold">Métodos Fisioterapia</h1>
       <Aviso>{AVISO_FISIO}</Aviso>
 
@@ -119,6 +115,6 @@ export default function GuiaFisio() {
           </Cartao>
         ))}
       </div>
-    </main>
+    </div>
   )
 }

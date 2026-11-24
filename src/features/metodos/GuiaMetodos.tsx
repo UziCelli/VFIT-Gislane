@@ -4,15 +4,15 @@ import { mostrarNotasDeNovo } from '../../lib/notasMetodo'
 import { Botao, Cartao } from '../../ui'
 import { BotaoVoltar } from '../../voltar'
 import IconeMetodo from './IconeMetodo'
-import SeletorGuia from './SeletorGuia'
 
+// coach: só o conteúdo, dentro de GuiasCoach (que põe o Voltar e o seletor das guias). Aluno: tela inteira.
 export default function GuiaMetodos({ coach }: { coach?: boolean }) {
   const [feito, setFeito] = useState(false)
+  const Caixa = coach ? 'div' : 'main'
   return (
-    <main className="mx-auto max-w-md px-4 py-4">
-      <BotaoVoltar para="/" />
+    <Caixa className={coach ? undefined : 'mx-auto max-w-md px-4 py-4'}>
+      {!coach && <BotaoVoltar para="/" />}
       <h1 className="mb-3 text-lg font-bold">Guia de métodos</h1>
-      {coach && <SeletorGuia ativo="treino" />}
       <div className="space-y-3">
         {ORDEM.map((nome) => {
           const t = METODOS[nome]
@@ -50,6 +50,6 @@ export default function GuiaMetodos({ coach }: { coach?: boolean }) {
         Mostrar as notas de novo
       </Botao>
       {feito && <p className="mt-2 text-center text-sm text-emerald-400">Pronto! As notas vão aparecer de novo nos treinos.</p>}
-    </main>
+    </Caixa>
   )
 }

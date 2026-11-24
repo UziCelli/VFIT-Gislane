@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 import { Cartao } from '../../ui'
-import { BotaoVoltar } from '../../voltar'
-import SeletorGuia from './SeletorGuia'
 
 const Titulo = ({ children }: { children: ReactNode }) => <h2 className="mb-2 font-semibold">{children}</h2>
 const Fonte = ({ children }: { children: ReactNode }) => <li className="text-slate-300">{children}</li>
@@ -11,10 +9,8 @@ const link = 'text-marca-300 underline'
 // docs/estimativa-rm.md e docs/peso-corporal.md. Só entra aqui o que tem fonte conferida.
 export default function GuiaReferencias() {
   return (
-    <main className="mx-auto max-w-md px-4 py-4">
-      <BotaoVoltar para="/" />
+    <div>
       <h1 className="mb-3 text-lg font-bold">Referências</h1>
-      <SeletorGuia ativo="referencias" />
       <div className="space-y-3 text-sm">
         <Cartao>
           <Titulo>Carga sugerida pelas repetições (RM)</Titulo>
@@ -201,6 +197,6 @@ export default function GuiaReferencias() {
           </ul>
         </Cartao>
       </div>
-    </main>
+    </div>
   )
 }

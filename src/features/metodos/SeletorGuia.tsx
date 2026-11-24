@@ -1,11 +1,33 @@
-// Seletor "Treino | Físio | Referências" no topo da aba Consultas do coach.
-export default function SeletorGuia({ ativo }: { ativo: 'treino' | 'fisio' | 'referencias' }) {
-  const item = (on: boolean) => `flex min-h-11 flex-1 items-center justify-center rounded-lg text-sm font-semibold ${on ? 'bg-marca-600 text-white' : 'text-slate-300'}`
+// Seletor "Treino | Físio | Referências" no topo da aba Guias do coach.
+// Fica montado entre as três rotas (GuiasCoach): a pílula desliza até a aba tocada só com transição CSS de transform
+// (roda na GPU, sem medir layout; ver a nota da Bolha em vidro.tsx).
+export type Guia = 'treino' | 'fisio' | 'referencias'
+const ABAS: { id: Guia; href: string; rotulo: string }[] = [
+  { id: 'treino', href: '#/metodos', rotulo: 'Treino' },
+  { id: 'fisio', href: '#/fisio', rotulo: 'Físio' },
+  { id: 'referencias', href: '#/referencias', rotulo: 'Referências' },
+]
+
+export default function SeletorGuia({ ativo }: { ativo: Guia }) {
+  const i = ABAS.findIndex((a) => a.id === ativo)
   return (
-    <nav aria-label="Tipo de guia" className="mb-3 flex gap-1 rounded-xl border border-slate-700 bg-slate-900 p-1">
-      <a href="#/metodos" aria-current={ativo === 'treino' ? 'page' : undefined} className={item(ativo === 'treino')}>Treino</a>
-      <a href="#/fisio" aria-current={ativo === 'fisio' ? 'page' : undefined} className={item(ativo === 'fisio')}>Físio</a>
-      <a href="#/referencias" aria-current={ativo === 'referencias' ? 'page' : undefined} className={item(ativo === 'referencias')}>Referências</a>
+    <nav aria-label="Tipo de guia" className="relative mb-3 grid grid-cols-3 gap-1 rounded-xl border border-slate-700 bg-slate-900 p-1">
+      {/* Largura de 1 aba: (interno − 2 vãos de 0,25rem) / 3; cada passo = 1 largura + 1 vão. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-1rem)/3)] rounded-lg bg-marca-600 transition-transform duration-[550ms] ease-[var(--mola-suave)] motion-reduce:transition-none"
+        style={{ transform: `translateX(calc(${i} * (100% + 0.25rem)))` }}
+      />
+      {ABAS.map((a) => (
+        <a
+          key={a.id}
+          href={a.href}
+          aria-current={a.id === ativo ? 'page' : undefined}
+          className={`relative flex min-h-11 items-center justify-center rounded-lg text-sm font-semibold transition-colors duration-300 ${a.id === ativo ? 'text-white' : 'text-slate-300'}`}
+        >
+          {a.rotulo}
+        </a>
+      ))}
     </nav>
   )
 }

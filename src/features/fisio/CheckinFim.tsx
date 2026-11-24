@@ -7,6 +7,7 @@ import { checkinJaExiste, registrarCheckin } from './acoesFisio'
 import RelatarDor from './RelatarDor'
 import { useCheckins } from './useCheckins'
 import { useDores } from './useDores'
+import { useTextosVoz } from '../aluno/voz'
 
 const chip = (on: boolean) => `min-h-11 rounded-xl border px-3 text-sm font-semibold ${on ? 'border-marca-400 bg-marca-600 text-white' : 'border-slate-700 bg-slate-950 text-slate-200'}`
 
@@ -15,6 +16,7 @@ type Estado = 'form' | 'enviando' | 'recebido' | 'ja' | 'erro' | 'pulado'
 // "Como você está?" no fim do treino do aluno: um por sessão (id = registroId). Some se a sessão já tem resposta
 // (servidor ou localStorage). Enviar mostra o andamento; Pular grava só o localStorage.
 export default function CheckinFim({ uid, exercicios, sessao, slots }: { uid: string; exercicios: string[]; sessao: SessaoCheckin; slots: Record<string, string> }) {
+  const t = useTextosVoz() // presencial: o coach pergunta e marca pelo aluno
   const id = registroId(sessao.mesoId, sessao.semana, sessao.treino)
   const chave = `forca-checkin-${id}`
   const [estado, setEstado] = useState<Estado>('form')
@@ -40,13 +42,13 @@ export default function CheckinFim({ uid, exercicios, sessao, slots }: { uid: st
       setEstado(existe ? 'ja' : 'erro')
     })
   }
-  if (estado !== 'form' && estado !== 'erro') return <section aria-label="Como você está?" role="status" className="rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm">
-    {estado === 'recebido' ? 'Recebido pelo seu coach.' : estado === 'ja' ? 'Você já respondeu este treino.' : offline ? 'Salvo no aparelho; vai para o seu coach quando houver internet.' : 'Enviando…'}
+  if (estado !== 'form' && estado !== 'erro') return <section aria-label={t.checkinTitulo} role="status" className="rounded-2xl border border-slate-800 bg-slate-900 p-4 text-sm">
+    {estado === 'recebido' ? t.checkinRecebido : estado === 'ja' ? t.checkinJa : offline ? t.checkinOffline : 'Enviando…'}
   </section>
-  return <section aria-label="Como você está?" className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-4">
+  return <section aria-label={t.checkinTitulo} className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900 p-4">
     <div>
-      <h2 className="text-lg font-bold">Como você está?</h2>
-      <p className="text-sm text-slate-400">Vai só para o seu coach.</p>
+      <h2 className="text-lg font-bold">{t.checkinTitulo}</h2>
+      <p className="text-sm text-slate-400">{t.checkinSub}</p>
     </div>
     <fieldset><legend className="mb-1 text-sm">Sentiu dor hoje?</legend>
       <div className="flex gap-2">
@@ -61,7 +63,7 @@ export default function CheckinFim({ uid, exercicios, sessao, slots }: { uid: st
         <button type="button" aria-pressed={dor24h === false} className={`${chip(dor24h === false)} flex-1`} onClick={() => setDor24h(false)}>Não passou</button>
       </div>
     </fieldset>}
-    {PERGUNTAS_CHECKIN.map((p) => <fieldset key={p.id}><legend className="mb-1 text-sm">{p.rotulo}</legend>
+    {PERGUNTAS_CHECKIN.map((p) => <fieldset key={p.id}><legend className="mb-1 text-sm">{t.checkinPergunta(p.id, p.rotulo)}</legend>
       <div className="grid grid-cols-5 gap-2">
         {[1, 2, 3, 4, 5].map((v) => <button key={v} type="button" aria-pressed={n[p.id as CampoCheckin] === v} aria-label={`${p.rotulo} ${v}`} className={`${chip(n[p.id as CampoCheckin] === v)} min-h-12 px-0 text-base`} onClick={() => setN((x) => ({ ...x, [p.id]: v }))}>{v}</button>)}
       </div>

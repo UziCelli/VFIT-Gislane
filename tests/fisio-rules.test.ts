@@ -114,7 +114,7 @@ describe('relatos de dor (fisioDores): segurança', () => {
   })
   it('ninguém cria em nome de outro; bloqueado, vencido e sem login não criam nem leem', async () => {
     await assertFails(setDoc(dor('bia', 'x'), relato()))
-    await assertFails(setDoc(dor('coach', 'x'), relato()))
+    await assertFails(setDoc(doc(db('coach', false), 'fisioDores', 'x'), relato())) // coach sem 2º fator
     for (const uid of ['bloq', 'vencida']) await assertFails(setDoc(dor(uid, 'x'), relato({ alunoId: uid })))
     await assertFails(setDoc(dor(undefined, 'x'), relato()))
     await existente()
@@ -206,7 +206,7 @@ describe('check-in de recuperação (fisioCheckins): segurança', () => {
   })
   it('ninguém cria em nome de outro; bloqueado, vencido e sem login não criam nem leem', async () => {
     await assertFails(setDoc(ck('bia'), novo()))
-    await assertFails(setDoc(ck('coach'), novo()))
+    await assertFails(setDoc(doc(db('coach', false), 'fisioCheckins', 'mA_s01_t1'), novo())) // coach sem 2º fator
     for (const uid of ['bloq', 'vencida']) await assertFails(setDoc(ck(uid), novo({ alunoId: uid })))
     await assertFails(setDoc(ck(undefined), novo()))
     await existente()
@@ -281,5 +281,35 @@ describe('relato de dor ligado ao treino (A1)', () => {
       { mesoId: 'mA', semana: 1, treino: 1 }, { mesoId: 'mB', semana: 1, treino: 1, slotId: 'a' }, { mesoId: 'mX', semana: 1, treino: 1, slotId: 'a' },
       { mesoId: 'mA', semana: '1', treino: 1, slotId: 'a' }, { mesoId: 'mA', semana: 1, treino: 1, slotId: 'x'.repeat(61) }, { semana: 1, slotId: 'a' },
     ]) await assertFails(setDoc(dor('x'), { ...base, ...extra }))
+  })
+})
+
+// Presencial (Victor, 24/11/2026): o coach vê a tela do aluno com as mesmas funções e registra por ele.
+describe('presencial: coach registra dor, check-in e sinal pelo aluno', () => {
+  const relato = (extra: object = {}) => ({ alunoId: 'ana', exercicio: 'Agachamento Livre Barra', articulacao: 'joelho', tipo: 'dor', intensidade: 4, momento: 'durante', mesoId: 'mA', semana: 1, treino: 1, slotId: 'a', em: serverTimestamp(), atualizadoEm: serverTimestamp(), ...extra })
+  const checkin = (extra: object = {}) => ({ alunoId: 'ana', mesoId: 'mA', semana: 1, treino: 1, sono: 4, estresse: 3, cansaco: 2, alimentacao: 5, em: serverTimestamp(), atualizadoEm: serverTimestamp(), ...extra })
+  it('dor: coach com 2º fator cria para o aluno do meso; nunca para quem não é aluno nem com meso de outro', async () => {
+    await assertSucceeds(setDoc(doc(db('coach'), 'fisioDores', 'p1'), relato()))
+    await assertSucceeds(setDoc(doc(db('coach'), 'fisioDores', 'p2'), { alunoId: 'ana', exercicio: 'Remada', articulacao: 'ombro', tipo: 'dor', intensidade: 2, momento: 'fim', em: serverTimestamp(), atualizadoEm: serverTimestamp() })) // sem treino
+    await assertFails(setDoc(doc(db('coach'), 'fisioDores', 'p3'), relato({ mesoId: 'mB' }))) // meso da bia
+    await assertFails(setDoc(doc(db('coach'), 'fisioDores', 'p4'), relato({ alunoId: 'coach' })))
+    await assertFails(setDoc(doc(db('coach'), 'fisioDores', 'p5'), relato({ alunoId: 'nao-existe' })))
+    await assertFails(setDoc(doc(db('coach'), 'fisioDores', 'p6'), relato({ resposta: 'ok' })))
+    await assertFails(setDoc(doc(db('coach', false), 'fisioDores', 'p7'), relato()))
+  })
+  it('check-in: coach cria para a sessão concluída do aluno; nega meso/registro de outro e sem 2º fator', async () => {
+    await assertSucceeds(setDoc(doc(db('coach'), 'fisioCheckins', 'mA_s01_t1'), checkin()))
+    await assertFails(setDoc(doc(db('coach'), 'fisioCheckins', 'mA_s01_t1'), checkin({ sono: 1 }))) // segundo envio
+    await assertFails(setDoc(doc(db('coach'), 'fisioCheckins', 'mB_s01_t1'), checkin({ mesoId: 'mB' }))) // meso da bia com alunoId ana
+    await assertFails(setDoc(doc(db('coach'), 'fisioCheckins', 'mA_s01_t3'), checkin({ treino: 3 }))) // não concluído
+    await assertFails(setDoc(doc(db('coach'), 'fisioCheckins', 'mA_s01_t2'), checkin({ treino: 2, alunoId: 'coach' })))
+    await assertFails(setDoc(doc(db('coach', false), 'fisioCheckins', 'mA_s01_t2'), checkin({ treino: 2 })))
+  })
+  it('sinal de alerta: coach acrescenta pelo aluno; não reescreve conteúdo nem desfaz', async () => {
+    await setDoc(ref('coach'), form())
+    await assertFails(updateDoc(ref('coach'), { sinalRelatado: true, sinalEm: serverTimestamp(), atualizadoEm: serverTimestamp(), recado: 'outro' }))
+    await assertFails(updateDoc(doc(db('coach', false), 'fisioOrientacoes', 'o'), { sinalRelatado: true, sinalEm: serverTimestamp(), atualizadoEm: serverTimestamp() }))
+    await assertSucceeds(updateDoc(ref('coach'), { sinalRelatado: true, sinalEm: serverTimestamp(), atualizadoEm: serverTimestamp() }))
+    await assertFails(updateDoc(ref('coach'), { sinalRelatado: false, atualizadoEm: serverTimestamp() }))
   })
 })

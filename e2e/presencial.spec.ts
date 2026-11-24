@@ -117,7 +117,7 @@ test('coach sem Iniciar: carga fica salva, treino não conta como feito', async 
   }, { timeout: 15_000 }).toEqual([25, null])
 })
 
-test('grupo: troca de aluno mantém treino e carga do outro', async ({ page }) => {
+test('grupo: troca de aluno mantém treino, carga e descanso do outro', async ({ page }) => {
   const { alunoId, mesoId } = await semear(false)
   const bId = await criarAluno('Caio Grupo', 'caio.pres-e2e@teste.com', 'senha123', 70)
   const w = { w1: [8, 8, 8, null, null, null], w2: [8, 8, 8, null, null, null] }
@@ -140,6 +140,10 @@ test('grupo: troca de aluno mantém treino e carga do outro', async ({ page }) =
   const kgB = b.locator('input[inputmode="decimal"]').first()
   await kgB.fill('40')
   await kgB.blur()
+  await b.getByRole('button', { name: 'Descansar 60 s', exact: true }).first().click()
+  const pausaB = b.getByRole('button', { name: /^Pausar / })
+  const inicioDescanso = await pausaB.innerText()
+  await expect(b.getByRole('button', { name: 'Pular', exact: true })).toBeVisible()
 
   const seletor = page.getByRole('navigation', { name: 'Alunos do grupo' })
   await seletor.getByRole('button', { name: 'Bia' }).click()
@@ -147,12 +151,23 @@ test('grupo: troca de aluno mantém treino e carga do outro', async ({ page }) =
   await expect(seletor.getByRole('button', { name: 'Bia' })).toHaveAttribute('aria-current', 'true')
   const a = page.getByRole('region', { name: `Treino de ${ALUNO.nome}` })
   await a.getByRole('button', { name: 'Iniciar treino' }).click()
+  await expect(a.getByRole('button', { name: /^Pausar / })).toHaveCount(0)
+  await expect(a.getByRole('button', { name: 'Pular', exact: true })).toHaveCount(0)
 
   await seletor.getByRole('button', { name: 'Caio' }).click()
   await expect(bar.getByText('Caio Grupo')).toBeVisible()
   await expect(seletor.getByRole('button', { name: 'Caio' })).toHaveAttribute('aria-current', 'true')
   await expect(b.locator('input[inputmode="decimal"]').first()).toHaveValue('40')
   await expect(b.getByText('Treino em andamento')).toBeVisible()
+  await expect(pausaB).toBeVisible()
+  await expect(pausaB).not.toHaveText(inicioDescanso)
+  await pausaB.click()
+  const continuarB = b.getByRole('button', { name: /^Continuar / })
+  await expect(continuarB).toBeVisible()
+  await continuarB.click()
+  await expect(pausaB).toBeVisible()
+  await b.getByRole('button', { name: 'Pular', exact: true }).click()
+  await expect(b.getByRole('button', { name: 'Descansar 60 s', exact: true }).first()).toBeVisible()
 })
 
 test('grupo de 3: Sair no primeiro mantém os outros dois', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import { agendarPush, cancelarPush } from './push'
 
 export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
@@ -82,6 +82,31 @@ const lerSom = () => {
 
 type Oscs = { o: OscillatorNode; g: GainNode }
 
+// Uma fonte por treino montado. Só os rótulos do contador assinam os ticks;
+// controles, gravações, persistência e marcos continuam no hook estrutural.
+function criarContagemDescanso() {
+  let segundos = 0
+  const ouvintes = new Set<() => void>()
+  return {
+    ler: () => segundos,
+    assinar: (ouvinte: () => void) => {
+      ouvintes.add(ouvinte)
+      return () => { ouvintes.delete(ouvinte) }
+    },
+    atualizar: (valor: number) => {
+      if (valor === segundos) return
+      segundos = valor
+      ouvintes.forEach(ouvinte => ouvinte())
+    },
+  }
+}
+
+export type ContagemDescanso = Pick<ReturnType<typeof criarContagemDescanso>, 'ler' | 'assinar'>
+const semContagem = criarContagemDescanso()
+export function useContagemDescanso(contagem: ContagemDescanso = semContagem) {
+  return useSyncExternalStore(contagem.assinar, contagem.ler, contagem.ler)
+}
+
 // Cronômetro de descanso: persistente, com sons (Web Audio), vibração e tela acesa.
 export function useDescanso() {
   const [uid, setUid] = useState<string | null>(null) // quem está logado; só depois disso o estado é lido/gravado
@@ -89,7 +114,7 @@ export function useDescanso() {
   const [slot, setSlot] = useState<string | null>(null)
   const [fimEm, setFimEm] = useState<number | null>(null)
   const [pausado, setPausado] = useState<number | null>(null)
-  const [restante, setRestante] = useState(0)
+  const [contagem] = useState(criarContagemDescanso)
   const [total, setTotal] = useState(1)
   const [ciclo, setCiclo] = useState(0)
   const [som, setSom] = useState(lerSom)
@@ -144,7 +169,7 @@ export function useDescanso() {
     feitos.current = new Set([0, 1, 2, 3].filter((m) => m >= r0 && m > 0))
     const tick = () => {
       const r = Math.max(0, Math.round((fimEm - Date.now()) / 1000))
-      setRestante(r)
+      contagem.atualizar(r)
       for (const m of [3, 2, 1, 0])
         if (r <= m && !feitos.current.has(m)) {
           feitos.current.add(m)
@@ -159,7 +184,7 @@ export function useDescanso() {
     tick()
     const id = setInterval(tick, 250)
     return () => clearInterval(id)
-  }, [fimEm])
+  }, [fimEm, contagem])
 
   // Os bipes seguem o relógio do AudioContext, que para quando o app sai da tela (iPhone e Android): os pendentes
   // tocariam atrasados, até fora do app (#229). Ao sair, cancela; ao voltar, reagenda pelo relógio real.
@@ -184,7 +209,7 @@ export function useDescanso() {
         setSlot(ini.slot)
         setFimEm(ini.fimEm)
         setPausado(ini.pausadoRestante)
-        setRestante(ini.fimEm ? Math.max(0, Math.round((ini.fimEm - Date.now()) / 1000)) : 0)
+        contagem.atualizar(ini.pausadoRestante ?? (ini.fimEm ? Math.max(0, Math.round((ini.fimEm - Date.now()) / 1000)) : 0))
         setTotal(ini.total)
       }
       setUid(u)
@@ -192,7 +217,7 @@ export function useDescanso() {
     return () => {
       vivo = false
     }
-  }, [])
+  }, [contagem])
 
   // Persistência
   useEffect(() => {
@@ -229,7 +254,7 @@ export function useDescanso() {
     setPausado(null)
     setTotal(Math.max(1, segundos))
     setCiclo((c) => c + 1)
-    setRestante(segundos)
+    contagem.atualizar(segundos)
     const fim = Date.now() + segundos * 1000
     setFimEm(fim)
     agendarSons(segundos)
@@ -249,7 +274,7 @@ export function useDescanso() {
     if (fimEm != null) {
       cancelarSons()
       cancelarPush()
-      setPausado(restante)
+      setPausado(contagem.ler())
       setFimEm(null)
     } else if (pausado != null) {
       const fim = Date.now() + pausado * 1000
@@ -269,7 +294,7 @@ export function useDescanso() {
       /* ignora */
     }
   }
-  return { slot, rodando, pausado: pausado != null, visivel: slot != null, restante: pausado ?? restante, total, ciclo, som, iniciar, alternar, alternarSom, parar }
+  return { slot, rodando, pausado: pausado != null, visivel: slot != null, contagem, total, ciclo, som, iniciar, alternar, alternarSom, parar }
 }
 
 type WakeLockLike = { release(): Promise<void> }

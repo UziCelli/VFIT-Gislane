@@ -7,7 +7,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type React
 import { copiaVazia, isometrico, metricasSessao, metodosDaSessao, prescreverSessao, type Metodo } from '../../engine'
 import { COR_METODO, METODOS, metodoDoRotulo } from '../../data/metodos'
 import { limparTreino, marcarTreino } from '../../lib/inatividade'
-import { mmss, useDescanso } from '../../lib/descanso'
+import { mmss, useContagemDescanso, useDescanso, type ContagemDescanso } from '../../lib/descanso'
 import { avisarCoach } from '../../lib/push'
 import { dispensarNota, notaDispensada } from '../../lib/notasMetodo'
 import { seriesDoRotulo } from '../../lib/metodoSeries'
@@ -287,6 +287,26 @@ const hms = (ms: number) => {
   const h = Math.floor(t / 3600)
   const r = `${String(Math.floor((t % 3600) / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`
   return h ? `${h}:${r}` : r
+}
+
+function BotaoDescanso({ contagem, rodando, pausaS, alternar }: {
+  contagem?: ContagemDescanso; rodando: boolean; pausaS: number; alternar: () => void
+}) {
+  const tempo = mmss(useContagemDescanso(contagem))
+  return (
+    <Botao
+      tipo={contagem ? 'primario' : undefined}
+      aria-label={contagem ? `${rodando ? 'Pausar' : 'Continuar'} ${tempo}` : `Descansar ${pausaS} s`}
+      className="inline-flex items-center gap-1"
+      onClick={alternar}
+    >
+      {contagem && rodando ? <IcPausa className="size-4" /> : <IcPlay className="size-4" />} {contagem ? tempo : `${pausaS} s`}
+    </Botao>
+  )
+}
+
+function NumeroDescanso({ contagem }: { contagem: ContagemDescanso }) {
+  return <div className="font-display text-2xl font-bold tabular-nums">{mmss(useContagemDescanso(contagem))}</div>
 }
 
 // Tempo corrido do treino: conta de inicioEm até "Concluir treino"; concluído mostra a duração final parada.
@@ -731,14 +751,12 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                     </Botao>
                     {(!gk || ordem === membros.length - 1) && (
                       <>
-                    <Botao
-                      tipo={descanso.slot === slot ? 'primario' : undefined}
-                      aria-label={descanso.slot === slot ? `${descanso.rodando ? 'Pausar' : 'Continuar'} ${mmss(descanso.restante)}` : `Descansar ${e.pausaS} s`}
-                      className="inline-flex items-center gap-1"
-                      onClick={() => descanso.alternar(e.pausaS, slot)}
-                    >
-                      {descanso.slot === slot ? <>{descanso.rodando ? <IcPausa className="size-4" /> : <IcPlay className="size-4" />} {mmss(descanso.restante)}</> : <><IcPlay className="size-4" /> {e.pausaS} s</>}
-                    </Botao>
+                    <BotaoDescanso
+                      contagem={descanso.slot === slot ? descanso.contagem : undefined}
+                      rodando={descanso.rodando}
+                      pausaS={e.pausaS}
+                      alternar={() => descanso.alternar(e.pausaS, slot)}
+                    />
                     {descanso.slot === slot && (
                       <Botao aria-label="Reiniciar" className="min-w-11" onClick={() => descanso.iniciar(e.pausaS, slot)}>
                         <IcReiniciar className="size-4" />
@@ -968,15 +986,15 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
             <m.div
               key={descanso.ciclo}
               className="h-full w-full origin-left rounded bg-marca-500" // scaleX (GPU), não width: corre o descanso inteiro
-              initial={{ transform: `scaleX(${descanso.restante / descanso.total})` }}
-              animate={{ transform: descanso.pausado ? `scaleX(${descanso.restante / descanso.total})` : 'scaleX(0)' }}
-              transition={{ duration: descanso.pausado ? 0 : descanso.restante, ease: 'linear' }}
+              initial={{ transform: `scaleX(${descanso.contagem.ler() / descanso.total})` }}
+              animate={{ transform: descanso.pausado ? `scaleX(${descanso.contagem.ler() / descanso.total})` : 'scaleX(0)' }}
+              transition={{ duration: descanso.pausado ? 0 : descanso.contagem.ler(), ease: 'linear' }}
             />
           </div>
           <div className="mx-auto flex max-w-md items-center justify-between">
             <div>
               <div className="text-xs text-slate-400">{descanso.slot?.startsWith('iso:') ? 'Isometria · série em andamento' : 'Descanso'}</div>
-              <div className="font-display text-2xl font-bold tabular-nums">{mmss(descanso.restante)}</div>
+              <NumeroDescanso contagem={descanso.contagem} />
             </div>
             <Botao onClick={descanso.parar}>Pular</Botao>
           </div>

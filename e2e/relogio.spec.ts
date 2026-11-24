@@ -80,6 +80,71 @@ test('coach presencial: iniciar, relógio andando, concluir', async ({ page }) =
   await iniciarEConcluir(page)
 })
 
+// Rolou a tela: o tempo continua à vista numa pílula no canto; tocar nela volta ao relógio.
+async function pilulaAoRolar(page: Page, coach = false) {
+  await page.getByRole('button', { name: 'Iniciar treino' }).click()
+  await expect(page.getByText('Treino em andamento')).toBeVisible()
+  const pilula = page.getByTestId('relogio-flutuante')
+  await expect(pilula).toHaveCount(0) // relógio do topo à vista: sem pílula
+  await page.evaluate(() => { document.body.style.paddingBottom = '3000px'; window.scrollTo(0, 1500) })
+  await expect(pilula).toBeVisible()
+  await expect(pilula).toHaveText(/\d+:\d{2}/)
+  const caixa = await pilula.boundingBox()
+  const barra = coach ? await page.getByRole('region', { name: 'Presencial' }).boundingBox() : null
+  expect(caixa!.y).toBeGreaterThanOrEqual(barra ? barra.y + barra.height : 0) // coach: abaixo da barra do presencial
+  expect(caixa!.x + caixa!.width).toBeGreaterThan(300) // canto direito
+  await pilula.click()
+  await expect(page.getByTestId('relogio-treino')).toBeInViewport()
+  await expect(pilula).toHaveCount(0)
+}
+
+test('aluno: pílula do tempo aparece ao rolar', async ({ page }) => {
+  await semear()
+  await entrar(page, ALUNO.email, ALUNO.senha)
+  await page.getByRole('navigation', { name: 'Menu' }).getByRole('link', { name: 'Treino', exact: true }).click()
+  await page.getByRole('button', { name: /Treino 1/ }).click()
+  await pilulaAoRolar(page)
+})
+
+test('coach presencial: pílula do tempo aparece ao rolar', async ({ page }) => {
+  await semear()
+  await entrar(page, COACH.email, COACH.senha)
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible()
+  await page.goto(`/#/aluno/${alunoId}`)
+  await page.getByRole('button', { name: 'Treino presencial' }).click()
+  await expect(page.getByRole('heading', { name: 'Treino 1' })).toBeVisible()
+  await pilulaAoRolar(page, true)
+})
+
+// Dois alunos no presencial: a pílula é só do aluno à vista (a do escondido não aparece por cima).
+test('coach presencial com dois alunos: pílula só do aluno à vista', async ({ page }) => {
+  await semear()
+  const bId = await criarAluno('Caio Relógio', 'caio.relogio-e2e@teste.com', 'senha123', 80)
+  const w = { w1: [8, 8, 8, null, null, null], w2: [8, 8, 8, null, null, null] }
+  await criarMeso({
+    alunoId: bId, nome: 'Meso Caio', frequencia: 2, semanas: 2, inicio: hojeSaoPaulo(), pausaS: 60,
+    divisao: { t1: [{ slotId: 'a', nome: 'Supino Reto Barra' }], t2: [{ slotId: 'a', nome: 'Rosca Direta Barra' }] },
+    progressao: { principais: w, auxiliares: w },
+  })
+  await entrar(page, COACH.email, COACH.senha)
+  await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible()
+  await page.goto(`/#/aluno/${alunoId}/presencial`)
+  const bar = page.getByRole('region', { name: 'Presencial' })
+  const a = page.getByRole('region', { name: `Treino de ${ALUNO.nome}` })
+  await a.getByRole('button', { name: 'Iniciar treino' }).click()
+  await page.evaluate(() => { document.body.style.paddingBottom = '3000px'; window.scrollTo(0, 1500) })
+  await expect(a.getByTestId('relogio-flutuante')).toBeVisible()
+
+  await bar.getByRole('button', { name: 'Adicionar aluno' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /Caio Relógio/ }).click()
+  await expect(bar.getByText('Caio Relógio')).toBeVisible()
+  await expect(page.getByTestId('relogio-flutuante')).toBeHidden() // Rita escondida, Caio sem iniciar
+
+  await page.getByRole('navigation', { name: 'Alunos do grupo' }).getByRole('button', { name: 'Rita' }).click()
+  await page.evaluate(() => window.scrollTo(0, 1500))
+  await expect(a.getByTestId('relogio-flutuante')).toBeVisible()
+})
+
 // Coach fica conectado: 25 min parado não derruba (antes caía em 20 min e pedia o 2FA de novo); 7 dias sem uso, sim.
 test('inatividade do coach: não cai em 25 min, cai depois de 7 dias', async ({ page }) => {
   await semear()

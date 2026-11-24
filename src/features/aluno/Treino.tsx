@@ -310,8 +310,11 @@ function NumeroDescanso({ contagem }: { contagem: ContagemDescanso }) {
 }
 
 // Tempo corrido do treino: conta de inicioEm até "Concluir treino"; concluído mostra a duração final parada.
-function RelogioTreino({ inicio, fim, realizado, quieto, previsto, onIniciar, onCancelar, anamnese }: { anamnese: boolean; inicio: number | null; fim: number | null; realizado: boolean; quieto: boolean | null; previsto: string; onIniciar: () => void; onCancelar: () => void }) {
+// Rolou a linha do relógio para fora da tela: uma pílula pequena e esmaecida fica no canto com o mesmo tempo.
+function RelogioTreino({ inicio, fim, realizado, quieto, previsto, coach, onIniciar, onCancelar, anamnese }: { anamnese: boolean; inicio: number | null; fim: number | null; realizado: boolean; quieto: boolean | null; previsto: string; coach?: boolean; onIniciar: () => void; onCancelar: () => void }) {
   const [agora, setAgora] = useState(Date.now)
+  const linha = useRef<HTMLDivElement>(null)
+  const [topo, setTopo] = useState<number | null>(null) // px do topo da pílula; null = relógio à vista
   // Parado: concluído, ou "Desfazer" (mantém a hora do fim desta sessão): o relógio não volta a contar de um início antigo.
   const parado = realizado || fim != null
   const rodando = inicio != null && !parado
@@ -323,20 +326,60 @@ function RelogioTreino({ inicio, fim, realizado, quieto, previsto, onIniciar, on
     const id = setInterval(() => setAgora(Date.now()), 1000)
     return () => clearInterval(id)
   }, [rodando])
+  // Só um booleano em estado (o React ignora valor igual): rolar não re-renderiza o treino nem esta linha (#237).
+  // Também confere a cada segundo: no presencial, trocar de aluno não rola a página.
+  useEffect(() => {
+    if (!rodando) { setTopo(null); return }
+    let quadro = 0
+    const conferir = () => {
+      quadro = 0
+      const el = linha.current
+      // Seção escondida (outro aluno no presencial) não tem offsetParent: sem pílula.
+      if (!el || el.offsetParent == null) return setTopo(null)
+      // Coach: a barra fixa do presencial (altura muda com a área segura) fica em cima; a pílula vai logo abaixo dela.
+      const barra = coach ? document.querySelector('[role="region"][aria-label="Presencial"]')?.getBoundingClientRect().bottom ?? 0 : 0
+      setTopo(el.getBoundingClientRect().bottom < barra + 8 ? Math.round(barra) : null)
+    }
+    const aoRolar = () => { if (!quadro) quadro = requestAnimationFrame(conferir) }
+    conferir()
+    window.addEventListener('scroll', aoRolar, { passive: true })
+    const id = setInterval(conferir, 1000)
+    return () => { window.removeEventListener('scroll', aoRolar); clearInterval(id); cancelAnimationFrame(quadro) }
+  }, [rodando, coach])
   if (parado) {
     const d = duracaoTreino(inicio, fim) // acima de 3 h é treino esquecido aberto: sem duração falsa
     return d != null ? <p className="mb-3 text-sm text-slate-400">Duração do treino · <span className="font-semibold tabular-nums text-slate-100">{hms(d)}</span> · previsto {previsto}</p> : null
   }
   if (inicio == null && anamnese) return <a href="#/anamnese" className={classesBotao('primario', 'lg', 'borda-brilho mb-3 flex w-full items-center justify-center gap-2')}><BrilhoBorda />Responda a anamnese (3 min)</a>
   if (inicio == null) return <Botao tipo="primario" aria-label="Iniciar treino" tamanho="lg" className="borda-brilho mb-3 flex w-full items-center justify-center gap-2 shadow-lg shadow-marca-500/40" onClick={onIniciar}><BrilhoBorda /><IcPlay className="size-5" /> Iniciar treino</Botao>
+  const tempo = agora - inicio > TETO_TREINO_MS ? 'mais de 3 h' : hms(agora - inicio)
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div ref={linha} className="mb-3 flex flex-wrap items-center justify-between gap-2">
       <p role="timer" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
         <span aria-hidden className={`h-2 w-2 rounded-full bg-emerald-400 ${quieto ? '' : 'animate-pulse'}`} />
-        Treino em andamento · <span data-testid="relogio-treino" className="font-semibold tabular-nums text-slate-100">{agora - inicio > TETO_TREINO_MS ? 'mais de 3 h' : hms(agora - inicio)}</span>
+        Treino em andamento · <span data-testid="relogio-treino" className="font-semibold tabular-nums text-slate-100">{tempo}</span>
         <span className="text-slate-500">· previsto {previsto}</span>
       </p>
       <Botao tipo="alerta" className="whitespace-nowrap" onClick={onCancelar}>Cancelar treino</Botao>
+      {topo != null && (
+        // Entra esmaecendo e some na hora (sem exit/AnimatePresence: nada fantasma recebendo toque).
+        // Sem filter/backdrop-filter (fluidez do treino).
+        <m.button
+          type="button"
+          data-testid="relogio-flutuante"
+          aria-label={`Tempo de treino ${tempo}, previsto ${previsto}. Voltar ao relógio`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.8 }}
+          transition={suave}
+          onClick={() => linha.current?.scrollIntoView({ block: 'center', behavior: quieto ? 'auto' : 'smooth' })}
+          style={{ top: coach ? topo + 8 : 'calc(env(safe-area-inset-top) + 0.75rem)' }}
+          className="fixed right-3 z-30 flex min-h-11 items-center gap-1.5 rounded-full bg-slate-900/90 px-3 text-sm text-slate-400 shadow-lg ring-1 ring-white/10 active:opacity-100"
+        >
+          <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="font-semibold tabular-nums text-slate-100">{tempo}</span>
+          <span className="text-xs text-slate-500">/ {previsto}</span>
+        </m.button>
+      )}
     </div>
   )
 }
@@ -653,7 +696,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         {pendente && <span className="max-w-[40%] text-right text-xs text-amber-400">salvo no celular · envia quando tiver internet</span>}
       </div>
 
-      <RelogioTreino inicio={inicioMs} fim={fimMs} realizado={realizado} quieto={quieto} previsto={fmtMin(sessao.tempoMin)} onIniciar={iniciou} onCancelar={cancelar} anamnese={pedirAnamnese} />
+      <RelogioTreino inicio={inicioMs} fim={fimMs} realizado={realizado} quieto={quieto} previsto={fmtMin(sessao.tempoMin)} coach={coach} onIniciar={iniciou} onCancelar={cancelar} anamnese={pedirAnamnese} />
       {!comecou && !realizado && (coach
         ? <p className="mb-3 text-sm text-slate-400">Sem iniciar: as cargas ficam salvas, mas o treino não conta como feito.</p>
         : <p className="mb-3 text-sm text-amber-300">{pedirAnamnese ? 'Responda a anamnese para liberar o treino.' : 'Toque em Iniciar treino para anotar as cargas.'}</p>)}

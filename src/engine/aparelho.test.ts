@@ -56,6 +56,11 @@ describe('plaquinhas complementares (Life Fitness)', () => {
     expect(proximoValor(lf, 1.25, -1)).toBeNull()
     expect(proximoValor(lf, 50, 1)).toBeNull()
   })
+  it('plaquinha maior que o incremento alcança degraus abaixo', () => {
+    const grande: AparelhoKg = { ...lf, complementos: [5.625] }
+    expect(arredondarNoAparelho(grande, 11.875)).toBe(11.875) // 6,25 + 5,625
+    expect(proximoValor(grande, 11.25, 1)).toBe(11.875)
+  })
   it('valida as plaquinhas', () => {
     expect(problemasAparelho(lf)).toEqual([])
     expect(problemasAparelho({ ...lf, complementos: [0] })).toContain('complementos: até 4 plaquinhas maiores que 0')

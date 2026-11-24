@@ -348,20 +348,20 @@ function TabelaProgressao({
         <Botao onClick={acao.fazer}>{acao.rotulo}</Botao>
       </div>
       <div className="overflow-x-auto">
-      <table className="mx-auto border-separate border-spacing-x-0.5 border-spacing-y-1 text-sm md:mx-0 md:w-full md:border-spacing-2">
+      <table className="mx-auto border-separate border-spacing-x-0.5 border-spacing-y-1 text-sm @2xl:mx-0 @2xl:w-full @2xl:border-spacing-2">
         <thead>
           <tr>
             <th className="text-left text-slate-400">
-              <span className="md:hidden">Sem</span>
-              <span className="hidden md:inline">Semana</span>
+              <span className="@2xl:hidden">Sem</span>
+              <span className="hidden @2xl:inline">Semana</span>
             </th>
             {Array.from({ length: 6 }, (_, i) => i + 1).map((s) => (
-              <th key={s} className="text-center font-normal text-slate-400 md:text-left">
-                <span className="md:hidden">S{s}</span>
-                <span className="hidden md:inline">Série {s}</span>
+              <th key={s} className="text-center font-normal text-slate-400 @2xl:text-left">
+                <span className="@2xl:hidden">S{s}</span>
+                <span className="hidden @2xl:inline">Série {s}</span>
               </th>
             ))}
-            <th className="hidden md:table-cell" />
+            <th className="hidden @2xl:table-cell" />
           </tr>
         </thead>
         <tbody>
@@ -370,10 +370,10 @@ function TabelaProgressao({
             return (
               <tr key={w}>
                 <td className="text-slate-400">
-                  <span className="md:hidden">S{w}</span>
-                  <span className="hidden md:inline">{w}</span>
+                  <span className="@2xl:hidden">S{w}</span>
+                  <span className="hidden @2xl:inline">{w}</span>
                   {w > 1 && (
-                    <button type="button" aria-label="Copiar anterior" onClick={() => copiarAnterior(w)} className="grid size-11 place-items-center text-marca-300 md:hidden">
+                    <button type="button" aria-label="Copiar anterior" onClick={() => copiarAnterior(w)} className="grid size-11 place-items-center text-marca-300 @2xl:hidden">
                       ↑
                     </button>
                   )}
@@ -387,11 +387,11 @@ function TabelaProgressao({
                       aria-label={`${titulo}, semana ${w}, série ${j + 1}, ${unidade}`}
                       value={v ?? ''}
                       onChange={(e) => setCelula(w, j + 1, e.target.value === '' ? null : Number(e.target.value))}
-                      className={`${campoBase} w-11 px-0 py-1 text-center md:w-16 md:px-2 md:text-left outline-none focus:border-marca-500`}
+                      className={`${campoBase} w-11 px-0 py-1 text-center @2xl:w-16 @2xl:px-2 @2xl:text-left outline-none focus:border-marca-500`}
                     />
                   </td>
                 ))}
-                <td className="hidden md:table-cell">
+                <td className="hidden @2xl:table-cell">
                   {w > 1 && (
                     <Botao onClick={() => copiarAnterior(w)} className="text-xs">
                       Copiar anterior

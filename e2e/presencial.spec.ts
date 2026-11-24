@@ -60,6 +60,9 @@ for (const presencial of [false, true]) {
 
     const tela = page.getByRole('region', { name: `Treino de ${ALUNO.nome}` })
     await tela.getByRole('button', { name: 'Iniciar treino' }).click()
+    // Mesmas funções do app do aluno, em 3ª pessoa (Victor, 24/11/2026).
+    await expect(tela.getByRole('button', { name: 'Bia sentiu dor' }).first()).toBeVisible()
+    await expect(tela.getByRole('button', { name: 'Senti dor' })).toHaveCount(0)
     const militar = tela.locator('.rounded-xl.border').filter({ hasText: 'Desenvolvimento Militar Barra' })
     const [kg, reps] = [militar.locator('input[inputmode="decimal"]').nth(0), militar.locator('input[inputmode="decimal"]').nth(1)]
     await kg.fill('30')
@@ -73,6 +76,7 @@ for (const presencial of [false, true]) {
     await page.getByRole('button', { name: 'Concluir treino' }).click()
     await page.getByRole('button', { name: 'Sim, concluir' }).click()
     await expect(page.getByRole('heading', { name: /Treino concluído/ })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Como Bia está?' })).toBeVisible() // check-in pelo aluno
     await page.getByRole('button', { name: 'Voltar para Hoje' }).click()
     await expect(page.getByRole('button', { name: /Treino 1.*Feito/ })).toBeVisible() // voltou ao Hoje presencial
     await expect(page.getByRole('region', { name: 'Presencial' }).getByText(ALUNO.nome)).toBeVisible()

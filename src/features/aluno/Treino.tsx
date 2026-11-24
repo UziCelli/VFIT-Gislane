@@ -46,6 +46,7 @@ import CampoLados, { BotaoLadosDiferentes } from '../coach/semana/CampoLados'
 import { doisLados, ladosDiferentes, lerCelula } from '../../lib/lados'
 import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/presencial/EditarTreino'
 import AvisoEstimativaRm from './AvisoEstimativaRm'
+import { textosVoz, useTextosVoz, VozTreino, type Voz } from './voz'
 import PerguntaRir from './PerguntaRir'
 import { FaixaPolimento, SeloPolimento } from './Polimento'
 import { escopoPolimento, mudancasPolimento, prescricaoNormal, resumoPolimento, semanaDePolimento } from '../../lib/polimentoAluno'
@@ -165,6 +166,7 @@ function NotaMetodos({ metodos }: { metodos: Metodo[] }) {
 }
 
 function AvisoAdaptado({ chave }: { chave: string }) {
+  const t = useTextosVoz()
   const [ver, setVer] = useState(() => {
     try {
       return localStorage.getItem(chave) !== '1'
@@ -199,7 +201,7 @@ function AvisoAdaptado({ chave }: { chave: string }) {
             transition={suave}
             className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-5"
           >
-            <p className="mb-4 text-sm text-slate-300">Seu coach adaptou seu treino para você progredir dentro do seu tempo.</p>
+            <p className="mb-4 text-sm text-slate-300">{t.adaptado}</p>
             <Botao tipo="primario" tamanho="lg" className="w-full" onClick={fechar}>
               Entendi
             </Botao>
@@ -312,8 +314,11 @@ function NumeroDescanso({ contagem }: { contagem: ContagemDescanso }) {
 }
 
 // Tempo corrido do treino: conta de inicioEm até "Concluir treino"; concluído mostra a duração final parada.
-function RelogioTreino({ inicio, fim, realizado, quieto, previsto, onIniciar, onCancelar, anamnese }: { anamnese: boolean; inicio: number | null; fim: number | null; realizado: boolean; quieto: boolean | null; previsto: string; onIniciar: () => void; onCancelar: () => void }) {
+// Rolou a linha do relógio para fora da tela: uma pílula pequena e esmaecida fica no canto com o mesmo tempo.
+function RelogioTreino({ inicio, fim, realizado, quieto, previsto, coach, onIniciar, onCancelar, anamnese }: { anamnese: boolean; inicio: number | null; fim: number | null; realizado: boolean; quieto: boolean | null; previsto: string; coach?: boolean; onIniciar: () => void; onCancelar: () => void }) {
   const [agora, setAgora] = useState(Date.now)
+  const linha = useRef<HTMLDivElement>(null)
+  const [topo, setTopo] = useState<number | null>(null) // px de onde a pílula começa (barra/teclado); null = relógio à vista
   // Parado: concluído, ou "Desfazer" (mantém a hora do fim desta sessão): o relógio não volta a contar de um início antigo.
   const parado = realizado || fim != null
   const rodando = inicio != null && !parado
@@ -325,20 +330,71 @@ function RelogioTreino({ inicio, fim, realizado, quieto, previsto, onIniciar, on
     const id = setInterval(() => setAgora(Date.now()), 1000)
     return () => clearInterval(id)
   }, [rodando])
+  // Só um booleano em estado (o React ignora valor igual): rolar não re-renderiza o treino nem esta linha (#237).
+  // Também confere a cada segundo: no presencial, trocar de aluno não rola a página.
+  useEffect(() => {
+    if (!rodando) { setTopo(null); return }
+    let quadro = 0
+    const conferir = () => {
+      quadro = 0
+      const el = linha.current
+      // Seção escondida (outro aluno no presencial) não tem offsetParent: sem pílula.
+      if (!el || el.offsetParent == null) return setTopo(null)
+      // Coach: a barra fixa do presencial (altura muda com a área segura) fica em cima; a pílula vai logo abaixo dela.
+      const barra = coach ? document.querySelector('[role="region"][aria-label="Presencial"]')?.getBoundingClientRect().bottom ?? 0 : 0
+      // Teclado aberto no iPhone: a parte visível desce (visualViewport.offsetTop); a pílula vai junto, como a FestaRecorde.
+      const visivel = window.visualViewport?.offsetTop ?? 0
+      setTopo(el.getBoundingClientRect().bottom < barra + 8 ? Math.round(Math.max(barra, visivel)) : null)
+    }
+    const aoRolar = () => { if (!quadro) quadro = requestAnimationFrame(conferir) }
+    conferir()
+    const vv = window.visualViewport
+    window.addEventListener('scroll', aoRolar, { passive: true })
+    vv?.addEventListener('resize', aoRolar)
+    vv?.addEventListener('scroll', aoRolar)
+    const id = setInterval(conferir, 1000)
+    return () => {
+      window.removeEventListener('scroll', aoRolar)
+      vv?.removeEventListener('resize', aoRolar)
+      vv?.removeEventListener('scroll', aoRolar)
+      clearInterval(id)
+      cancelAnimationFrame(quadro)
+    }
+  }, [rodando, coach])
   if (parado) {
     const d = duracaoTreino(inicio, fim) // acima de 3 h é treino esquecido aberto: sem duração falsa
     return d != null ? <p className="mb-3 text-sm text-slate-400">Duração do treino · <span className="font-semibold tabular-nums text-slate-100">{hms(d)}</span> · previsto {previsto}</p> : null
   }
   if (inicio == null && anamnese) return <a href="#/anamnese" className={classesBotao('primario', 'lg', 'borda-brilho mb-3 flex w-full items-center justify-center gap-2')}><BrilhoBorda />Responda a anamnese (3 min)</a>
   if (inicio == null) return <Botao tipo="primario" aria-label="Iniciar treino" tamanho="lg" className="borda-brilho mb-3 flex w-full items-center justify-center gap-2 shadow-lg shadow-marca-500/40" onClick={onIniciar}><BrilhoBorda /><IcPlay className="size-5" /> Iniciar treino</Botao>
+  const tempo = agora - inicio > TETO_TREINO_MS ? 'mais de 3 h' : hms(agora - inicio)
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div ref={linha} className="mb-3 flex flex-wrap items-center justify-between gap-2">
       <p role="timer" className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-400">
         <span aria-hidden className={`h-2 w-2 rounded-full bg-emerald-400 ${quieto ? '' : 'animate-pulse'}`} />
-        Treino em andamento · <span data-testid="relogio-treino" className="font-semibold tabular-nums text-slate-100">{agora - inicio > TETO_TREINO_MS ? 'mais de 3 h' : hms(agora - inicio)}</span>
+        Treino em andamento · <span data-testid="relogio-treino" className="font-semibold tabular-nums text-slate-100">{tempo}</span>
         <span className="text-slate-500">· previsto {previsto}</span>
       </p>
       <Botao tipo="alerta" className="whitespace-nowrap" onClick={onCancelar}>Cancelar treino</Botao>
+      {topo != null && (
+        // Entra esmaecendo e some na hora (sem exit/AnimatePresence: nada fantasma recebendo toque).
+        // Sem filter/backdrop-filter (fluidez do treino).
+        <m.button
+          type="button"
+          data-testid="relogio-flutuante"
+          aria-label={`Tempo de treino ${tempo}, previsto ${previsto}. Voltar ao relógio`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.8 }}
+          transition={suave}
+          onClick={() => linha.current?.scrollIntoView({ block: 'center', behavior: quieto ? 'auto' : 'smooth' })}
+          style={{ top: coach ? topo + 8 : `calc(env(safe-area-inset-top) + 0.75rem + ${topo}px)` }}
+          className="fixed right-3 z-30 flex min-h-11 items-center gap-1.5 rounded-full bg-slate-900/90 px-3 text-sm text-slate-400 shadow-lg ring-1 ring-white/10 active:opacity-100"
+        >
+          <span aria-hidden className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="font-semibold tabular-nums text-slate-100">{tempo}</span>
+          <span className="text-xs text-slate-500">/ {previsto}</span>
+        </m.button>
+      )}
     </div>
   )
 }
@@ -413,12 +469,16 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const sair = () => (coach ? ir(base) : voltar('/treino'))
   const [pcLocal, setPcLocal] = useState<Record<string, number>>({}) // vale até o Firestore confirmar
   const { dados: perfil } = useDoc<Usuario>(doc(db, 'usuarios', uid))
+  // Mesma tela e mesmas funções para aluno e coach (presencial); só a voz muda (ver voz.ts).
+  const nomeAluno = perfil?.nome ?? ''
+  const voz = useMemo<Voz>(() => ({ coach: !!coach, nome: nomeAluno }), [coach, nomeAluno])
+  const t = textosVoz(voz)
   // Carga sugerida pelas repetições (RM): escolha de quem está usando (aluno, ou o coach no presencial). Sem escolha = pergunta 1x.
   const eu = useUsuarioAtual()
   const estimarRm = eu.perfil?.estimativaRm === true
   const perguntarRm = !!eu.user && !!eu.perfil && eu.perfil.estimativaRm === undefined && !navigator.webdriver // e2e não abre pop-up
   const an = useAnamnese(uid)
-  const orient = useOrientacoes(coach ? null : uid)
+  const orient = useOrientacoes(uid) // presencial também: o coach vê e usa a Físio do aluno
   const orientacoes = orient.dados
   const [fisioId, setFisioId] = useState<string | null>(null) // só o id: a orientação é lida da lista a cada render (recolher/sinal chegam sem recarregar)
   const pedirAnamnese = !coach && an.travar // coach/presencial nunca trava
@@ -628,6 +688,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const fisioAberto = orientacoes.find((o) => o.id === fisioId)
   if (verResumo)
     return (
+      <VozTreino.Provider value={voz}>
       <FimTreino
         nome={perfil?.nome?.trim().split(/\s+/)[0]}
         duracaoMs={duracaoTreino(inicioMs, fimMs)}
@@ -639,11 +700,13 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         voltar={sair}
         verTreino={() => setVerResumo(false)}
         // Check-in só para treino concluído há pouco (até 12 h): resumo de treino antigo não pergunta (a hora gravada seria a de agora).
-        checkin={coach || fimMs == null || Date.now() - fimMs > 12 * 3600_000 ? undefined : { uid, sessao: { mesoId, semana, treino }, exercicios: [...new Set(sessao.exercicios.map((e) => e.slot.nome.trim()))], slots: Object.fromEntries(sessao.exercicios.map((e) => [e.slot.nome.trim(), e.slot.slotId])) }}
+        checkin={fimMs == null || Date.now() - fimMs > 12 * 3600_000 ? undefined : { uid, sessao: { mesoId, semana, treino }, exercicios: [...new Set(sessao.exercicios.map((e) => e.slot.nome.trim()))], slots: Object.fromEntries(sessao.exercicios.map((e) => [e.slot.nome.trim(), e.slot.slotId])) }}
       />
+      </VozTreino.Provider>
     )
 
   return (
+    <VozTreino.Provider value={voz}>
     <div className="treino-pagina min-h-lvh">
     <main className="mx-auto max-w-md px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-4">
       <AvisoNotificacoes />
@@ -660,17 +723,18 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         {pendente && <span className="max-w-[40%] text-right text-xs text-amber-400">salvo no celular · envia quando tiver internet</span>}
       </div>
 
-      <RelogioTreino inicio={inicioMs} fim={fimMs} realizado={realizado} quieto={quieto} previsto={fmtMin(sessao.tempoMin)} onIniciar={iniciou} onCancelar={cancelar} anamnese={pedirAnamnese} />
+      <RelogioTreino inicio={inicioMs} fim={fimMs} realizado={realizado} quieto={quieto} previsto={fmtMin(sessao.tempoMin)} coach={coach} onIniciar={iniciou} onCancelar={cancelar} anamnese={pedirAnamnese} />
       {!comecou && !realizado && (coach
         ? <p className="mb-3 text-sm text-slate-400">Sem iniciar: as cargas ficam salvas, mas o treino não conta como feito.</p>
         : <p className="mb-3 text-sm text-amber-300">{pedirAnamnese ? 'Responda a anamnese para liberar o treino.' : 'Toque em Iniciar treino para anotar as cargas.'}</p>)}
+      {coach && an.travar && <p role="status" className="mb-3 text-sm text-amber-300">{t.anamnesePendente} <a href={`#/aluno/${uid}/anamnese`} className="font-semibold underline">Ver anamnese</a></p>}
       <AnimatePresence>{festa && <FestaRecorde key={festa.n} festa={festa} quieto={quieto} fechar={fecharFesta} />}</AnimatePresence>
       <NotaMetodos metodos={notaInicial} />
       <AnimatePresence>{explicar && <ExplicacaoMetodo metodo={explicar} fechar={() => setExplicar(null)} />}</AnimatePresence>
       <AnimatePresence>{fisioAberto && metodoFisio(fisioAberto.metodoId) && (
         <Modal rotulo={`Físio ${fisioAberto.metodoId}`} aoFechar={() => setFisioId(null)}>
           <BotaoSinal id={fisioAberto.id} sinalRelatado={fisioAberto.sinalRelatado} pendente={orient.pendente}>{(interrompida) => <>
-            {!interrompida && fisioAberto.recado && <p className="mb-3 whitespace-pre-wrap rounded-xl bg-slate-800 p-3 text-sm">Seu coach: {fisioAberto.recado}</p>}
+            {!interrompida && fisioAberto.recado && <p className="mb-3 whitespace-pre-wrap rounded-xl bg-slate-800 p-3 text-sm">{t.recado} {fisioAberto.recado}</p>}
             <ConteudoMetodo metodo={metodoFisio(fisioAberto.metodoId)!} protocolo={!interrompida && !an.pausado && metodoLiberavel(fisioAberto.metodoId)} />
           </>}</BotaoSinal>
           <Botao tipo="primario" tamanho="lg" className="mt-4 w-full" onClick={() => setFisioId(null)}>Fechar</Botao>
@@ -717,7 +781,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
             if (corpo) return gravaPc(0)
             let peso = perfil?.pesoKg
             if (!peso) {
-              const n = Number((window.prompt('Qual é o seu peso (kg)?') ?? '').replace(',', '.'))
+              const n = Number((window.prompt(t.pesoPergunta) ?? '').replace(',', '.'))
               if (!(n >= 20 && n <= 300)) return
               salvarPeso(uid, n)
               peso = n
@@ -785,12 +849,12 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                   {!ladosDiferentes(colunasCargas.map((_, k) => celula(k))) && <BotaoLadosDiferentes aberto={!!edAberto[slot]} onAlternar={() => setEdAberto((p) => ({ ...p, [slot]: !p[slot] }))} />}
                 </div>
               )}
-              {!coach && !an.pausado && orientacoesDoExercicio(orientacoes, e.slot.nome).map((o) => (
+              {!an.pausado && orientacoesDoExercicio(orientacoes, e.slot.nome).map((o) => (
                 <button key={o.id} type="button" onClick={() => setFisioId(o.id)} className="mb-2 mr-2 min-h-11 rounded-full bg-teal-900 px-3 text-sm font-bold text-teal-100 ring-1 ring-teal-500">
-                  {o.sinalRelatado ? 'Físio pausado — fale com seu coach' : `Físio · ${o.metodoId}`}
+                  {o.sinalRelatado ? t.fisioPausado : `Físio · ${o.metodoId}`}
                 </button>
               ))}
-              {!coach && <RelatarDor uid={uid} exercicio={e.slot.nome.trim()} sessao={{ mesoId, semana, treino }} slots={{ [e.slot.nome.trim()]: e.slot.slotId }} />}
+              <RelatarDor uid={uid} exercicio={e.slot.nome.trim()} sessao={{ mesoId, semana, treino }} slots={{ [e.slot.nome.trim()]: e.slot.slotId }} />
               {anterior && (anterior.estimada || anterior.origem.anterior || anterior.origem.treino !== treino) && <p className="mb-2 text-xs text-slate-400">Cargas em cinza: {anterior.estimada ? 'ajustadas às repetições de hoje, a partir do' : 'última vez no'} Treino {anterior.origem.treino} · {anterior.origem.anterior ? `ciclo anterior (semana ${anterior.origem.semana})` : anterior.origem.semana === semana ? 'esta semana' : `semana ${anterior.origem.semana}`}</p>}
               <div className="space-y-2">
                 {(() => {
@@ -894,7 +958,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                       return (
                         <Fragment key={k}>
                           {linha(k)}
-                          {!coach && !iso && k === e.n - 1 && colunasCargas[k] != null && (
+                          {!iso && k === e.n - 1 && colunasCargas[k] != null && (
                             <PerguntaRir mesoId={mesoId} uid={uid} semana={semana} treino={treino} slotId={slot} coluna={k} valor={rirFeito[`${semana}-${treino}`]?.[slot]?.[k] ?? null} disabled={travado} />
                           )}
                           {cols.length > 0 && (
@@ -1012,5 +1076,6 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
       </AnimatePresence>
     </main>
     </div>
+    </VozTreino.Provider>
   )
 }

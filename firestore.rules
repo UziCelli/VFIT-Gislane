@@ -380,7 +380,8 @@ service cloud.firestore {
           && alunoFisio(request.resource.data.alunoId)
           && get(/databases/$(database)/documents/usuarios/$(resource.data.alunoId)).data.get('migradoPara', '') == request.resource.data.alunoId)
       );
-      allow update: if liberado() && own(resource.data) && resource.data.recolhida == false
+      // Sinal de alerta: o aluno, ou o coach pelo aluno no presencial (mesma tela, mesma função).
+      allow update: if ((isCoach() && alunoFisio(resource.data.alunoId)) || (liberado() && own(resource.data))) && resource.data.recolhida == false
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sinalRelatado', 'sinalEm', 'atualizadoEm'])
         && request.resource.data.sinalRelatado == true && resource.data.sinalRelatado == false
         && request.resource.data.sinalEm == request.time && request.resource.data.atualizadoEm == request.time;
@@ -393,14 +394,15 @@ service cloud.firestore {
     match /fisioDores/{id} {
       allow read: if isCoach() || (own(resource.data) && liberado());
       allow delete: if isCoach();
-      allow create: if own(request.resource.data) && liberado()
+      // Presencial: o coach relata pelo aluno (alunoId = o aluno; o meso precisa ser dele).
+      allow create: if ((own(request.resource.data) && liberado()) || (isCoach() && alunoFisio(request.resource.data.alunoId)))
         && request.resource.data.keys().hasOnly(['alunoId', 'exercicio', 'articulacao', 'tipo', 'intensidade', 'momento', 'texto', 'mesoId', 'semana', 'treino', 'slotId', 'em', 'atualizadoEm'])
         // A1: treino do relato (opcional; relatos antigos não têm). Se vier, vem inteiro e o meso é do próprio aluno.
         && (!('mesoId' in request.resource.data)
             || (request.resource.data.keys().hasAll(['mesoId', 'semana', 'treino', 'slotId'])
                 && request.resource.data.semana is int && request.resource.data.treino is int
                 && request.resource.data.slotId is string && request.resource.data.slotId.size() <= 60
-                && get(/databases/$(database)/documents/mesos/$(request.resource.data.mesoId)).data.alunoId == request.auth.uid))
+                && get(/databases/$(database)/documents/mesos/$(request.resource.data.mesoId)).data.alunoId == request.resource.data.alunoId))
         && (('mesoId' in request.resource.data) || !request.resource.data.keys().hasAny(['semana', 'treino', 'slotId']))
         && request.resource.data.keys().hasAll(['alunoId', 'exercicio', 'articulacao', 'tipo', 'intensidade', 'momento', 'em', 'atualizadoEm'])
         && textoFisio(request.resource.data.exercicio, 120)
@@ -439,7 +441,8 @@ service cloud.firestore {
       allow delete: if isCoach();
       // Um por sessão concluída (revisão do PR, F3): id = id do registro ({mesoId}_s{WW}_t{T}), meso do próprio aluno.
       // Só create: um segundo envio da mesma sessão é update e é negado (idempotente no servidor).
-      allow create: if own(request.resource.data) && liberado()
+      // Presencial: o coach responde pelo aluno (alunoId = o aluno; meso e registro precisam ser dele).
+      allow create: if ((own(request.resource.data) && liberado()) || (isCoach() && alunoFisio(request.resource.data.alunoId)))
         && request.resource.data.keys().hasOnly(['alunoId', 'mesoId', 'semana', 'treino', 'sono', 'estresse', 'cansaco', 'alimentacao', 'dor24h', 'em', 'atualizadoEm'])
         && request.resource.data.get('dor24h', true) is bool // A1: "a dor do último treino passou em até 1 dia?" (opcional)
         && request.resource.data.keys().hasAll(['alunoId', 'mesoId', 'semana', 'treino', 'sono', 'estresse', 'cansaco', 'alimentacao', 'em', 'atualizadoEm'])
@@ -449,12 +452,12 @@ service cloud.firestore {
         && id == request.resource.data.mesoId
              + '_s' + (request.resource.data.semana < 10 ? '0' : '') + string(request.resource.data.semana)
              + '_t' + string(request.resource.data.treino)
-        && get(/databases/$(database)/documents/mesos/$(request.resource.data.mesoId)).data.alunoId == request.auth.uid
+        && get(/databases/$(database)/documents/mesos/$(request.resource.data.mesoId)).data.alunoId == request.resource.data.alunoId
         && request.resource.data.semana <= get(/databases/$(database)/documents/mesos/$(request.resource.data.mesoId)).data.semanas
         && request.resource.data.treino <= get(/databases/$(database)/documents/mesos/$(request.resource.data.mesoId)).data.frequencia
         // Só de treino concluído há até 12 h (P2 da revisão): o registro da mesma sessão é do aluno e está realizado.
         // Offline: o "Concluir" grava o registro antes do check-in e a fila envia na ordem (realizadoEm vira a hora da sincronização).
-        && get(/databases/$(database)/documents/registros/$(id)).data.alunoId == request.auth.uid
+        && get(/databases/$(database)/documents/registros/$(id)).data.alunoId == request.resource.data.alunoId
         && get(/databases/$(database)/documents/registros/$(id)).data.realizado == true
         && request.time < get(/databases/$(database)/documents/registros/$(id)).data.realizadoEm + duration.value(12, 'h')
         && nota15(request.resource.data.sono) && nota15(request.resource.data.estresse)

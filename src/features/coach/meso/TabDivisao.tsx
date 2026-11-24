@@ -183,7 +183,7 @@ export default function TabDivisao({
   function cartaoTreino(t: number) {
     const arr = meso.divisao[t - 1] ?? []
     return (
-      <div key={t} data-testid={`treino-${t}`} className={`relative rounded-lg border border-slate-800 bg-slate-950 text-sm ${t === sel ? '' : 'hidden md:block'}`}>
+      <div key={t} data-testid={`treino-${t}`} className={`relative rounded-lg border border-slate-800 bg-slate-950 text-sm ${t === sel ? '' : 'hidden @2xl:block'}`}>
         <p className="border-b border-slate-800 px-3 py-3 font-semibold">Treino {t}</p>
         <ul className="divide-y divide-slate-800">
           {posicoes.map((p) => {
@@ -277,7 +277,7 @@ export default function TabDivisao({
     <div className="space-y-4">
       <Msg>{aviso && <Aviso>{aviso}</Aviso>}</Msg>
       <Cartao>
-        <div className="mb-3 flex gap-2 overflow-x-auto md:hidden">
+        <div className="mb-3 flex gap-2 overflow-x-auto @2xl:hidden">
           {treinos.map((t) => (
             <button
               key={t}
@@ -289,7 +289,7 @@ export default function TabDivisao({
             </button>
           ))}
         </div>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">{treinos.map(cartaoTreino)}</div>
+        <div className="grid gap-3 @2xl:grid-cols-2 @4xl:grid-cols-3">{treinos.map(cartaoTreino)}</div>
         <p className="mt-3 text-xs text-slate-400">⠿ Arraste para mudar a ordem · Tab: próximo exercício · Enter no campo vazio: próximo treino · Pausa em branco = pausa do mesociclo.</p>
       </Cartao>
       <Msg>{hint && <Aviso>{hint}</Aviso>}</Msg>
@@ -383,9 +383,9 @@ function TrocasEAdicoes({ meso, registros, onAtualizar }: { meso: Meso; registro
             onChange={setPos}
           />
         )}
-        <label className="flex w-full flex-col gap-1 text-sm md:w-auto">
+        <label className="flex w-full flex-col gap-1 text-sm @2xl:w-auto">
           <span className="text-slate-400">{tipo === 'troca' ? 'Exercício novo' : 'Exercício'}</span>
-          <CampoExercicio key={chaveCampo} onTexto={setNome} className="w-full md:w-72" />
+          <CampoExercicio key={chaveCampo} onTexto={setNome} className="w-full @2xl:w-72" />
         </label>
       </div>
       <div className="flex flex-wrap items-end gap-2">

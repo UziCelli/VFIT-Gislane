@@ -5,6 +5,7 @@ import { ALERTA_DOR, dicaDaDor, validarDor, type DorForm, type LocalDor } from '
 import { IcFisio } from '../../icones'
 import { Aviso, Botao, Modal, campoBase } from '../../ui'
 import { relatarDor } from './acoesFisio'
+import { useTextosVoz } from '../aluno/voz'
 
 export const ROTULO_LOCAL: Record<LocalDor, string> = { ombro: 'Ombro', cotovelo: 'Cotovelo', punho: 'Punho', cervical: 'Cervical', lombar: 'Lombar', quadril: 'Quadril', joelho: 'Joelho', tornozelo: 'Tornozelo', outro: 'Outro' }
 const chip = (on: boolean) => `min-h-11 rounded-xl border px-3 text-sm ${on ? 'border-marca-400 bg-marca-600 text-white' : 'border-slate-700 bg-slate-950'}`
@@ -14,6 +15,7 @@ const vazio = (exercicio: string): DorForm => ({ exercicio, articulacao: '' as L
 // Fim do treino: `exercicios` deixa escolher o exercício; `semBotao` abre direto (quem chama controla); `momentoInicial` pré-marca o "Quando?".
 // `sessao` + `slots` (nome → slotId): liga o relato ao treino exato (A1). Sem eles, o relato fica sem treino (como antes).
 export default function RelatarDor({ uid, exercicio = '', exercicios, momentoInicial, semBotao, aoFechar, sessao, slots }: { uid: string; exercicio?: string; exercicios?: string[]; momentoInicial?: DorForm['momento']; semBotao?: boolean; aoFechar?: () => void; sessao?: { mesoId: string; semana: number; treino: number }; slots?: Record<string, string> }) {
+  const t = useTextosVoz() // presencial: o coach relata pelo aluno (3ª pessoa)
   const inicial = () => ({ ...vazio(exercicio), ...(momentoInicial ? { momento: momentoInicial } : {}) })
   const [aberto, setAberto] = useState(!!semBotao)
   const [f, setF] = useState(inicial)
@@ -32,18 +34,18 @@ export default function RelatarDor({ uid, exercicio = '', exercicios, momentoIni
   }
   const dica = enviado ? dicaDaDor(enviado.intensidade) : null
   return <>
-    {!semBotao && <Botao tipo="fantasma" onClick={abrir} className="mb-3 inline-flex min-h-11 items-center gap-1.5 !border !border-amber-400 !px-3 !text-amber-300"><IcFisio className="size-5" />Senti dor</Botao>}
+    {!semBotao && <Botao tipo="fantasma" onClick={abrir} className="mb-3 inline-flex min-h-11 items-center gap-1.5 !border !border-amber-400 !px-3 !text-amber-300"><IcFisio className="size-5" />{t.dorBotao}</Botao>}
     <AnimatePresence>
-      {aberto && <Modal rotulo="Senti dor" aoFechar={fechar}>
-        <h2 className="mb-1 text-lg font-bold">Senti dor</h2>
+      {aberto && <Modal rotulo={t.dorBotao} aoFechar={fechar}>
+        <h2 className="mb-1 text-lg font-bold">{t.dorBotao}</h2>
         {exercicios ? !dica && <fieldset className="mb-3"><legend className="mb-1 text-sm">Qual exercício?</legend>
           <div className="flex flex-wrap gap-2">{exercicios.map((x) => <button key={x} type="button" aria-pressed={f.exercicio === x} className={chip(f.exercicio === x)} onClick={() => set({ exercicio: x })}>{x}</button>)}</div>
         </fieldset> : <p className="mb-3 text-sm text-slate-400">{exercicio}</p>}
         {dica ? <div className="space-y-3">
-          <p className="text-lg font-semibold">{dica.texto}</p>
-          <p className="text-sm text-slate-300">{dica.coach}</p>
+          <p className="text-lg font-semibold">{t.dorOrientacao(dica.nivel, dica.texto)}</p>
+          <p className="text-sm text-slate-300">{t.dorQuemVe}</p>
           <div role="alert" className="rounded-xl border border-red-600 bg-red-950/60 p-3 text-sm font-semibold text-red-100">{ALERTA_DOR}</div>
-          {erro && <Aviso>Não conseguimos enviar o relato. Fale diretamente com seu coach.</Aviso>}
+          {erro && <Aviso>{t.dorErro}</Aviso>}
           <Botao tipo="primario" tamanho="lg" className="w-full" onClick={fechar}>Fechar</Botao>
         </div> : <div className="space-y-4">
           <fieldset><legend className="mb-1 text-sm">Onde?</legend>

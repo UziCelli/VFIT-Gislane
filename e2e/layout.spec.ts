@@ -219,7 +219,8 @@ for (const vp of [
       if (aba === 'Divisão') await foto('34-meso-divisao-iphone')
       if (aba === 'Progressão') await foto('35-meso-progressao-iphone')
     }
-    await page.getByRole('button', { name: /Pré-visualização/ }).click()
+    await page.getByRole('button', { name: /Prévia do aluno/ }).click()
+    await confere(page) // prévia aberta: campos também com 16 px
     await page.getByText('Treino 1').first().scrollIntoViewIfNeeded()
     await semTransbordar(page)
     await foto('36-meso-preview-iphone')

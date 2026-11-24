@@ -137,6 +137,7 @@ test('coach abrindo o treino de aluno novo não trava', async ({ page }) => {
   await page.getByRole('button', { name: 'Treino presencial' }).click()
   await expect(page.getByRole('button', { name: 'Iniciar treino' })).toBeVisible()
   await expect(page.getByRole('link', { name: /Responda a anamnese/ })).toHaveCount(0)
+  await expect(page.getByText('Rui ainda não respondeu a anamnese.')).toBeVisible() // o coach fica sabendo, sem trava
 })
 
 test('"tempo parado" some quando a experiência é "nunca"', async ({ page }) => {

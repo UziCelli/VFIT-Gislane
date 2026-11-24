@@ -17,7 +17,7 @@ import { dataSP, diaCurto } from '../../aluno/mesoAtual'
 import { fmtData } from '../semana/format'
 import { Aviso, Botao, Campo, CampoNumero, Msg, Pagina } from '../../../ui'
 import { BotaoVoltar } from '../../../voltar'
-import Preview from './Preview'
+import Preview, { BarraTempo } from './Preview'
 import { LinhaAcima, treinosAcima } from './SugestaoTempo'
 import TabDivisao from './TabDivisao'
 import TabMetodos from './TabMetodos'
@@ -57,6 +57,7 @@ export default function EditorMeso({ id }: { id: string }) {
   const [proposta] = useState(() => lerProposta(id))
   const [aba, setAba] = useState<Aba>(proposta ? 'progressao' : 'config')
   const [semana, setSemana] = useState(1)
+  const [treinoPrevia, setTreinoPrevia] = useState(1)
   const [erro, setErro] = useState<string | null>(null)
   const [aviso, setAviso] = useState('')
   const [previaAberta, setPreviaAberta] = useState(() => localStorage.getItem('preview-aberta') === '1')
@@ -178,6 +179,11 @@ export default function EditorMeso({ id }: { id: string }) {
   }
 
   const acima = treinosAcima(meso)
+  const treinoVisto = Math.min(treinoPrevia, meso.frequencia) // tirar dias de treino não deixa a prévia num treino que sumiu
+  const alternarPrevia = () => {
+    localStorage.setItem('preview-aberta', previaAberta ? '0' : '1')
+    setPreviaAberta(!previaAberta)
+  }
   const status = dirty ? 'Alterações não salvas' : salvando || mesoDoc.pendente ? 'Salvando… será enviado quando houver internet' : 'Salvo'
 
   return (
@@ -244,6 +250,16 @@ export default function EditorMeso({ id }: { id: string }) {
           </div>
         )}
       </Msg>
+      <BarraTempo
+        meso={meso}
+        semana={semana}
+        onSemana={setSemana}
+        treino={treinoVisto}
+        onTreino={(t) => {
+          setTreinoPrevia(t)
+          setPreviaAberta(true) // abre só agora; a preferência guardada (recolhida ou aberta) não muda
+        }}
+      />
       <div className="mb-4 flex gap-2 overflow-x-auto border-b border-slate-800 pb-2">
         {ABAS.map((a) => (
           <button
@@ -263,19 +279,13 @@ export default function EditorMeso({ id }: { id: string }) {
         ))}
       </div>
 
-      <div className="mb-4">
-        <Preview
-          meso={meso}
-          semana={semana}
-          onSemana={setSemana}
-          aberta={previaAberta}
-          onAlternar={() => {
-            localStorage.setItem('preview-aberta', previaAberta ? '0' : '1')
-            setPreviaAberta(!previaAberta)
-          }}
-        />
-      </div>
-
+      {/* Tela larga: editor à esquerda e prévia do aluno fixa à direita, para ver o resultado enquanto edita. */}
+      <div className="flex flex-col gap-4 2xl:grid 2xl:grid-cols-[minmax(0,1fr)_25rem] 2xl:items-start 2xl:gap-6">
+      <aside className="order-first 2xl:sticky 2xl:top-20 2xl:order-last">
+        <Preview meso={meso} semana={semana} treino={treinoVisto} aberta={previaAberta} onAlternar={alternarPrevia} />
+      </aside>
+      {/* @container: as abas se ajustam à largura que sobra ao lado da prévia, não à da tela. */}
+      <div className="@container min-w-0">
       <AnimatePresence mode="wait" initial={false}>
         <m.div
           key={aba}
@@ -337,6 +347,8 @@ export default function EditorMeso({ id }: { id: string }) {
       {aba === 'metodos' && <TabMetodos meso={meso} onAtualizar={atualizar} />}
         </m.div>
       </AnimatePresence>
+      </div>
+      </div>
     </Pagina>
   )
 }

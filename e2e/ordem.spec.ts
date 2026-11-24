@@ -14,6 +14,9 @@ const nomes = (page: Page) => page.getByTestId('treino-1').locator(`li[data-slot
 async function arrastar(page: Page, de: number, para: number) {
   const alca = page.getByLabel(`Arrastar para mudar a ordem, posição ${de}`)
   const alvo = page.getByTestId('treino-1').locator('li[data-slot]').nth(para - 1)
+  // A lista inteira à vista: o mouse não rola a página, e a alça perto da borda de baixo (prévia do aluno acima
+  // das abas) ficava fora da tela no CI.
+  await page.getByTestId('treino-1').evaluate((el) => el.scrollIntoView({ block: 'center' }))
   const a = (await alca.boundingBox())!
   const b = (await alvo.boundingBox())!
   await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2)

@@ -18,8 +18,8 @@ describe('voz do treino (aluno x coach no presencial)', () => {
   })
   it('nenhum texto do coach fala com "você"/"seu coach" (é 3ª pessoa)', () => {
     const coach = textosVoz({ coach: true, nome: 'Ana' })
-    const textos = Object.values(coach).map((v) => (typeof v === 'function' ? (v as (...a: unknown[]) => string)(2, 'x') : v))
-    for (const t of textos) expect(t).not.toMatch(/\b(você|seu coach|estou|senti)\b/i)
+    const textos = Object.values(coach).map((v) => (typeof v === 'function' ? (v as (...a: unknown[]) => string)('parar', 'x') : v))
+    for (const t of textos) expect(t).not.toMatch(/\b(você|seu coach|seu treino|estou|senti)\b/i)
   })
   it('Hoje.tsx só esconde do coach a trava da agenda', () => {
     const fonte = readFileSync('src/features/aluno/Hoje.tsx', 'utf8')
@@ -27,7 +27,9 @@ describe('voz do treino (aluno x coach no presencial)', () => {
     expect(linhas.filter((l) => !l.startsWith('const travada = (w: number, t?: number) => !coach && travado('))).toEqual([])
   })
   it('sem nome: usa "O aluno" em vez de ficar em branco', () => {
-    expect(textosVoz({ coach: true, nome: '' }).dorBotao).toBe('O aluno sentiu dor')
+    const t = textosVoz({ coach: true, nome: '' })
+    expect(t.dorBotao).toBe('O aluno sentiu dor')
+    expect(t.rirRotulo).toBe('Quantas repetições o aluno ainda faria?')
   })
 })
 

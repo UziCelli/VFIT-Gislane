@@ -46,7 +46,7 @@ import CampoLados, { BotaoLadosDiferentes } from '../coach/semana/CampoLados'
 import { doisLados, ladosDiferentes, lerCelula } from '../../lib/lados'
 import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/presencial/EditarTreino'
 import AvisoEstimativaRm from './AvisoEstimativaRm'
-import { textosVoz, VozTreino, type Voz } from './voz'
+import { textosVoz, useTextosVoz, VozTreino, type Voz } from './voz'
 import PerguntaRir from './PerguntaRir'
 
 type RegistroFlag = RegistroDoc & { realizado?: boolean; inicioEm?: unknown; realizadoEm?: { toMillis(): number } | null; pc?: Record<string, number> }
@@ -164,6 +164,7 @@ function NotaMetodos({ metodos }: { metodos: Metodo[] }) {
 }
 
 function AvisoAdaptado({ chave }: { chave: string }) {
+  const t = useTextosVoz()
   const [ver, setVer] = useState(() => {
     try {
       return localStorage.getItem(chave) !== '1'
@@ -198,7 +199,7 @@ function AvisoAdaptado({ chave }: { chave: string }) {
             transition={suave}
             className="w-full max-w-sm rounded-xl border border-slate-700 bg-slate-900 p-5"
           >
-            <p className="mb-4 text-sm text-slate-300">Seu coach adaptou seu treino para você progredir dentro do seu tempo.</p>
+            <p className="mb-4 text-sm text-slate-300">{t.adaptado}</p>
             <Botao tipo="primario" tamanho="lg" className="w-full" onClick={fechar}>
               Entendi
             </Botao>

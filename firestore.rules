@@ -381,7 +381,7 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/usuarios/$(resource.data.alunoId)).data.get('migradoPara', '') == request.resource.data.alunoId)
       );
       // Sinal de alerta: o aluno, ou o coach pelo aluno no presencial (mesma tela, mesma função).
-      allow update: if (isCoach() || (liberado() && own(resource.data))) && resource.data.recolhida == false
+      allow update: if ((isCoach() && alunoFisio(resource.data.alunoId)) || (liberado() && own(resource.data))) && resource.data.recolhida == false
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['sinalRelatado', 'sinalEm', 'atualizadoEm'])
         && request.resource.data.sinalRelatado == true && resource.data.sinalRelatado == false
         && request.resource.data.sinalEm == request.time && request.resource.data.atualizadoEm == request.time;

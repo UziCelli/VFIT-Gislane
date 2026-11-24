@@ -29,6 +29,16 @@ describe('modelosPorExercicio', () => {
     expect(mods.get(chaveModelo('Rosca', true, false))!.sessoes).toBe(1) // a semana 2 é antiga (sem lados): fica de fora
     expect(mods.has(chaveModelo('Rosca', false, false))).toBe(false)
   })
+  it('2 lados com célula antiga no registro: o modelo não preenche essa série', () => {
+    const m = meso([slot('a', 'Rosca', { doisLados: true })], [[10, 10, 10], [10, 10, 10], [8, 8, 8]])
+    const regs = { '1-1': { a: [40, 40, 40] }, '2-1': { a: [40, 80, 40] } }
+    const lados = { '1-1': { a: [20, 20, 20] }, '2-1': { a: [20, null, 20] } }
+    const mods = modelosPorExercicio({ ...fonte(m, regs), lados }, { semana: 3, treino: 1 })
+    const r = cargaAnterior(m, regs, 3, 1, 1, undefined, lados, {}, { modelos: mods })
+    expect(r!.series[1]).toBeNull()
+    expect(r!.dir!.series[1]).toBeNull()
+    expect(r!.series[0]).not.toBeNull()
+  })
   it('fora do modelo: 2 lados antigo, isometria, peso do corpo (pc) e série sem carga', () => {
     const m = meso([slot('a', 'Rosca', { doisLados: true }), slot('b', 'Dead Bug Isométrico'), slot('c', 'Supino')])
     const mods = modelosPorExercicio({ ...fonte(m, { '1-1': { a: [10, 10, 10], b: [30, 30, 30], c: [null, null, null] } }), pcs: {} }, { semana: 2, treino: 1 })

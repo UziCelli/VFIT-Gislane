@@ -140,6 +140,7 @@ export function cargaAnterior(
       // presa a −12%/+8% da tabela); sem dado suficiente, pela tabela de RM (engine/rm.ts). Reps iguais: fica como foi anotado.
       base.forEach((c, k) => {
         if (k >= e.n || k >= hoje.n) return
+        if (cels?.[k].antigo != null) return // 2 lados, célula antiga: não se sabe se era por lado ou total, nem o modelo preenche
         // Reps iguais, ou fora de 1..15 no registro de origem (0, vazio ou acima de 15 não servem de base, nem para o modelo):
         // fica como foi anotado.
         const baseValida = feitas[k] >= 1 && feitas[k] <= REPS_MAX_ORIGEM

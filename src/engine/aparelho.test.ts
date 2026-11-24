@@ -3,12 +3,14 @@ import { APARELHOS } from '../data/aparelhos'
 import {
   arredondarNoAparelho,
   kgAnotado,
+  kgDaPilha,
   kgDoNivel,
   kgSentido,
   nivelParaKg,
   problemasAparelho,
   proximoValor,
   sugestaoNoAparelho,
+  volumeNoAparelho,
   type AparelhoKg,
   type AparelhoNivel,
 } from './aparelho'
@@ -89,12 +91,31 @@ describe('nivelParaKg e sugestaoNoAparelho', () => {
   })
 })
 
+describe('kgDaPilha', () => {
+  it('placa do topo + placas iguais ou variadas', () => {
+    expect(kgDaPilha(2.5, 5, 4)).toEqual([2.5, 7.5, 12.5, 17.5])
+    expect(kgDaPilha(3, [4, 4, 6])).toEqual([3, 7, 11, 17])
+  })
+})
+
+describe('volumeNoAparelho', () => {
+  it('nível vira kg estimado para volume e média', () => {
+    expect(volumeNoAparelho(extensora, [2, 3, 4], [12, 10, 8])).toEqual({ volume: 430, cargaMedia: 15, series: 3, semKg: 0 })
+  })
+  it('conta à parte a série sem kg estimado', () => {
+    expect(volumeNoAparelho(extensora, [2, 9, null], [10, 10, 10])).toEqual({ volume: 100, cargaMedia: 10, series: 1, semKg: 1 })
+    expect(volumeNoAparelho(semKg, [3], [10])).toEqual({ volume: 0, cargaMedia: null, series: 0, semKg: 1 })
+  })
+})
+
 describe('problemasAparelho', () => {
   it('aceita aparelhos válidos', () => {
     for (const a of [polia, halter, extensora, semKg]) expect(problemasAparelho(a)).toEqual([])
   })
   it('recusa dados ruins', () => {
     expect(problemasAparelho({ ...polia, incremento: 0 })).toContain('incremento deve ser maior que 0')
+    expect(problemasAparelho({ ...polia, maximo: 3 })).toContain('máximo menor que a menor carga')
+    expect(problemasAparelho({ ...halter, maximo: 0.5 })).toContain('máximo menor que a menor carga')
     expect(problemasAparelho({ ...halter, polia: '2:1' })).toContain('polia só em aparelho de polia')
     expect(problemasAparelho({ ...extensora, kgNivel: [10, 5] })).toContain('kgNivel deve subir a cada nível')
     expect(problemasAparelho({ ...extensora, niveis: 2 })).toContain('kgNivel maior que o número de níveis')

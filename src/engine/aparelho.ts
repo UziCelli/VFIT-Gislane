@@ -14,7 +14,9 @@ export type RazaoPolia = '1:1' | '2:1'
 interface AparelhoBase {
   id: string // estável, sem espaço (ex.: 'cond-x-extensora')
   nome: string // ex.: 'Cadeira extensora'
-  local: string // academia ou condomínio
+  local: string // academia ou condomínio; item de modelo de fábrica (molde) usa 'modelo'
+  fabricante?: string // ex.: 'Movement', 'Life Fitness'
+  modelo?: string // ex.: 'W4'
   tipo: TipoAparelho
   polia?: RazaoPolia // só polias; sem valor = 1:1
   porLado?: boolean // carga anotada por lado (articulada, halter)
@@ -115,6 +117,37 @@ export function kgAnotado(ap: Aparelho, valor: number): number | null {
   return ap.unidade === 'kg' ? valor : kgDoNivel(ap, valor)
 }
 
+// kg estimado de cada nível de uma pilha comum: o nível 1 é a placa do topo (mais leve, às vezes com a barra/pino) e cada
+// nível seguinte soma uma placa. `placas` pode variar ao longo da pilha (ex.: [5, 5, 5, 10, 10]).
+export function kgDaPilha(topo: number, placas: number | number[], niveis?: number): number[] {
+  const lista = Array.isArray(placas) ? placas : Array.from({ length: Math.max(0, (niveis ?? 1) - 1) }, () => placas)
+  const kg = [arred(topo)]
+  for (const p of lista) kg.push(arred(kg[kg.length - 1] + p))
+  return kg
+}
+
+// Volume (kg x reps) e carga média de séries anotadas em NÍVEL ou kg. Série sem kg estimado fica de fora e é contada
+// em `semKg`, para a tela avisar que o volume está incompleto.
+export function volumeNoAparelho(ap: Aparelho, valores: (number | null)[], reps: (number | null)[]) {
+  let volume = 0
+  let somaKg = 0
+  let series = 0
+  let semKg = 0
+  valores.forEach((v, i) => {
+    const r = reps[i]
+    if (v == null || !(v > 0)) return
+    const kg = kgAnotado(ap, v)
+    if (kg == null) {
+      semKg++
+      return
+    }
+    series++
+    somaKg += kg
+    if (r != null && r > 0) volume += kg * r
+  })
+  return { volume: arred(volume), cargaMedia: series ? arred(somaKg / series) : null, series, semKg }
+}
+
 // Confere um item do catálogo (dado digitado à mão). Devolve a lista de problemas; vazia = ok.
 export function problemasAparelho(x: unknown): string[] {
   if (typeof x !== 'object' || x == null) return ['não é um objeto']
@@ -131,7 +164,8 @@ export function problemasAparelho(x: unknown): string[] {
     if (!positivo(a.incremento)) p.push('incremento deve ser maior que 0')
     if (a.minimo != null && !positivo(a.minimo)) p.push('mínimo deve ser maior que 0')
     if (a.maximo != null && !positivo(a.maximo)) p.push('máximo deve ser maior que 0')
-    if (positivo(a.minimo) && positivo(a.maximo) && a.maximo < a.minimo) p.push('máximo menor que o mínimo')
+    const menor = a.minimo ?? a.incremento // sem mínimo, a menor carga é um incremento
+    if (positivo(menor) && positivo(a.maximo) && a.maximo < menor) p.push('máximo menor que a menor carga')
   } else if (a.unidade === 'nivel') {
     if (!Number.isInteger(a.niveis) || (a.niveis as number) < 1) p.push('níveis deve ser inteiro de 1 para cima')
     const kg = a.kgNivel

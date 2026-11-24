@@ -26,16 +26,16 @@ export const PASSOS: Record<Equipamento, Passo> = {
 export const PASSO_ANILHA = 2.5
 const DE_ANILHA = ['leg press', 'smith', 'hack', 'articulad', 'pendulo']
 
+// Máquina carregada com anilha (leg press, smith, articulada...), não com pilha seletora.
+const deAnilha = (nome: string) => classificarEquipamento(nome) === 'maquina' && DE_ANILHA.some((p) => norm(nome).includes(p))
+
 export function passoDoAparelho(nome: string): Passo {
-  const equip = classificarEquipamento(nome)
-  if (equip === 'maquina' && DE_ANILHA.some((p) => norm(nome).includes(p))) return PASSO_ANILHA
-  return PASSOS[equip]
+  return deAnilha(nome) ? PASSO_ANILHA : PASSOS[classificarEquipamento(nome)]
 }
 
 // Degrau de UM lado em exercício de 2 lados (2 halteres, articulada). Halter já é por halter; anilha por lado sobe
 // 1,25 kg (a menor anilha), não 2,5 (que conta os dois lados juntos). Confirmado pelo Celli. Seletora/polia: cada lado
 // tem a sua pilha, então fica o degrau do tipo.
 export function passoPorLado(nome: string): Passo {
-  const p = passoDoAparelho(nome)
-  return p === PASSO_ANILHA ? PASSO_ANILHA / 2 : p
+  return deAnilha(nome) ? PASSO_ANILHA / 2 : passoDoAparelho(nome)
 }

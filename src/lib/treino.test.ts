@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Aparelho, Meso, Slot } from '../engine'
+import { passoPorLado, type Aparelho, type Meso, type Slot } from '../engine'
 import { cargaAnterior, semanaAtual } from './treino'
 
 const sp = (iso: string) => new Date(`${iso}-03:00`)
@@ -158,6 +158,13 @@ describe('cargaAnterior com 2 lados ajustada às reps de hoje', () => {
   it('articulada: lados diferentes mantêm a proporção, de 1,25 em 1,25 por lado', () => {
     const r = cargaAnterior(m2('Remada Articulada'), { '1-1': { r: [40] } }, 2, 1, 1, undefined, { '1-1': { r: [22] } }, {})
     expect(r).toMatchObject({ series: [22.5], dir: { series: [18.75] }, estimada: true }) // 22 | 18 × ~1,05 = 23,1 | 18,9
+  })
+  it('polia e seletora de 2 lados: cada lado mantém o degrau da pilha (2,5)', () => {
+    const r = cargaAnterior(m2('Crucifixo na Polia'), { '1-1': { r: [40] } }, 2, 1, 1, undefined, { '1-1': { r: [20] } }, {})
+    expect(r).toMatchObject({ series: [20], dir: { series: [20] }, estimada: false }) // 21 → 20 na pilha de 2,5
+    expect(passoPorLado('Crucifixo na Polia')).toBe(2.5)
+    expect(passoPorLado('Cadeira Extensora')).toBe(2.5)
+    expect(passoPorLado('Remada Articulada')).toBe(1.25)
   })
   it('reps iguais: fica como foi anotado', () => {
     const m = m2('Remada Articulada')

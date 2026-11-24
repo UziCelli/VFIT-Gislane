@@ -20,7 +20,7 @@ export function BarraTempo({ meso, semana, onSemana, treino, onTreino }: {
         <span className="shrink-0 text-slate-400">Tempo estimado</span>
         <label className="flex shrink-0 items-center gap-1 text-slate-400">
           <span className="sr-only">Semana</span>
-          <select value={semana} onChange={(e) => onSemana(Number(e.target.value))} className={`${campoBase} min-h-9 px-2 py-1 text-sm`}>
+          <select value={semana} onChange={(e) => onSemana(Number(e.target.value))} className={`${campoBase} min-h-9 px-2 py-1`}>
             {Array.from({ length: meso.semanas }, (_, i) => i + 1).map((w) => (
               <option key={w} value={w}>Semana {w}</option>
             ))}

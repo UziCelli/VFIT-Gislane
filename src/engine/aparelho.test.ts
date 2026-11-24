@@ -60,6 +60,7 @@ describe('plaquinhas complementares (Life Fitness)', () => {
     const grande: AparelhoKg = { ...lf, complementos: [5.625] }
     expect(arredondarNoAparelho(grande, 11.875)).toBe(11.875) // 6,25 + 5,625
     expect(proximoValor(grande, 11.25, 1)).toBe(11.875)
+    expect(arredondarNoAparelho(grande, 60)).toBe(49.375) // 43,75 + 5,625, não 48,75
   })
   it('valida as plaquinhas', () => {
     expect(problemasAparelho(lf)).toEqual([])

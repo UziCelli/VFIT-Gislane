@@ -59,16 +59,14 @@ function somasComplementos(c: number[] = []): number[] {
 // mais as plaquinhas complementares (ex.: Life Fitness 0,625 kg).
 function cargasPerto(ap: AparelhoKg, valor: number): number[] {
   const min = ap.minimo ?? ap.incremento
-  // Máximo fora da grade (ex.: 5 em 5 até 12): o último degrau é o 10, nunca o próprio máximo.
-  const ultimo = ap.maximo != null ? Math.max(0, Math.floor((ap.maximo - min) / ap.incremento + 1e-9)) : Infinity
   const out = new Set<number>()
   // Para cada soma de plaquinhas, os degraus perto de (valor - soma): plaquinha maior que o incremento alcança degraus abaixo.
   for (const s of somasComplementos(ap.complementos)) {
+    // Último degrau que, com esta soma, não passa do máximo (máximo fora da grade: 5 em 5 até 12 para no 10).
+    const ultimo = ap.maximo != null ? Math.floor((ap.maximo - s - min) / ap.incremento + 1e-9) : Infinity
+    if (ultimo < 0) continue
     const p0 = Math.floor((valor - s - min) / ap.incremento)
-    for (let p = p0 - 1; p <= p0 + 2; p++) {
-      const kg = arred(min + Math.min(Math.max(0, p), ultimo) * ap.incremento + s)
-      if (ap.maximo == null || kg <= ap.maximo + 1e-9) out.add(kg)
-    }
+    for (let p = p0 - 1; p <= p0 + 2; p++) out.add(arred(min + Math.min(Math.max(0, p), ultimo) * ap.incremento + s))
   }
   return [...out].sort((a, b) => a - b)
 }

@@ -40,8 +40,19 @@ describe('polimento na tela do aluno', () => {
       '4-2': { agach: { nome: 'Agachamento Livre', reps: [8, 8, 8], degraus: 0 } },
     })
     expect(semanaDePolimento(todos, 4)).toBe(true)
-    expect(resumoPolimento(prescreverSessao(todos, 4, 1)!)).toBe('menos volume · carga mais leve')
+    expect(resumoPolimento(prescreverSessao(todos, 4, 1)!, prescreverSessao(base, 4, 1))).toBe('menos volume · carga mais leve')
     const tres: Meso = { ...um, divisao: [[...base.divisao[0], { slotId: 'tri', nome: 'Tríceps Corda' }], base.divisao[1]] }
     expect(escopoPolimento(prescreverSessao(tres, 4, 1))).toBe('exercicio')
+  })
+
+  it('redução 0% só com folga não anuncia menos volume; isometria fala em tempo', () => {
+    const folga = comPol({ '4-1': { sup: { nome: 'Supino Reto Barra', reps: l, degraus: 0, folga: 2 } } })
+    const s = prescreverSessao(folga, 4, 1)!
+    expect(resumoPolimento(s, prescreverSessao(base, 4, 1))).toBe('sem ir ao limite')
+    expect(mudancasPolimento(s.exercicios[0], prescreverSessao(base, 4, 1)!.exercicios[0])).toEqual(['pare com 2 repetições de sobra'])
+    const iso: Meso = { ...base, divisao: [[{ slotId: 'pr', nome: 'Prancha Frontal Isométrica (mãos)' }], base.divisao[1]], progressaoExercicio: { pr: [[30, 30, 30], [30, 30, 30], [30, 30, 30], [30, 30, 30]] } }
+    const isoPol: Meso = { ...iso, polimentos: { '4-1': { pr: { nome: 'Prancha Frontal Isométrica (mãos)', reps: [27, 27, 27], degraus: 0 } } } }
+    const e = prescreverSessao(isoPol, 4, 1)!.exercicios[0]
+    expect(mudancasPolimento(e, prescreverSessao(iso, 4, 1)!.exercicios[0])).toEqual(['menos tempo'])
   })
 })

@@ -509,6 +509,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   // Polimento: aviso no topo quando é o dia (ou a semana) inteiro; o card de cada exercício diz o que muda.
   const escopoPol = escopoPolimento(sessao)
   const normal = escopoPol ? prescreverSessao({ ...plano, polimentos: undefined }, semana, treino) : null
+  const resumoPol = escopoPol === 'dia' ? resumoPolimento(sessao, normal) : ''
 
   const cargas = docsParaRegistros(docsRegistros, meso) // totais normalizados (ver normalizarCargas)
   const repsFeitas = docsParaRegistrosReps(docsRegistros)
@@ -679,7 +680,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
       <Novidades />
       <AnimatePresence>{sugereRm && eu.user && <AvisoEstimativaRm uid={eu.user.uid} onde={coach ? 'Minha conta' : 'Conta'} />}</AnimatePresence>
       {coach && meso.sessoes?.[chave] && <FaixaAjustado mesoId={mesoId} semana={semana} treino={treino} />}
-      {escopoPol === 'dia' && <FaixaPolimento semana={semanaDePolimento(meso, semana)} resumo={resumoPolimento(sessao)} />}
+      {resumoPol && <FaixaPolimento semana={semanaDePolimento(meso, semana)} resumo={resumoPol} />}
       <m.div className="space-y-4" variants={cascata} initial="hidden" animate="show">
         {exibicao.map((e) => {
           const gk = chaves[sessao.exercicios.indexOf(e)]
@@ -724,7 +725,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
             gravaPc(Math.round(peso * frac * 10) / 10)
           }
           return (
-            <m.div key={e.slot.slotId} variants={item} className={`relative rounded-xl border p-4 ${gc ? gc.borda : pol && escopoPol === 'exercicio' ? 'border-teal-400/50' : 'border-slate-700/70'}`} data-treino-cartao>
+            <m.div key={e.slot.slotId} variants={item} className={`relative rounded-xl border p-4 ${gc ? gc.borda : pol && !resumoPol ? 'border-teal-400/50' : 'border-slate-700/70'}`} data-treino-cartao>
               {gk && ordem > 0 && <span aria-hidden className={`absolute -top-4 left-6 h-4 w-0.5 ${gc?.faixa}`} />}
               {gk && (
                 <div className={`mb-2 text-xs font-semibold ${gc?.texto}`}>
@@ -775,7 +776,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                   </div>
                 </div>
               </div>
-              {pol && <SeloPolimento mudancas={pol} discreto={escopoPol === 'dia'} />}
+              {pol && <SeloPolimento mudancas={pol} discreto={!!resumoPol} />}
               <Nota key={textoNota(notas?.exercicios?.[e.slot.nome.trim()])} uid={uid} nome={e.slot.nome.trim()} texto={textoNota(notas?.exercicios?.[e.slot.nome.trim()])} em={msDaNota(notas?.datas?.[e.slot.nome.trim()])} />
               {iso && <p className="mb-2 text-xs text-slate-400">Tempo em segundos. Cronometre cada série e anote os segundos feitos. Carga opcional.</p>}
               {dois && (

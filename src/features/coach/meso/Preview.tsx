@@ -14,7 +14,7 @@ export function BarraTempo({ meso, semana, onSemana, treino, onTreino }: {
   onTreino: (t: number) => void
 }) {
   return (
-    <div role="region" aria-label="Tempo estimado dos treinos" className="sticky top-0 z-20 -mx-4 mb-4 border-b border-slate-800 bg-slate-950/90 px-4 py-2 backdrop-blur">
+    <div role="region" aria-label="Tempo estimado dos treinos" className="sticky top-0 z-20 -mx-4 mb-4 border-b border-slate-800 bg-slate-950/90 px-4 pb-2 pt-topo backdrop-blur">
       <div className="flex items-center gap-2 overflow-x-auto text-sm">
         <span className="shrink-0 text-slate-400">Tempo estimado</span>
         <label className="flex shrink-0 items-center gap-1 text-slate-400">

@@ -42,7 +42,9 @@ export default function PreviaAluno({ meso, semana, treino }: { meso: Meso; sema
   const itens = ordemExibicao(meso, semana, treino, sessao)
 
   return (
-    <div inert className="treino-pagina select-none" aria-label={`Prévia: Treino ${treino} da semana ${semana}, como o aluno vê`}>
+    <>
+    <p className="sr-only">Prévia do Treino {treino} da semana {semana}, como o aluno vê. Só para ver.</p>
+    <div inert className="treino-pagina select-none">
       <div className="px-4 pb-6 pt-4">
         <div className="mb-3 flex min-h-11 items-center gap-2 text-slate-300">
           <IcVoltar className="size-5" /> <span className="text-sm">Voltar</span>
@@ -147,7 +149,14 @@ export default function PreviaAluno({ meso, semana, treino }: { meso: Meso; sema
                 </div>
                 <div className="mt-4 flex min-h-11 items-start gap-2.5 rounded-xl border border-slate-700/70 bg-slate-950/30 px-3 py-3 text-sm text-slate-200">
                   <input type="checkbox" readOnly tabIndex={-1} checked={corpoEhCarga(e.slot.nome)} className="mt-0.5 h-5 w-5 shrink-0" aria-label="Feito com o peso do corpo" />
-                  <span><b>Feito com o peso do corpo</b></span>
+                  <span>
+                    <b>Feito com o peso do corpo</b>
+                    <span className="block text-xs text-slate-400">
+                      {corpoEhCarga(e.slot.nome)
+                        ? 'Já vem marcado porque neste exercício o corpo é a carga. Nos campos, anote só o peso extra (anilha, colete, cinto).'
+                        : 'Nos campos, anote só o peso extra (anilha, colete, cinto).'}
+                    </span>
+                  </span>
                 </div>
               </div>
             )
@@ -155,5 +164,6 @@ export default function PreviaAluno({ meso, semana, treino }: { meso: Meso; sema
         </div>
       </div>
     </div>
+    </>
   )
 }

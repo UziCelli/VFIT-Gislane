@@ -257,7 +257,7 @@ export default function EditorMeso({ id }: { id: string }) {
         treino={treinoVisto}
         onTreino={(t) => {
           setTreinoPrevia(t)
-          if (!previaAberta) alternarPrevia()
+          setPreviaAberta(true) // abre só agora; a preferência guardada (recolhida ou aberta) não muda
         }}
       />
       <div className="mb-4 flex gap-2 overflow-x-auto border-b border-slate-800 pb-2">
@@ -281,7 +281,7 @@ export default function EditorMeso({ id }: { id: string }) {
 
       {/* Tela larga: editor à esquerda e prévia do aluno fixa à direita, para ver o resultado enquanto edita. */}
       <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_25rem] xl:items-start xl:gap-6">
-      <aside className="order-first xl:sticky xl:top-16 xl:order-last">
+      <aside className="order-first xl:sticky xl:top-20 xl:order-last">
         <Preview meso={meso} semana={semana} treino={treinoVisto} aberta={previaAberta} onAlternar={alternarPrevia} />
       </aside>
       <div className="min-w-0">

@@ -1,79 +1,75 @@
 import type { Meso } from '../../../engine'
-import { isometrico, prescreverSessao } from '../../../engine'
 import { acimaDoLimite, fmtMin } from '../../../lib/tempo'
 import { IcSeta } from '../../../icones'
-import { campoBase, Cartao, Deslizar } from '../../../ui'
+import { campoBase, Cartao } from '../../../ui'
+import PreviaAluno, { sessaoSegura } from './PreviaAluno'
 
-// Painel de pré-visualização: mostra o que o aluno vai ver numa semana, em todos os treinos.
-export default function Preview({
-  meso,
-  semana,
-  onSemana,
-  aberta,
-  onAlternar,
-}: {
+// Faixa fixa no topo do editor: tempo estimado de cada treino da semana, sempre à vista em qualquer aba.
+// Tocar num treino mostra esse treino na prévia do aluno.
+export function BarraTempo({ meso, semana, onSemana, treino, onTreino }: {
   meso: Meso
   semana: number
   onSemana: (w: number) => void
+  treino: number
+  onTreino: (t: number) => void
+}) {
+  return (
+    <div role="region" aria-label="Tempo estimado dos treinos" className="sticky top-0 z-20 -mx-4 mb-4 border-b border-slate-800 bg-slate-950/90 px-4 py-2 backdrop-blur">
+      <div className="flex items-center gap-2 overflow-x-auto text-sm">
+        <span className="shrink-0 text-slate-400">Tempo estimado</span>
+        <label className="flex shrink-0 items-center gap-1 text-slate-400">
+          <span className="sr-only">Semana</span>
+          <select value={semana} onChange={(e) => onSemana(Number(e.target.value))} className={`${campoBase} min-h-9 px-2 py-1 text-sm`}>
+            {Array.from({ length: meso.semanas }, (_, i) => i + 1).map((w) => (
+              <option key={w} value={w}>Semana {w}</option>
+            ))}
+          </select>
+        </label>
+        {Array.from({ length: meso.frequencia }, (_, i) => i + 1).map((t) => {
+          const min = sessaoSegura(meso, semana, t)?.tempoMin ?? 0
+          const acima = acimaDoLimite(min, meso.tempoLimiteMin)
+          const sel = t === treino
+          return (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={sel}
+              aria-label={`Treino ${t}: ${fmtMin(min)}${acima ? ', acima do limite' : ''}`}
+              onClick={() => onTreino(t)}
+              className={`min-h-9 shrink-0 rounded-full border px-3 font-semibold tabular-nums ${sel ? 'border-marca-400' : 'border-transparent'} ${acima ? 'bg-red-900/50 text-red-300' : 'bg-slate-800 text-slate-100'}`}
+            >
+              T{t} · {fmtMin(min)}
+            </button>
+          )
+        })}
+        {meso.tempoLimiteMin != null && <span className="shrink-0 text-xs text-slate-500">limite {meso.tempoLimiteMin} min</span>}
+      </div>
+    </div>
+  )
+}
+
+// Prévia do aluno: o treino escolhido como ele aparece no app do aluno, atualizado a cada edição (sem salvar).
+// Celular/tablet: recolhível. Tela larga (xl): sempre aberta, ao lado do editor (quem posiciona é o EditorMeso).
+export default function Preview({ meso, semana, treino, aberta, onAlternar }: {
+  meso: Meso
+  semana: number
+  treino: number
   aberta: boolean
   onAlternar: () => void
 }) {
   return (
-    <Cartao className="space-y-3">
-      <button type="button" aria-expanded={aberta} onClick={onAlternar} className="flex min-h-11 w-full items-center gap-2 text-left font-semibold">
-        <IcSeta className={`size-4 transition-transform ${aberta ? 'rotate-90' : ''}`} />
-        Pré-visualização
+    <Cartao className="space-y-3 !p-2 xl:!p-3">
+      <button type="button" aria-expanded={aberta} onClick={onAlternar} className="flex min-h-11 w-full items-center gap-2 text-left font-semibold xl:pointer-events-none">
+        <IcSeta className={`size-4 transition-transform xl:hidden ${aberta ? 'rotate-90' : ''}`} />
+        Prévia do aluno
+        <span className="ml-auto text-xs font-normal text-slate-400">Treino {treino} · semana {semana}</span>
       </button>
-      {aberta && (
-        <>
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-slate-400">Semana</span>
-        <select
-          value={semana}
-          onChange={(e) => onSemana(Number(e.target.value))}
-          className={`${campoBase} px-2 py-1`}
-        >
-          {Array.from({ length: meso.semanas }, (_, i) => i + 1).map((w) => (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          ))}
-        </select>
+      <div className={aberta ? '' : 'hidden xl:block'}>
+        <div className="mx-auto max-h-[70dvh] max-w-[390px] overflow-y-auto overscroll-contain rounded-xl border border-slate-800 xl:rounded-[28px] xl:border-4 xl:max-h-[calc(100dvh-12rem)]">
+          <PreviaAluno meso={meso} semana={semana} treino={treino} />
+        </div>
+        <p className="mt-2 text-center text-xs text-slate-500">Só para ver: os botões não funcionam aqui.</p>
       </div>
-      <Deslizar chave={semana}>
-      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: meso.frequencia }, (_, i) => i + 1).map((t) => {
-          const sessao = prescreverSessao(meso, semana, t)
-          return (
-            <div key={t} className="rounded-lg border border-slate-800 bg-slate-950 text-sm">
-              <div className="flex items-center justify-between gap-2 border-b border-slate-800 px-3 py-2">
-                <p className="font-semibold">Treino {t}</p>
-                <span className={`rounded-full px-3 py-1 text-sm font-bold ${acimaDoLimite(sessao?.tempoMin ?? 0, meso.tempoLimiteMin) ? 'bg-red-900/50 text-red-300' : 'bg-slate-800 text-slate-100'}`}>
-                  {fmtMin(sessao?.tempoMin ?? 0)}
-                </span>
-              </div>
-              <ul className="divide-y divide-slate-800">
-                {sessao?.exercicios.map((e) => (
-                  <li key={e.pos} className="flex gap-3 px-3 py-2">
-                    <span className="w-4 shrink-0 text-slate-500">{e.pos}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold">{e.slot.nome || <span className="text-slate-500">(vazio)</span>}</p>
-                      <p className="text-slate-400">{e.reps.join('/')} {isometrico(e.slot) ? 's' : 'reps'}</p>
-                      {e.rotulo && (
-                        <span className="mt-1 inline-block rounded-full bg-marca-500/20 px-2 py-0.5 text-xs text-marca-300">{e.rotulo}</span>
-                      )}
-                    </div>
-                  </li>
-                ))}
-                {!sessao?.exercicios.length && <li className="px-3 py-2 text-xs text-slate-500">Nenhum exercício</li>}
-              </ul>
-            </div>
-          )
-        })}
-      </div>
-      </Deslizar>
-        </>
-      )}
     </Cartao>
   )
 }

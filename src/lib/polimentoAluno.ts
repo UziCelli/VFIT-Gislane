@@ -7,6 +7,10 @@ const menosReps = (e: ExercicioPrescrito, ref: ExercicioPrescrito) => soma(e.rep
 // Volume menor de verdade: menos séries ou menos reps/segundos que a prescrição normal (redução de 0% só com folga não conta).
 const volumeMenor = (e: ExercicioPrescrito, ref?: ExercicioPrescrito) => !!ref && ref.slot.slotId === e.slot.slotId && (e.n < ref.n || menosReps(e, ref))
 
+// Referência normal: o plano sem polimento e sem as cópias registradas (a cópia de um treino polido já iniciado é polida).
+export const prescricaoNormal = (meso: Meso, semana: number, treino: number) =>
+  prescreverSessao({ ...meso, polimentos: undefined, prescricoesRegistradas: undefined }, semana, treino)
+
 // Compara com a prescrição normal do mesmo slot (sem polimento). Sem ela, diz só o que o polimento guarda (carga e folga).
 export function mudancasPolimento(e: ExercicioPrescrito, normal?: ExercicioPrescrito): string[] | null {
   if (e.polimento == null) return null

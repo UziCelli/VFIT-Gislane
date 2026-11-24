@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { prescreverSessao, type Meso } from '../engine'
-import { escopoPolimento, mudancasPolimento, resumoPolimento, semanaDePolimento } from './polimentoAluno'
+import { escopoPolimento, mudancasPolimento, prescricaoNormal, resumoPolimento, semanaDePolimento } from './polimentoAluno'
 
 const l = [10, 10, 10, 10]
 const base: Meso = {
@@ -54,5 +54,16 @@ describe('polimento na tela do aluno', () => {
     const isoPol: Meso = { ...iso, polimentos: { '4-1': { pr: { nome: 'Prancha Frontal Isométrica (mãos)', reps: [27, 27, 27], degraus: 0 } } } }
     const e = prescreverSessao(isoPol, 4, 1)!.exercicios[0]
     expect(mudancasPolimento(e, prescreverSessao(iso, 4, 1)!.exercicios[0])).toEqual(['menos tempo'])
+  })
+
+  it('treino polido já iniciado: a cópia registrada não vira a referência normal', () => {
+    const meso = comPol({ '4-1': { sup: { nome: 'Supino Reto Barra', reps: [8, 8, 8], degraus: 0 } } })
+    const copia = prescreverSessao(meso, 4, 1)!
+    const registrado: Meso = { ...meso, prescricoesRegistradas: { '4-1': { versao: 1, sessao: copia, metodos: [] } } }
+    const s = prescreverSessao(registrado, 4, 1)!
+    const normal = prescricaoNormal(registrado, 4, 1)!
+    expect(normal.exercicios[0].n).toBe(4)
+    expect(mudancasPolimento(s.exercicios[0], normal.exercicios[0])).toEqual(['3 séries (eram 4)'])
+    expect(resumoPolimento(s, normal)).toBe('menos volume')
   })
 })

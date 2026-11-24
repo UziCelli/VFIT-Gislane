@@ -48,7 +48,7 @@ import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/pre
 import AvisoEstimativaRm from './AvisoEstimativaRm'
 import PerguntaRir from './PerguntaRir'
 import { FaixaPolimento, SeloPolimento } from './Polimento'
-import { escopoPolimento, mudancasPolimento, resumoPolimento, semanaDePolimento } from '../../lib/polimentoAluno'
+import { escopoPolimento, mudancasPolimento, prescricaoNormal, resumoPolimento, semanaDePolimento } from '../../lib/polimentoAluno'
 
 type RegistroFlag = RegistroDoc & { realizado?: boolean; inicioEm?: unknown; realizadoEm?: { toMillis(): number } | null; pc?: Record<string, number> }
 
@@ -508,7 +508,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   if (!sessao) return naoEncontrado
   // Polimento: aviso no topo quando é o dia (ou a semana) inteiro; o card de cada exercício diz o que muda.
   const escopoPol = escopoPolimento(sessao)
-  const normal = escopoPol ? prescreverSessao({ ...plano, polimentos: undefined }, semana, treino) : null
+  const normal = escopoPol ? prescricaoNormal(plano, semana, treino) : null
   const resumoPol = escopoPol === 'dia' ? resumoPolimento(sessao, normal) : ''
 
   const cargas = docsParaRegistros(docsRegistros, meso) // totais normalizados (ver normalizarCargas)

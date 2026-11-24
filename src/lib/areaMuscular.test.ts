@@ -20,3 +20,14 @@ describe('área muscular (antropometria)', () => {
     expect(massaMuscularLee({ ...base, pesoKg: 100 })).toBeNull()
   })
 })
+
+describe('massa muscular entre avaliações', () => {
+  it('usa só os lados medidos nas duas: acrescentar o braço esquerdo não muda a estimativa', async () => {
+    const { musculoEstimado } = await import('./avaliacao')
+    const base = { alunoId: 'u', pesoKg: 80, alturaCm: 180, sexo: 'M' as const, idade: 30, bio: {}, comentario: '', liberado: false, dobras: { triceps: 10, coxa: 15, panturrilha: 10 } }
+    const ant = { ...base, id: 'a', data: '2026-01-01', perimetros: { bracoD: 32, coxaD: 56, panturrilhaD: 38 } }
+    const atual = { ...base, id: 'b', data: '2026-02-01', perimetros: { bracoD: 32, bracoE: 36, coxaD: 56, panturrilhaD: 38 } }
+    const l = musculoEstimado(atual, ant).find((x) => x.rotulo === 'Massa muscular do corpo')!
+    expect(l.delta).toBe(0)
+  })
+})

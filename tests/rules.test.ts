@@ -1547,11 +1547,21 @@ describe('avaliacoes', () => {
 
     it('nega mapa com chave desconhecida ou que não é mapa', async () => {
       await assertFails(setDoc(av('coach'), valida({ perimetros: { pescoco: 40 } })));
-      await assertFails(setDoc(av('coach'), valida({ dobras: { biceps: 8 } })));
+      await assertFails(setDoc(av('coach'), valida({ dobras: { peito: 8 } })));
+      await assertFails(setDoc(av('coach'), valida({ dobras2: { peito: 8 } })));
+      await assertFails(setDoc(av('coach'), valida({ perimetros2: { pescoco: 40 } })));
       await assertFails(setDoc(av('coach'), valida({ bio: { agua: 55 } })));
       await assertFails(setDoc(av('coach'), valida({ perimetros: 'cintura 80' })));
       await assertFails(setDoc(av('coach'), valida({ dobras: [10, 12] })));
       await assertSucceeds(setDoc(av('coach'), valida({ perimetros: {}, dobras: {}, bio: {} })));
+    });
+
+    it('dobras de bíceps e panturrilha, 2ª medida (ETM) e equação escolhida', async () => {
+      await assertSucceeds(setDoc(av('coach'), valida({ dobras: { biceps: 8, panturrilha: 12 } })));
+      await assertSucceeds(setDoc(av('coach'), valida({ dobras: { triceps: 11 }, dobras2: { triceps: 11.5 }, perimetros: { cintura: 87 }, perimetros2: { cintura: 87.3 } })));
+      for (const eq of ['jp7', 'jp3', 'dw', 'slaughter']) await assertSucceeds(setDoc(av('coach'), valida({ equacao: eq })));
+      await assertFails(setDoc(av('coach'), valida({ equacao: 'petroski' })));
+      await assertFails(setDoc(av('coach'), valida({ dobras2: [10] })));
     });
 
     it('lipedema: só braços e/ou pernas, em lista de até 2', async () => {

@@ -321,8 +321,10 @@ export function musculoEstimado(atual: Avaliacao, ant: Avaliacao | null): Linha[
   const braco = (a: Avaliacao | null, lado: 'bracoD' | 'bracoE') =>
     a?.sexo && a.perimetros[lado] != null && a.dobras.triceps != null ? areaMuscularBraco(a.perimetros[lado]!, a.dobras.triceps, a.sexo) : null
   const coxa = (a: Avaliacao | null, lado: 'coxaD' | 'coxaE') => (a && a.perimetros[lado] != null && a.dobras.coxa != null ? areaMuscularCoxa(a.perimetros[lado]!, a.dobras.coxa) : null)
+  // Lados usados na massa muscular: os medidos nas duas avaliações (assim a assimetria não vira mudança falsa).
+  const lados = (d: PerimetroId, e: PerimetroId) => [d, e].filter((p) => atual.perimetros[p] != null && (!ant || ant.perimetros[p] != null))
   const media = (a: Avaliacao, d: PerimetroId, e: PerimetroId) => {
-    const xs = [a.perimetros[d], a.perimetros[e]].filter((x): x is number => x != null)
+    const xs = lados(d, e).map((p) => a.perimetros[p]!)
     return xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null
   }
   const lee = (a: Avaliacao | null) => {

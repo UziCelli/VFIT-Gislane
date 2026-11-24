@@ -252,7 +252,8 @@ const Camada = ({ children, ...p }: { children: ReactNode; custom?: number; vari
   )
 }
 
-export const Tela = ({ chave, abrir = false, lado, children }: { chave: string; abrir?: boolean; lado?: number; children: ReactNode }) => {
+// `dentro`: Tela aninhada numa tela que já anima a própria entrada; não anima de novo ao montar (sem fade dobrado).
+export const Tela = ({ chave, abrir = false, lado, dentro = false, children }: { chave: string; abrir?: boolean; lado?: number; dentro?: boolean; children: ReactNode }) => {
   const quieto = useReducedMotion()
   // Chave nova a cada troca: voltar à mesma rota durante a saída cria uma tela nova (não "ressuscita" a que estava saindo).
   // A direção é fixada na troca: outro render (ex.: snapshot do Firestore) antes da entrada não vira fade.
@@ -265,7 +266,7 @@ export const Tela = ({ chave, abrir = false, lado, children }: { chave: string; 
   const dir = quieto ? 0 : visita.current.dir
   return (
     <div className="relative overflow-x-clip">
-      <AnimatePresence mode="wait" custom={dir}>
+      <AnimatePresence mode="wait" custom={dir} initial={!dentro}>
         <Camada key={`${chave}#${visita.current.n}`} custom={dir} variants={quieto ? reduzida : camada} initial="entra" animate="fica" exit="sai">
           {children}
         </Camada>

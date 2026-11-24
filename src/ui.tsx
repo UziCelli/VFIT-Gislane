@@ -225,7 +225,8 @@ export const Centro = ({ children }: { children: ReactNode }) => (
 
 // Navegação estilo iOS. `chave` = rota; `abrir` = tela de detalhe.
 // abrir false→true = push (nova entra da direita; a anterior sai recuando); true→false = pop (inverso).
-// Mesmo nível (troca de aba) = só fade, sem deslize.
+// Mesmo nível (troca de aba) = só fade, sem deslize. Exceção: `lado` (posição entre abas irmãs, ex.: Treino | Físio |
+// Referências) desliza para o lado da aba escolhida (d = ±2: entra e sai com o mesmo recuo, sem a assimetria do push).
 // Modo "wait" (saída curta, depois a entrada): com as duas telas sobrepostas (popLayout) o texto da tela que
 // sai repete na página e quebra o e2e (getByText estrito), então a sobreposição ficou de fora.
 // `transform` (e não `x`): o Motion só passa para a GPU (WAAPI) opacity/transform. Com `x` o deslize rodava quadro a
@@ -233,9 +234,11 @@ export const Centro = ({ children }: { children: ReactNode }) => (
 // Termina em `none`: transform parado vira bloco de contenção e desloca os `fixed` de dentro da tela (folhas, descanso).
 const desloca = (pct: number) => `translateX(${pct}%)`
 const camada: Variants = {
-  entra: (d: number) => (d ? { transform: desloca(d > 0 ? 100 : -25), opacity: d > 0 ? 1 : 0.5 } : { opacity: 0 }),
+  entra: (d: number) =>
+    Math.abs(d) === 2 ? { transform: desloca(d > 0 ? 30 : -30), opacity: 0 }
+    : d ? { transform: desloca(d > 0 ? 100 : -25), opacity: d > 0 ? 1 : 0.5 } : { opacity: 0 },
   fica: (d: number) => ({ transform: desloca(0), opacity: 1, transition: d ? suave : saida, transitionEnd: { transform: 'none' } }),
-  sai: (d: number) => ({ opacity: 0, transform: d ? desloca(d > 0 ? -25 : 25) : 'none', transition: saida }),
+  sai: (d: number) => ({ opacity: 0, transform: Math.abs(d) === 2 ? desloca(d > 0 ? -30 : 30) : d ? desloca(d > 0 ? -25 : 25) : 'none', transition: saida }),
 }
 const reduzida: Variants = { entra: { opacity: 0 }, fica: { opacity: 1, transition: saida }, sai: { opacity: 0, transition: saida } }
 
@@ -249,13 +252,16 @@ const Camada = ({ children, ...p }: { children: ReactNode; custom?: number; vari
   )
 }
 
-export const Tela = ({ chave, abrir = false, children }: { chave: string; abrir?: boolean; children: ReactNode }) => {
+export const Tela = ({ chave, abrir = false, lado, children }: { chave: string; abrir?: boolean; lado?: number; children: ReactNode }) => {
   const quieto = useReducedMotion()
   // Chave nova a cada troca: voltar à mesma rota durante a saída cria uma tela nova (não "ressuscita" a que estava saindo).
   // A direção é fixada na troca: outro render (ex.: snapshot do Firestore) antes da entrada não vira fade.
-  const visita = useRef({ chave, n: 0, abrir, dir: 0 })
+  const visita = useRef({ chave, n: 0, abrir, lado, dir: 0 })
   const v = visita.current
-  if (v.chave !== chave) visita.current = { chave, n: v.n + 1, abrir, dir: abrir === v.abrir ? 0 : abrir ? 1 : -1 }
+  if (v.chave !== chave) {
+    const irmas = abrir === v.abrir && lado != null && v.lado != null && lado !== v.lado
+    visita.current = { chave, n: v.n + 1, abrir, lado, dir: irmas ? (lado > v.lado! ? 2 : -2) : abrir === v.abrir ? 0 : abrir ? 1 : -1 }
+  }
   const dir = quieto ? 0 : visita.current.dir
   return (
     <div className="relative overflow-x-clip">

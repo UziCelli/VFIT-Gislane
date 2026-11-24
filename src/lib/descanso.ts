@@ -161,6 +161,19 @@ export function useDescanso() {
     return () => clearInterval(id)
   }, [fimEm])
 
+  // Os bipes seguem o relógio do AudioContext, que para quando o app sai da tela (iPhone e Android): os pendentes
+  // tocariam atrasados, até fora do app (#229). Ao sair, cancela; ao voltar, reagenda pelo relógio real.
+  useEffect(() => {
+    if (fimEm == null) return
+    const trocou = () => {
+      if (document.visibilityState !== 'visible') return cancelarSons()
+      const faltam = (fimEm - Date.now()) / 1000
+      if (faltam > 0.25) agendarSons(faltam)
+    }
+    document.addEventListener('visibilitychange', trocou)
+    return () => document.removeEventListener('visibilitychange', trocou)
+  }, [fimEm, som])
+
   // Restaura o descanso salvo (se for deste usuário)
   useEffect(() => {
     let vivo = true

@@ -7,15 +7,21 @@ self.addEventListener('push', (e) => {
     /* sem corpo legível: usa o texto padrão */
   }
   // O iPhone exige mostrar uma notificação a cada push, então sempre mostramos.
+  // Com o app aberto na tela, os bipes já tocaram na hora: a notificação vem sem som (#229).
   e.waitUntil(
-    self.registration.showNotification(d.title || 'Descanso acabou', {
-      body: d.body || 'Volte para o treino',
-      tag: d.tag || 'descanso',
-      data: { url: d.url || '/' },
-      renotify: true,
-      icon: '/pwa-192x192.png',
-      badge: '/badge-96.png',
-      vibrate: [300, 150, 300],
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((janelas) => {
+      const silent = (d.tag || 'descanso') === 'descanso' && janelas.some((j) => j.visibilityState === 'visible')
+      // silent junto com vibrate é recusado pelo Chrome (a notificação nem aparece): vibra só com som.
+      return self.registration.showNotification(d.title || 'Descanso acabou', {
+        silent,
+        body: d.body || 'Volte para o treino',
+        tag: d.tag || 'descanso',
+        data: { url: d.url || '/' },
+        renotify: true,
+        icon: '/pwa-192x192.png',
+        badge: '/badge-96.png',
+        ...(silent ? {} : { vibrate: [300, 150, 300] }),
+      })
     }),
   )
 })

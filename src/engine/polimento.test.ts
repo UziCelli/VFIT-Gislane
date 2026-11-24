@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { planejarPolimento, seriesPolimento } from './polimento'
-import { prescreverSessao } from './sessao'
+import { metodosDaSessao, prescreverSessao } from './sessao'
 import { cargaPolimento } from './degrauPolimento'
 import { cargaAnterior } from '../lib/treino'
 import { docsParaLados, docsParaRegistros, docsParaRegistrosReps, docParaMeso, mesoParaDoc, type RegistroDoc } from '../lib/conversores'
@@ -84,10 +84,47 @@ describe('polimento com meta de volume e tempo', () => {
     expect(plano(base,{protegidos:['3-1']}).meso).toBe(base)
     expect(prescreverSessao(plano(base,{semanas:[2,3]}).meso,2,1)?.exercicios[0].reps).toEqual(l)
   })
-  it('mantém métodos especiais fora, sem prometer polimento nesses exercícios', () => {
-    const m = {...base,metodos:[{ativo:true,semana:3,treino:1,exercicio:1,metodo:'Rest-pause' as const,escopo:'Todas as séries' as const,blocos:2}]}
+  it('retira intensificadores só na sessão e exercício selecionados, calculando séries retas e congelando a lista efetiva', () => {
+    const metodo = { ativo: true, semana: 3, treino: 1, exercicio: 1, escopo: 'Todas as séries' as const }
+    const drop = { ...metodo, metodo: 'Dropset' as const, etapas: 2, repsPadrao: 15, pausaInternaS: 30 }
+    const rest = { ...metodo, metodo: 'Rest-pause' as const, blocos: 2, repsPadrao: 15, pausaInternaS: 30 }
+    const vizinho = { ...drop, exercicio: 2 }
+    const semanaNormal = { ...rest, semana: 4 }
+    const m = { ...base, metodos: [drop, rest, vizinho, semanaNormal] }
+    const resultado = (folga: number, degraus: 0 | 1, protegidos: string[] = []) => planejarPolimento(m, {
+      pct: 40, semanas: [3], alvo: { tipo: 'exercicio', slotId: 'sup' }, tipo: 'degrau', folga, degraus, hoje: '2026-10-15',
+      historico: { meso: m, completos: new Set(['2-1']), protegidos: new Set(protegidos), cargas: { '2-1': { sup: [50,50,50,50] } }, reps: { '2-1': { sup: l } } },
+    })
+    const { meso, linhas } = resultado(3, 0)
+    const salvo = docParaMeso(mesoParaDoc(meso))
+    const sessao = prescreverSessao(salvo, 3, 1)!
+    expect(meso.metodos).toBe(m.metodos)
+    expect(linhas[0]).toMatchObject({ metaKg: 1200, previstoKg: 1200, semIntensificadores: 1, ignorados: 0 })
+    expect(linhas[0].tempoDepois).toBeLessThan(linhas[0].tempoAntes)
+    expect(sessao.exercicios[0]).toMatchObject({ reps: [8,8,8], drops: [], rotulo: '', folgaPolimento: 3 })
+    expect(sessao.exercicios[1]).toEqual(prescreverSessao(m, 3, 1)?.exercicios[1])
+    expect(prescreverSessao(salvo, 4, 1)).toEqual(prescreverSessao(m, 4, 1))
+    const metodos = metodosDaSessao(salvo, 3, 1)
+    expect(metodos).toEqual([vizinho])
+    expect(lerPrescricaoRegistrada(JSON.stringify({ versao: 1, sessao, metodos }))?.metodos).toEqual([vizinho])
+    expect(resultado(0, 0).meso).toBe(m)
+    expect(resultado(3, 0, ['3-1']).meso).toBe(m)
+    expect(resultado(0, 1).linhas[0].semIntensificadores).toBe(1)
+    const semEsforco = planejarPolimento(salvo, {
+      pct: 40, semanas: [3], alvo: { tipo: 'exercicio', slotId: 'sup' }, tipo: 'degrau', degraus: 0, hoje: '2026-10-15',
+      historico: { meso: salvo, completos: new Set(), protegidos: new Set(), cargas: {}, reps: {} },
+    }).meso
+    expect(metodosDaSessao(semEsforco, 3, 1)).toEqual([drop, rest, vizinho])
+    const congelado = { versao: 1 as const, sessao: prescreverSessao(m, 3, 1)!, metodos: [drop, rest, vizinho] }
+    expect(metodosDaSessao({ ...salvo, prescricoesRegistradas: { '3-1': congelado } }, 3, 1)).toEqual(congelado.metodos)
+    expect(prescreverSessao({ ...salvo, prescricoesRegistradas: { '3-1': congelado } }, 3, 1)).toEqual(congelado.sessao)
+    const editada = { semana: 3, treino: 1, exercicios: m.divisao[0], metodos: [drop] }
+    expect(metodosDaSessao({ ...salvo, sessoes: { '3-1': editada } }, 3, 1)).toEqual([drop])
+  })
+  it('mantém outro método e explicita que o exercício fica fora do modo de esforço', () => {
+    const m = {...base,metodos:[{ativo:true,semana:3,treino:1,exercicio:1,metodo:'Clusterset' as const,escopo:'Todas as séries' as const,blocos:2}]}
     const { meso, linhas } = plano(m,{folga:4})
-    expect(linhas[0]).toMatchObject({ignorados:1})
+    expect(linhas[0]).toMatchObject({ignorados:1, semIntensificadores:0})
     expect(prescreverSessao(meso,3,1)?.exercicios[0]).toEqual(prescreverSessao(m,3,1)?.exercicios[0])
   })
 })

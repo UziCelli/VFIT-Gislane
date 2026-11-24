@@ -208,7 +208,7 @@ function AjustarVolume({ meso, onAtualizar, proposta, registros, historicoPronto
                 <option value={0}>Sem orientação extra</option>
                 {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>Encerrar com cerca de {n} {n === 1 ? 'repetição em reserva' : 'repetições em reserva'}</option>)}
               </select>
-              <span className="text-xs">É uma orientação ao aluno, não uma estimativa de esforço pelo app.</span>
+              <span className="text-xs">É uma orientação, não uma medição. Com folga ou carga menor, os exercícios elegíveis ficam sem dropset e rest-pause.</span>
             </label>
             <label className={`${rot} col-span-2`}>
               Carga sugerida
@@ -279,7 +279,8 @@ function AjustarVolume({ meso, onAtualizar, proposta, registros, historicoPronto
           {previa.pol.map(p => <li key={p.semana}>
             <strong>S{p.semana}:</strong> {p.plano} → {p.aplicado} séries no alvo · semana estimada {fmtMin(p.tempoAntes)} → {fmtMin(p.tempoDepois)}.
             {' '}{p.metaKg == null ? 'Base: plano, sem histórico completo comparável em kg.' : `Base: ${p.base.map(w => `S${w}`).join(', ')} (registros completos). Meta ≈ ${fmt(p.metaKg)} kg; estimativa ≈ ${fmt(p.previstoKg!)} kg após o degrau (estimativa pela média e pelo tipo de aparelho), em ${p.medidos} exercício(s) com histórico em kg; os demais seguem a base do plano.`}
-            {p.ignorados > 0 && ` ${p.ignorados} item(ns) intacto(s): histórico, sessão editada ou método especial.`}
+            {p.semIntensificadores > 0 && ` ${p.semIntensificadores} exercício(s) sem dropset/rest-pause nesta sessão.`}
+            {p.ignorados > 0 && ` ${p.ignorados} item(ns) intacto(s), fora do polimento: histórico, sessão editada ou método não compatível.`}
           </li>)}
         </ul>
       )}

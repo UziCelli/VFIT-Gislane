@@ -1,5 +1,5 @@
 import { isometrico, linhaIsometrica, LIMITE_ISOMETRIA_S } from './isometria'
-import type { AplicacaoMetodo, ExercicioPrescrito, Meso, Sessao, SlotSessao } from './tipos'
+import type { AplicacaoMetodo, ExercicioPrescrito, Meso, PolimentoExercicio, Sessao, SlotSessao } from './tipos'
 
 // MAX da planilha: campos vazios valem 0 e MAX de nada é 0.
 const max = (linhas: AplicacaoMetodo[], campo: (m: AplicacaoMetodo) => number | null | undefined) =>
@@ -75,11 +75,25 @@ export function slotsDaSessao(meso: Meso, semana: number, treino: number): SlotS
 }
 
 // Linhas de método do dia (ativas ou não): as da sessão editada, senão as do plano.
+export const esforcoPolimento = (p?: Pick<PolimentoExercicio, 'folga' | 'degraus'>) => !!(p?.folga || p?.degraus)
+export const intensificadorPolimento = (m: AplicacaoMetodo) => m.metodo === 'Dropset' || m.metodo === 'Rest-pause'
+
 export function metodosDaSessao(meso: Meso, semana: number, treino: number): AplicacaoMetodo[] {
   const preservada = copiaDoDia(meso, semana, treino)
   if (preservada) return preservada.metodos
   const editada = meso.sessoes?.[`${semana}-${treino}`]
-  return editada ? editada.metodos : meso.metodos.filter((m) => m.semana === semana && m.treino === treino)
+  if (editada) return editada.metodos
+  const doTreino = meso.metodos.filter((m) => m.semana === semana && m.treino === treino)
+  const pol = meso.polimentos?.[`${semana}-${treino}`]
+  if (!pol) return doTreino
+  const slots = slotsDaSessao(meso, semana, treino)
+  // A mesma lista efetiva alimenta prescrição, contador, tela e a cópia histórica criada ao iniciar.
+  return doTreino.filter(m => {
+    if (!m.ativo || !intensificadorPolimento(m)) return true
+    const slot = slots[m.exercicio - 1]
+    const p = slot && pol[slot.slotId]
+    return !(p && esforcoPolimento(p) && p.nome === slot.nome && !isometrico(slot))
+  })
 }
 
 export function prescreverSessao(meso: Meso, semana: number, treino: number): Sessao | null {

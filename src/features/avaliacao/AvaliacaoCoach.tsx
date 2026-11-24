@@ -196,7 +196,7 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
           ))}
         </fieldset>
         {secao('Perímetros (cm)', [...PERIMETROS], 'p_')}
-        {secao('Dobras cutâneas (mm)', [...DOBRAS], 'd_')}
+        {secao('Dobras cutâneas (mm, lado direito)', [...DOBRAS], 'd_')}
         {secao('Bioimpedância', BIO.map((b) => ({ id: b.id, rotulo: `${b.rotulo}${b.un ? ` (${b.un})` : ''}` })), 'b_')}
       </section>
 

@@ -62,6 +62,50 @@ export default function GuiaReferencias() {
         </Cartao>
 
         <Cartao>
+          <Titulo>Músculo estimado e dobras dos dois lados (avaliação física)</Titulo>
+          <p className="mb-2">
+            As dobras são medidas de um lado só (o direito) e valem para os dois, porque a gordura sob a pele costuma ser simétrica. Com elas, o app tira a gordura do perímetro:{' '}
+            <strong>perímetro corrigido = perímetro − π × dobra</strong>. Daí saem a área muscular do braço (tríceps), a da coxa (dobra da coxa) e a massa muscular do corpo (braço, coxa e panturrilha).
+          </p>
+          <ul className="mb-2 list-disc space-y-1 pl-5">
+            <li>Nos braços, a mão dominante pode deixar um lado maior; por isso o lado esquerdo vem marcado "dobra da direita".</li>
+            <li>Com lipedema marcado na região, não há estimativa: a gordura não é simétrica nem representada pela dobra.</li>
+            <li>A área da coxa superestima o valor absoluto, mas acompanha a mudança com o treino. Use para a tendência.</li>
+            <li>A massa muscular do corpo só aparece com IMC abaixo de 30 e sem ajuste de etnia (o app não pergunta).</li>
+            <li>Nível de evidência: moderado para as áreas musculares; baixo a moderado para a simetria das dobras.</li>
+          </ul>
+          <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">Fontes</h3>
+          <ul className="list-disc space-y-1 pl-5">
+            <Fonte>
+              Heymsfield SB, McManus C, Smith J, Stevens V, Nixon DW. Anthropometric measurement of muscle mass: revised equations for calculating bone-free arm muscle area. Am J Clin Nutr. 1982;36(4):680-690.{' '}
+              <a className={link} href="https://doi.org/10.1093/ajcn/36.4.680" target="_blank" rel="noreferrer">doi:10.1093/ajcn/36.4.680</a>
+            </Fonte>
+            <Fonte>
+              Lee RC, Wang Z, Heo M, Ross R, Janssen I, Heymsfield SB. Total-body skeletal muscle mass: development and cross-validation of anthropometric prediction models. Am J Clin Nutr. 2000;72(3):796-803.{' '}
+              <a className={link} href="https://doi.org/10.1093/ajcn/72.3.796" target="_blank" rel="noreferrer">doi:10.1093/ajcn/72.3.796</a>
+            </Fonte>
+            <Fonte>
+              Knapik JJ, Staab JS, Harman EA. Validity of an anthropometric estimate of thigh muscle cross-sectional area. Med Sci Sports Exerc. 1996;28(12):1523-1530.{' '}
+              <a className={link} href="https://doi.org/10.1097/00005768-199612000-00013" target="_blank" rel="noreferrer">doi:10.1097/00005768-199612000-00013</a>
+            </Fonte>
+            <Fonte>
+              DeFreitas JM, Beck TW, Stock MS et al. A comparison of techniques for estimating training-induced changes in muscle cross-sectional area. J Strength Cond Res. 2010;24(9):2383-2389.{' '}
+              <a className={link} href="https://doi.org/10.1519/JSC.0b013e3181ec86f3" target="_blank" rel="noreferrer">doi:10.1519/JSC.0b013e3181ec86f3</a>
+            </Fonte>
+            <Fonte>Housh DJ, Housh TJ, Weir JP et al. Anthropometric estimation of thigh muscle cross-sectional area. Med Sci Sports Exerc. 1995;27(5):784-791.</Fonte>
+            <Fonte>
+              Moreno LA, Rodríguez G, Guillén J et al. Anthropometric measurements in both sides of the body in the assessment of nutritional status in prepubertal children. Eur J Clin Nutr. 2002;56(12):1208-1215 (diferença entre lados menor que o erro de medida).{' '}
+              <a className={link} href="https://doi.org/10.1038/sj.ejcn.1601493" target="_blank" rel="noreferrer">doi:10.1038/sj.ejcn.1601493</a>
+            </Fonte>
+            <Fonte>Malina RM, Buschang PH. Anthropometric asymmetry in normal and mentally retarded males. Ann Hum Biol. 1984;11(6):515-531 (assimetria maior nos braços que nas pernas).</Fonte>
+            <Fonte>
+              Faerber G et al. S2k guideline lipedema. J Dtsch Dermatol Ges. 2024;22(9):1303-1315.{' '}
+              <a className={link} href="https://doi.org/10.1111/ddg.15513" target="_blank" rel="noreferrer">doi:10.1111/ddg.15513</a>
+            </Fonte>
+          </ul>
+        </Cartao>
+
+        <Cartao>
           <Titulo>Peso do corpo nos exercícios</Titulo>
           <p className="mb-2">
             Em exercícios em que o corpo é a carga, o app soma ao que o aluno digita uma fração do peso corporal (por exemplo, 64% na flexão de braços). Os valores vêm da massa dos segmentos corporais e de estudos de força em flexões.

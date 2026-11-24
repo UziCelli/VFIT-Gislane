@@ -148,6 +148,8 @@ export default function Avaliacao({ r, aluno, comentario }: { r: RelatorioAvalia
 
       <p className="text-xs text-slate-400">
         {r.res.fonte && `% de gordura calculado por ${NOME_FONTE[r.res.fonte]}. `}Estimativa; não substitui avaliação médica.
+        {r.grupos.some((g) => g.titulo === 'Músculo estimado') &&
+          ' Músculo estimado: perímetro sem a gordura da dobra, medida de um lado e usada nos dois. Serve para acompanhar a tendência, não para o valor exato.'}
       </p>
     </article>
   )

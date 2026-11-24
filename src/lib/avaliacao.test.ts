@@ -165,12 +165,12 @@ describe('relatorioAvaliacao', () => {
 
   it('só mostra linhas com medida e a soma das dobras', () => {
     const r = relatorioAvaliacao([atual], 'a2')!
-    expect(r.grupos.map((g) => g.titulo)).toEqual(['Composição corporal', 'Tronco', 'Braços', 'Pernas', 'Dobras cutâneas'])
+    expect(r.grupos.map((g) => g.titulo)).toEqual(['Composição corporal', 'Tronco', 'Braços', 'Pernas', 'Dobras cutâneas', 'Músculo estimado'])
     expect(r.grupos.map((g) => g.linhas.length > 0)).not.toContain(false)
     expect(r.grupos[1].linhas.map((l) => l.rotulo)).toEqual(['Cintura'])
     expect(r.grupos[2].linhas.map((l) => l.rotulo)).toEqual(['Braço direito'])
     expect(r.grupos[3].linhas.map((l) => l.rotulo)).toEqual(['Quadril', 'Coxa direita'])
-    expect(r.grupos.at(-1)!.linhas.at(-1)).toMatchObject({ rotulo: 'Soma das 7 dobras', atual: 112 })
+    expect(r.grupos.find((g) => g.titulo === 'Dobras cutâneas')!.linhas.at(-1)).toMatchObject({ rotulo: 'Soma das 7 dobras', atual: 112 })
   })
 })
 

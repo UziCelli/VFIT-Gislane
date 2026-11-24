@@ -495,7 +495,7 @@ service cloud.firestore {
             || (request.resource.data.idade is int && request.resource.data.idade >= 10 && request.resource.data.idade <= 100))
         && (!('sexo' in request.resource.data) || request.resource.data.sexo in ['M', 'F'])
         && mapaDe(request.resource.data, 'perimetros', ['ombro', 'torax', 'cintura', 'abdomen', 'quadril', 'bracoD', 'bracoE', 'antebracoD', 'antebracoE', 'coxaD', 'coxaE', 'panturrilhaD', 'panturrilhaE'])
-        && mapaDe(request.resource.data, 'dobras', ['peitoral', 'axilar', 'triceps', 'subescapular', 'abdominal', 'suprailiaca', 'coxa'])
+        && mapaDe(request.resource.data, 'dobras', ['peitoral', 'axilar', 'triceps', 'subescapular', 'abdominal', 'suprailiaca', 'coxa', 'biceps', 'panturrilha'])
         && mapaDe(request.resource.data, 'bio', ['gorduraPct', 'massaMuscularKg', 'visceral'])
         // Lipedema (condição de saúde, marcada só pelo coach): lista com até 2 itens, só braços e pernas.
         && (!('lipedema' in request.resource.data)

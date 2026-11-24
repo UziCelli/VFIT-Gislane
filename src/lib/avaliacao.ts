@@ -5,6 +5,7 @@ import type { Meso } from '../engine'
 import { diaSP } from './acesso'
 import type { Ocorrencia } from './evolucao'
 import { cicloTerminou, diasDesdeFim, fimISO, RELATORIO_DIAS, type RelatorioCiclo } from './relatorio'
+import { areaMuscularBraco, areaMuscularCoxa, massaMuscularLee } from './areaMuscular'
 import { cargaPorSegmento, cruzar, medidaSegmento, SEGMENTOS, type SegmentoId, type Veredito } from './segmentos'
 
 export const PERIMETROS = [
@@ -23,7 +24,8 @@ export const PERIMETROS = [
   { id: 'panturrilhaE', rotulo: 'Panturrilha esquerda' },
 ] as const
 
-// As 7 dobras do protocolo de Jackson & Pollock.
+// Dobras medidas de um lado só (o direito, como no protocolo). As 7 primeiras são as de Jackson & Pollock (% de gordura);
+// bíceps e panturrilha medial completam os segmentos para a área muscular (a gordura subcutânea é simétrica, em geral).
 export const DOBRAS = [
   { id: 'peitoral', rotulo: 'Peitoral' },
   { id: 'axilar', rotulo: 'Axilar média' },
@@ -32,7 +34,10 @@ export const DOBRAS = [
   { id: 'abdominal', rotulo: 'Abdominal' },
   { id: 'suprailiaca', rotulo: 'Supra-ilíaca' },
   { id: 'coxa', rotulo: 'Coxa' },
+  { id: 'biceps', rotulo: 'Bíceps' },
+  { id: 'panturrilha', rotulo: 'Panturrilha medial' },
 ] as const
+export const DOBRAS_POLLOCK = DOBRAS.slice(0, 7)
 
 export const BIO = [
   { id: 'gorduraPct', rotulo: 'Gordura', un: '%', max: 70 },
@@ -147,7 +152,7 @@ export type Resultado = {
 // % de gordura: pelas 7 dobras (Jackson & Pollock 1978 para homens, Jackson, Pollock & Ward 1980 para
 // mulheres; densidade → % pela equação de Siri), que precisam de sexo e idade. Sem isso, o da bioimpedância.
 export function resultado(a: Avaliacao): Resultado {
-  const mm = DOBRAS.map((d) => a.dobras[d.id])
+  const mm = DOBRAS_POLLOCK.map((d) => a.dobras[d.id])
   const soma = mm.every((v) => v != null) ? r1(mm.reduce((s: number, v) => s + v!, 0)) : null
   let gorduraPct: number | null = null
   let fonte: Resultado['fonte'] = null
@@ -221,6 +226,7 @@ type DobraId = Ids<typeof DOBRAS>
 // Dobra que acompanha cada perímetro (sem dobra: ombro, antebraços e panturrilhas). Quadril e coxas dividem a dobra da coxa.
 export const PAR_DOBRA: Partial<Record<PerimetroId, DobraId>> = {
   torax: 'peitoral', cintura: 'suprailiaca', abdomen: 'abdominal', quadril: 'coxa', coxaD: 'coxa', coxaE: 'coxa', bracoD: 'triceps', bracoE: 'triceps',
+  panturrilhaD: 'panturrilha', panturrilhaE: 'panturrilha',
 }
 // Região de exibição e, quando houver, o lipedema que a atinge.
 export const REGIAO: Record<PerimetroId, { grupo: 'Tronco' | 'Braços' | 'Pernas'; lipedema?: Lipedema }> = {
@@ -255,15 +261,51 @@ type Pref = 'subir' | 'cair' | null
 const leituraSimples = (pref: Pref, delta: number): Leitura | null =>
   pref == null ? null : { tom: (pref === 'subir') === delta > 0 ? 'bom' : 'atencao', texto: delta > 0 ? 'aumentou' : 'diminuiu' }
 
-type OpcoesLinha = { pref?: Pref; comparar?: boolean; arred?: (x: number) => number; leitura?: (delta: number) => Leitura }
+type OpcoesLinha = { pref?: Pref; comparar?: boolean; arred?: (x: number) => number; leitura?: (delta: number) => Leitura; limiar?: number }
 // `pref`: o que é bom (null = neutro, só a seta). Abaixo do limiar a seta é "igual" e não há leitura.
 const linha = (rotulo: string, un: string, atual: number | null | undefined, ant: number | null | undefined, o: OpcoesLinha = {}): Linha[] => {
   if (atual == null) return []
-  const { pref = null, comparar = true, arred = r1, leitura } = o
+  const { pref = null, comparar = true, arred = r1, leitura, limiar = limiarDe(un) } = o
   const delta = comparar && ant != null ? arred(atual - ant) : null
-  const seta: Seta | null = delta == null ? null : Math.abs(delta) < limiarDe(un) ? 'igual' : delta > 0 ? 'sobe' : 'desce'
+  const seta: Seta | null = delta == null ? null : Math.abs(delta) < limiar ? 'igual' : delta > 0 ? 'sobe' : 'desce'
   const l = delta == null || seta === 'igual' ? null : leitura ? leitura(delta) : leituraSimples(pref, delta)
   return [{ rotulo, un, atual, anterior: ant ?? null, delta, seta, leitura: l }]
+}
+
+// Músculo estimado (perímetro corrigido pela dobra; areaMuscular.ts). As dobras são do lado direito e valem para os dois
+// lados. Região com lipedema fica de fora (a dobra não representa o segmento). Limiares: 1,5 cm² (cerca de 0,5 cm de
+// perímetro) e 0,5 kg. Só descreve: é estimativa, útil para a tendência.
+const LIMIAR_AREA = 1.5
+const LIMIAR_MASSA_EST = 0.5
+const leituraMusculo = (d: number): Leitura => (d > 0 ? { tom: 'bom', texto: 'provável ganho de músculo' } : { tom: 'atencao', texto: 'possível perda de músculo' })
+export function musculoEstimado(atual: Avaliacao, ant: Avaliacao | null): Linha[] {
+  const lip = new Set(atual.lipedema ?? [])
+  const o = { pref: 'subir' as const, leitura: leituraMusculo, limiar: LIMIAR_AREA }
+  const braco = (a: Avaliacao | null, lado: 'bracoD' | 'bracoE') =>
+    a?.sexo && a.perimetros[lado] != null && a.dobras.triceps != null ? areaMuscularBraco(a.perimetros[lado]!, a.dobras.triceps, a.sexo) : null
+  const coxa = (a: Avaliacao | null, lado: 'coxaD' | 'coxaE') => (a && a.perimetros[lado] != null && a.dobras.coxa != null ? areaMuscularCoxa(a.perimetros[lado]!, a.dobras.coxa) : null)
+  const media = (a: Avaliacao, d: PerimetroId, e: PerimetroId) => {
+    const xs = [a.perimetros[d], a.perimetros[e]].filter((x): x is number => x != null)
+    return xs.length ? xs.reduce((s, x) => s + x, 0) / xs.length : null
+  }
+  const lee = (a: Avaliacao | null) => {
+    if (!a || !a.alturaCm || !a.sexo || a.idade == null || a.lipedema?.length) return null
+    const [b, c, p] = [media(a, 'bracoD', 'bracoE'), media(a, 'coxaD', 'coxaE'), media(a, 'panturrilhaD', 'panturrilhaE')]
+    const { triceps, coxa: dc, panturrilha: dp } = a.dobras
+    if (b == null || c == null || p == null || triceps == null || dc == null || dp == null) return null
+    return massaMuscularLee({ alturaCm: a.alturaCm, pesoKg: a.pesoKg, sexo: a.sexo, idade: a.idade, braco: b, coxa: c, panturrilha: p, triceps, coxaDobra: dc, panturrilhaDobra: dp })
+  }
+  return [
+    ...(lip.has('bracos') ? [] : [
+      ...linha('Área muscular do braço direito', 'cm²', braco(atual, 'bracoD'), braco(ant, 'bracoD'), o),
+      ...linha('Área muscular do braço esquerdo (dobra da direita)', 'cm²', braco(atual, 'bracoE'), braco(ant, 'bracoE'), o),
+    ]),
+    ...(lip.has('pernas') ? [] : [
+      ...linha('Área muscular da coxa direita', 'cm²', coxa(atual, 'coxaD'), coxa(ant, 'coxaD'), o),
+      ...linha('Área muscular da coxa esquerda (dobra da direita)', 'cm²', coxa(atual, 'coxaE'), coxa(ant, 'coxaE'), o),
+    ]),
+    ...linha('Massa muscular do corpo', 'kg', lee(atual), lee(ant), { ...o, limiar: LIMIAR_MASSA_EST }),
+  ]
 }
 
 export const fmtDeltaUn = (l: Linha) => `${fmtDelta(l.delta!)}${l.un === '%' ? '%' : l.un ? ` ${l.un}` : ''}`
@@ -321,6 +363,7 @@ export function relatorioAvaliacao(avs: Avaliacao[], id: string, ciclo?: Ciclo |
         'Dobras cutâneas',
         [...DOBRAS.flatMap((d) => linha(d.rotulo, 'mm', atual.dobras[d.id], ant?.dobras[d.id], { pref: 'cair' })), ...linha('Soma das 7 dobras', 'mm', res.somaDobras, rAnt?.somaDobras, { pref: 'cair' })],
       ],
+      ['Músculo estimado', musculoEstimado(atual, ant)],
       [
         'Bioimpedância',
         BIO.flatMap((b) => linha(b.rotulo, b.un, atual.bio[b.id], ant?.bio[b.id], { pref: b.id === 'massaMuscularKg' ? 'subir' : 'cair' })),

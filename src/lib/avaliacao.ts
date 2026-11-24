@@ -435,7 +435,7 @@ export function relatorioAvaliacao(avs: Avaliacao[], id: string, ciclo?: Ciclo |
   const ORDEM = { melhorou: 0, observar: 1, estavel: 2 }
   const segmentos = (ant ? SEGMENTOS : [])
     .flatMap((seg): ResultadoSegmento[] => {
-      const medida = medidaSegmento(seg, atual, ant!)
+      const medida = medidaSegmento(seg, atual, ant!, erro)
       const c = carga[seg.id] ?? null
       const x = cruzar(medida?.leitura ?? null, c?.classe ?? null)
       if (!x) return []

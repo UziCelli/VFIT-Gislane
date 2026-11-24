@@ -25,3 +25,16 @@ describe('oscilacoes', () => {
     expect(abd.inferencia).toMatch(/cautela/)
   })
 })
+
+describe('ETM na leitura por segmento', () => {
+  it('com ETM alto, 0,6 cm no braço é estável no segmento (como na tabela)', async () => {
+    const { medidaSegmento, SEGMENTOS } = await import('./segmentos')
+    const { etm } = await import('./etm')
+    const erro = { dobra: null, perimetro: etm(Array.from({ length: 5 }, () => [33, 33.5] as [number, number]), 'perimetro') }
+    const seg = SEGMENTOS.find((s) => s.id === 'bracos')!
+    const sem = medidaSegmento(seg, av('b', '2026-02-01', { bracoD: 33.6 }), av('a', '2026-01-01', { bracoD: 33 }))!
+    const com = medidaSegmento(seg, av('b', '2026-02-01', { bracoD: 33.6 }), av('a', '2026-01-01', { bracoD: 33 }), erro)!
+    expect(sem.leitura.texto).not.toBe('estável')
+    expect(com.leitura.texto).toBe('estável')
+  })
+})

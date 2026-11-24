@@ -3,7 +3,8 @@
 // no indivíduo, carga ou dor à mudança de perímetro (docs/evidencias-avaliacao.md, item 4). Só o coach vê:
 // usa relato de dor (dado de saúde), então nunca vai ao relatório do aluno, ao PDF, à IA nem ao log. Funções puras.
 import { diaSP } from './acesso'
-import { LIMIAR_TRONCO_CM, type Avaliacao } from './avaliacao'
+import type { Avaliacao } from './avaliacao'
+import type { Etm } from './etm'
 import type { RelatoDor } from './dor'
 import type { Ocorrencia } from './evolucao'
 import { cargaPorSegmento, medidaSegmento, segmentoDoExercicio, SEGMENTOS, type SegmentoId } from './segmentos'
@@ -40,7 +41,8 @@ function frequencia(hist: Record<string, Ocorrencia[]>, seg: SegmentoId, de: num
   return { porSemana: xs.length / semanas, antes: xs.filter((d) => d < meio).length, depois: xs.filter((d) => d >= meio).length }
 }
 
-export function oscilacoes(atual: Avaliacao, ant: Avaliacao, hist: Record<string, Ocorrencia[]>, dores: RelatoDor[]): Oscilacao[] {
+// `atual` e `ant` já com a média das 2 medidas (efetiva); `erro`: ETM do aluno (etmDoAluno).
+export function oscilacoes(atual: Avaliacao, ant: Avaliacao, hist: Record<string, Ocorrencia[]>, dores: RelatoDor[], erro?: { dobra: Etm | null; perimetro: Etm | null }): Oscilacao[] {
   const de = diaISO(ant.data)
   const ate = diaISO(atual.data)
   if (ate <= de) return []
@@ -54,10 +56,9 @@ export function oscilacoes(atual: Avaliacao, ant: Avaliacao, hist: Record<string
   return SEGMENTOS.flatMap((seg): Oscilacao[] => {
     const fatos: string[] = []
     const tronco = TRONCO.has(seg.id)
-    const m = medidaSegmento(seg, atual, ant)
+    const m = medidaSegmento(seg, atual, ant, erro)
     const dPerim = m ? m.cm : null
-    const limiar = tronco ? LIMIAR_TRONCO_CM : 0.5
-    const medidaMexeu = dPerim != null && Math.abs(dPerim) >= limiar
+    const medidaMexeu = dPerim != null && Math.abs(dPerim) >= m!.limiarCm
     if (m) fatos.push(`Medida ${m.delta}${medidaMexeu ? '' : ' (dentro do erro de medida)'}`)
 
     const c = carga[seg.id]

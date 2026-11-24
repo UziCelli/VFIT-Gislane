@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Avaliacao } from '../../lib/avaliacao'
+import { efetiva, etmDoAluno, type Avaliacao } from '../../lib/avaliacao'
 import type { RelatoDor } from '../../lib/dor'
 import type { Ocorrencia } from '../../lib/evolucao'
 import { oscilacoes } from '../../lib/oscilacoes'
@@ -7,9 +7,10 @@ import { IcSeta } from '../../icones'
 import { Painel } from '../../ui'
 
 // Só o coach vê (usa relato de dor). Inferência interpretativa, nunca causa e efeito.
-export default function OscilacoesCoach({ atual, ant, cargas, dores }: { atual: Avaliacao; ant: Avaliacao | null; cargas: Record<string, Ocorrencia[]>; dores: RelatoDor[] }) {
+// `atual`: já com as médias (r.atual); `ant` e `todas` brutas (a média e o ETM saem aqui).
+export default function OscilacoesCoach({ atual, ant, todas, cargas, dores }: { atual: Avaliacao; ant: Avaliacao | null; todas: Avaliacao[]; cargas: Record<string, Ocorrencia[]>; dores: RelatoDor[] }) {
   const [aberto, setAberto] = useState(false)
-  const lista = ant ? oscilacoes(atual, ant, cargas, dores) : []
+  const lista = ant ? oscilacoes(atual, efetiva(ant), cargas, dores, etmDoAluno(todas)) : []
   if (!lista.length) return null
   return (
     <section className="rounded-2xl border border-slate-800 bg-slate-900 px-4">

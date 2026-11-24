@@ -260,7 +260,7 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
       </section>
 
       {r ? <Avaliacao r={r} aluno={aluno.nome} comentario={v.comentario} /> : <p className="text-sm text-slate-400">Preencha a data e o peso (dentro das faixas) para ver o resultado.</p>}
-      {r && <OscilacoesCoach atual={r.atual} ant={outras.filter((a) => a.id !== id && a.data < r.atual.data).sort((a, b) => a.data.localeCompare(b.data)).at(-1) ?? null} cargas={cargas} dores={dores.todos} />}
+      {r && <OscilacoesCoach atual={r.atual} ant={outras.filter((a) => a.id !== id && a.data < r.atual.data).sort((a, b) => a.data.localeCompare(b.data)).at(-1) ?? null} todas={[...outras.filter((a) => a.id !== id), { ...form!, id, liberado }]} cargas={cargas} dores={dores.todos} />}
 
       <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900 p-4">
         <label className="block text-sm font-semibold" htmlFor="recado-avaliacao">Seu recado para o aluno</label>

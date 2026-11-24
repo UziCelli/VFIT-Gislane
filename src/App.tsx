@@ -39,10 +39,8 @@ import AlunoApp from './features/aluno/AlunoApp'
 import TutorialCoach, { tutorialCoachNaoVisto } from './features/coach/TutorialCoach'
 import { AnimatePresence } from 'motion/react'
 import Instalar from './features/instalar/Instalar'
-import GuiaFisio from './features/fisio/GuiaFisio'
 import FisioCoach from './features/fisio/FisioCoach'
-import GuiaMetodos from './features/metodos/GuiaMetodos'
-import GuiaReferencias from './features/metodos/GuiaReferencias'
+import GuiasCoach, { ROTAS_GUIA } from './features/metodos/GuiasCoach'
 import MinhaConta from './features/conta/MinhaConta'
 import ConectarClaude from './features/conta/ConectarClaude'
 import ConfirmarTreinoMcp from './features/conta/ConfirmarTreinoMcp'
@@ -188,9 +186,6 @@ function Vigia({ papel }: { papel: 'coach' | 'aluno' }) {
   ) : null
 }
 
-// Posição de cada guia no seletor "Treino | Físio | Referências": a troca entre eles desliza para o lado da aba.
-const LADO_GUIA: Record<string, number | undefined> = { '/metodos': 0, '/fisio': 1, '/referencias': 2 }
-
 const ativaAba = (rota: string) =>
   rota.startsWith('/confirmar-treino-mcp') ? 'propostas'
   : rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
@@ -274,6 +269,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
     void inscreverAvisos(true) // avisos dos alunos (concluiu, anotou, "Já paguei"); só faz algo com a permissão já dada
   }, [uid])
   const presencial = rota.startsWith('/aluno/') && rota.includes('/presencial')
+  const guia = ROTAS_GUIA[rota] // as 3 guias são uma tela só: o seletor fica, o conteúdo desliza
   let p: Record<string, string> | null
   let tela = <Inicio nome={nome} />
   if (presencial) tela = <Grupo rota={rota} />
@@ -291,9 +287,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/meso/:id', rota))) tela = <EditorMeso id={p.id} />
   else if ((p = casar('/meso/:id/relatorio', rota))) tela = <RelatorioCoach key={p.id} mesoId={p.id} />
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />
-  else if (rota === '/metodos') tela = <GuiaMetodos coach />
-  else if (rota === '/fisio') tela = <GuiaFisio />
-  else if (rota === '/referencias') tela = <GuiaReferencias />
+  else if (guia) tela = <GuiasCoach guia={guia} />
   else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} pendentes={propostasMcp} verificando={verificandoMcp} />
   else if (rota.startsWith('/conectar-claude')) tela = <ConectarClaude pedido={new URLSearchParams(rota.split('?')[1]).get('pedido')} />
   else if (rota === '/conta') tela = <MinhaConta uid={uid} email={email} abrirTutorial={() => setTutorial(true)} />
@@ -320,7 +314,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
           </div>
         )}
         {!presencial && !rota.startsWith('/confirmar-treino-mcp') && <AvisoPropostaMcp propostas={propostasMcp} />}
-        <Tela chave={presencial ? 'presencial' : rota} abrir={/^\/(aluno|meso)\/|^\/alunos\/novo/.test(rota)} lado={LADO_GUIA[rota]}>{tela}</Tela>
+        <Tela chave={presencial ? 'presencial' : guia ? '/guias' : rota} abrir={/^\/(aluno|meso)\/|^\/alunos\/novo/.test(rota)}>{tela}</Tela>
       </div>
     </div>
   )

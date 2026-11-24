@@ -45,7 +45,7 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
     if (!original?.updateTime) throw new ErroConector('Não foi possível verificar a versão do mesociclo atual.')
     origem = { id: original.id, updateTime: original.updateTime }
     const depois = somarDias(fimISO(atual.meso), 1)
-    base = { ...atual.meso, inicio: depois > hoje ? depois : hoje }; titulo = `Mesociclo ${docs.length + 1}`
+    base = { ...atual.meso, polimentos: {}, inicio: depois > hoje ? depois : hoje }; titulo = `Mesociclo ${docs.length + 1}`
   } else { base = { ...mesoPadrao(), inicio: hoje }; titulo = `Mesociclo ${docs.length + 1}` }
   let escolhido: Meso = e.acao === 'proximo' ? { ...(e.meso ?? base), inicio: base.inicio } : e.meso ?? base
   if (e.alteracoes) escolhido = aplicarAlteracoes(escolhido, e.alteracoes)
@@ -139,7 +139,7 @@ export async function prepararPrescricao(fs: Firestore, entrada: EntradaPrescric
   const analise = mesoSchema.safeParse(semSessoes)
   if (!analise.success) {
     // Nunca devolver caminhos dinâmicos ou valores dos dados do aluno.
-    const regioes: Record<string, string> = { metodos: 'métodos', progressao: 'progressão', progressaoExercicio: 'progressão', divisao: 'divisão', trocas: 'divisão', adicoes: 'divisão', inicio: 'data de início' }
+    const regioes: Record<string, string> = { metodos: 'métodos', progressao: 'progressão', progressaoExercicio: 'progressão', polimentos: 'polimento', divisao: 'divisão', trocas: 'divisão', adicoes: 'divisão', inicio: 'data de início' }
     const campo = analise.error.issues[0]?.path[0]
     const regiao = typeof campo === 'string' ? regioes[campo] ?? 'configuração geral' : 'configuração geral'
     throw new ErroConector(`Não foi possível preparar: confira ${regiao} do mesociclo no app.`)

@@ -89,6 +89,7 @@ export function prescreverSessao(meso: Meso, semana: number, treino: number): Se
 
   const [ano, mes, dia] = meso.inicio.slice(0, 10).split('-').map(Number)
   const inicioSemana = new Date(Date.UTC(ano, mes - 1, dia + 7 * (semana - 1))).toISOString().slice(0, 10)
+  const editada = meso.sessoes?.[`${semana}-${treino}`]
   const doTreino = metodosDaSessao(meso, semana, treino).filter((m) => m.ativo)
 
   const exercicios = slotsDaSessao(meso, semana, treino).map(({ de: deGravado, origemSlotId, origemIsometrica, repsRegistradas, pausaRegistradaS, ...slot }, i): ExercicioPrescrito => {
@@ -105,7 +106,9 @@ export function prescreverSessao(meso: Meso, semana: number, treino: number): Se
     const arquivada = agora < 0 && (!origemSlotId || origemIsometrica === iso)
       ? meso.progressaoExercicio?.[origemSlotId ?? slot.slotId]?.[semana - 1]
       : undefined
-    const linha = (origemIsometrica === undefined || origemIsometrica === iso ? repsRegistradas : undefined) ?? (iso ? meso.progressaoExercicio?.[slot.slotId]?.[semana - 1] : undefined) ?? arquivada ?? (mesmaUnidade ? linhaPrescrita(meso, semana, treino, de!) : iso ? linhaIsometrica() : (meso.progressao.padrao ?? meso.progressao.auxiliares)[semana - 1] ?? [])
+    const previsto = meso.polimentos?.[`${semana}-${treino}`]?.[slot.slotId]
+    const polimento = !editada && previsto?.nome === slot.nome && !doTreino.some(m => m.exercicio === pos) ? previsto : undefined
+    const linha = polimento?.reps ?? (origemIsometrica === undefined || origemIsometrica === iso ? repsRegistradas : undefined) ?? (iso ? meso.progressaoExercicio?.[slot.slotId]?.[semana - 1] : undefined) ?? arquivada ?? (mesmaUnidade ? linhaPrescrita(meso, semana, treino, de!) : iso ? linhaIsometrica() : (meso.progressao.padrao ?? meso.progressao.auxiliares)[semana - 1] ?? [])
     const base = (k: number) => linha[k - 1] ?? 0
     const n = linha.filter((r) => typeof r === 'number').length
     const linhas = doTreino.filter((m) => m.exercicio === pos)
@@ -145,7 +148,7 @@ export function prescreverSessao(meso: Meso, semana: number, treino: number): Se
     if (iso) for (let k = 0; k < reps.length; k++) reps[k] = Math.min(LIMITE_ISOMETRIA_S, Math.max(1, reps[k]))
     const rotulo = linhas.map((m) => `${m.metodo} [${sufixo(m)}]`).join('; ')
     const pausaS = pausaRegistradaS ?? slot.pausaS ?? (de != null && de <= 2 ? (meso.pausaPrincipaisS ?? meso.pausaS) : meso.pausaS)
-    return { pos, slot, n, reps, repsBase: Array.from({ length: n }, (_, k) => base(k + 1)), rotulo, cargaSugerida, pausaS, drops }
+    return { pos, slot, n, reps, ...(polimento && { polimento: polimento.degraus, ...(polimento.folga != null && { folgaPolimento: polimento.folga }) }), repsBase: Array.from({ length: n }, (_, k) => base(k + 1)), rotulo, cargaSugerida, pausaS, drops }
   })
 
   // §8 — tempo

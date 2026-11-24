@@ -28,6 +28,7 @@ export function mesoParaDoc({ sessoes: _s, prescricoesRegistradas: _p, prescrico
   return {
     ...meso,
     // Sempre presente: ao editar (updateDoc), trocas removidas não podem sobrar no documento.
+    ...(meso.polimentos && { polimentos: meso.polimentos }),
     trocas: meso.trocas ?? {},
     adicoes: meso.adicoes ?? {},
     // Idem: sem agenda grava [] (nunca undefined); docParaMeso lê [] como "sem dias".
@@ -49,6 +50,7 @@ export function mesoParaDoc({ sessoes: _s, prescricoesRegistradas: _p, prescrico
 export function docParaMeso(d: MesoDoc): Meso {
   return {
     frequencia: d.frequencia,
+    ...(Object.keys(d.polimentos ?? {}).length > 0 && { polimentos: d.polimentos }),
     ...(d.prescricoesRegistradas && { prescricoesRegistradas: d.prescricoesRegistradas }),
     ...(d.prescricoesAnteriores && { prescricoesAnteriores: d.prescricoesAnteriores }),
     semanas: d.semanas,

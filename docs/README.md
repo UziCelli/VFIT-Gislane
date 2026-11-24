@@ -23,3 +23,5 @@ Não ler tudo: escolha apenas o assunto da tarefa. Guias ativos são curtos; rel
 Pesquisas Físio e planos `plano-*.md` permanecem nos arquivos originais. Consulte somente a entrega afetada; ideias futuras não autorizam implementação. Relatórios e histórico descrevem o momento em que foram escritos, não o estado atual da main/produção.
 
 Manutenção: guias de agentes até 400 palavras (comum) ou 300 (exclusivos); guias temáticos até 500. Estado de sessão lista apenas pendências, com referência, responsável e próxima validação. Não duplicar inventário do Graphify nem acumular diário aqui.
+
+- [Polimento: séries, tonelagem e esforço](polimento.md)

@@ -497,6 +497,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const pcsPorRegistro = Object.fromEntries(docsRegistros.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)]))
   // Pop-up da carga sugerida por RM: só na 1ª vez em que ela traria algo (ajustada às reps de hoje, corrigida ou do ciclo anterior).
   const sugereRm = perguntarRm && sessao.exercicios.some((e) => {
+    if (e.polimento != null) return false
     const r = cargaAnterior(meso, cargas, semana, treino, e.pos, pcsPorRegistro, ladosFeitos, repsFeitas, { anterior: fonteAnterior })
     return !!r && (r.estimada || !!r.origem.anterior)
   })
@@ -748,6 +749,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
                   </div>
                 </div>
               </div>
+              {e.folgaPolimento != null && <p className="text-sm text-marca-300">Polimento: encerre a série quando sentir que ainda faria cerca de {e.folgaPolimento} {e.folgaPolimento === 1 ? 'repetição boa' : 'repetições boas'}. Se precisar, use uma carga mais leve.</p>}
               <Nota key={textoNota(notas?.exercicios?.[e.slot.nome.trim()])} uid={uid} nome={e.slot.nome.trim()} texto={textoNota(notas?.exercicios?.[e.slot.nome.trim()])} em={msDaNota(notas?.datas?.[e.slot.nome.trim()])} />
               {iso && <p className="mb-2 text-xs text-slate-400">Tempo em segundos. Cronometre cada série e anote os segundos feitos. Carga opcional.</p>}
               {dois && (

@@ -108,6 +108,15 @@ export default function EditorMeso({ id }: { id: string }) {
     }
     novo = limitarPlanejamento(novo)
     if (novo !== meso) setMeso(novo)
+    const anterior = mesoDoc.dados?.polimentos ?? {}
+    const proximo = novo.polimentos ?? {}
+    const chavesPol = new Set([...Object.keys(anterior), ...Object.keys(proximo)])
+    const novasPol = [...chavesPol].filter(k => estavel(anterior[k]) !== estavel(proximo[k]))
+    if (novasPol.length && (registrosDocs.carregando || registrosDocs.erro || registrosDocs.cache ||
+      registrosDocs.dados.some(r => novasPol.includes(`${r.semana}-${r.treino}`)))) {
+      setErro('O histórico mudou ou não está atualizado. Atualize a página e confira o polimento antes de salvar.')
+      return
+    }
     const { sessoes: _s, prescricoesRegistradas: _p, prescricoesAnteriores: _a, historicoIncerto: _i, ...prescricao } = novo
     if (!mesoSchema.safeParse(prescricao).success) {
       setErro('Confira divisão, progressão, dias e métodos antes de salvar. A prescrição está incompleta ou inválida.')
@@ -324,7 +333,7 @@ export default function EditorMeso({ id }: { id: string }) {
       )}
 
       {aba === 'divisao' && <TabDivisao meso={meso} registros={registros} onAtualizar={atualizar} />}
-      {aba === 'progressao' && <TabProgressao meso={meso} onAtualizar={atualizar} proposta={proposta} />}
+      {aba === 'progressao' && <TabProgressao meso={meso} onAtualizar={atualizar} proposta={proposta} registros={registrosDocs.dados} historicoPronto={!registrosDocs.carregando && !registrosDocs.erro && !registrosDocs.cache} />}
       {aba === 'metodos' && <TabMetodos meso={meso} onAtualizar={atualizar} />}
         </m.div>
       </AnimatePresence>

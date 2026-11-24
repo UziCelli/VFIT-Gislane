@@ -188,6 +188,9 @@ function Vigia({ papel }: { papel: 'coach' | 'aluno' }) {
   ) : null
 }
 
+// Posição de cada guia no seletor "Treino | Físio | Referências": a troca entre eles desliza para o lado da aba.
+const LADO_GUIA: Record<string, number | undefined> = { '/metodos': 0, '/fisio': 1, '/referencias': 2 }
+
 const ativaAba = (rota: string) =>
   rota.startsWith('/confirmar-treino-mcp') ? 'propostas'
   : rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
@@ -317,7 +320,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
           </div>
         )}
         {!presencial && !rota.startsWith('/confirmar-treino-mcp') && <AvisoPropostaMcp propostas={propostasMcp} />}
-        <Tela chave={presencial ? 'presencial' : rota} abrir={/^\/(aluno|meso)\/|^\/alunos\/novo/.test(rota)}>{tela}</Tela>
+        <Tela chave={presencial ? 'presencial' : rota} abrir={/^\/(aluno|meso)\/|^\/alunos\/novo/.test(rota)} lado={LADO_GUIA[rota]}>{tela}</Tela>
       </div>
     </div>
   )

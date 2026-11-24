@@ -17,6 +17,8 @@ const TABELA: readonly (readonly [number, number])[] = [
 export const REPS_MAX_ORIGEM = 15 // acima disso a carga feita não serve de base. O estudo é preciso até ~65% do 1RM (~17 reps); a incerteza individual chega a ±10% da carga aqui
 export const REPS_MAX_ALVO = 20 // acima disso a carga cai para perto de 60% do 1RM, onde o estudo perde precisão
 export const PASSO_KG = 0.5
+// Passo fixo (kg) ou uma função do peso bruto (ex.: halter de 1 em 1 até 10 kg, depois de 2 em 2). Ver engine/passo.ts.
+export type Passo = number | ((kg: number) => number)
 
 // Fração do 1RM (0–1) que se levanta em `reps` repetições até a falha; null fora de 1..limite.
 export function fracaoDoRM(reps: number, limite = REPS_MAX_ALVO): number | null {
@@ -36,11 +38,14 @@ export function rmEstimado(carga: number, reps: number): number | null {
 }
 
 // Até 3 casas (aparelhos com microcarga); o passo não força número inteiro.
-export const arredondarKg = (kg: number, passo = PASSO_KG) => Math.round(Math.round(kg / passo) * passo * 1000) / 1000
+export const arredondarKg = (kg: number, passo: Passo = PASSO_KG) => {
+  const p = typeof passo === 'function' ? passo(kg) : passo
+  return Math.round(Math.round(kg / p) * p * 1000) / 1000
+}
 
 // Carga para `repsAlvo` repetições a partir de uma série feita (`carga` x `repsFeitas`). Mesmo número de reps: devolve a
 // carga como está (sem arredondar o que o aluno anotou). null quando não há base (reps fora da faixa, carga ≤ 0).
-export function cargaEquivalente(carga: number, repsFeitas: number, repsAlvo: number, passo = PASSO_KG): number | null {
+export function cargaEquivalente(carga: number, repsFeitas: number, repsAlvo: number, passo: Passo = PASSO_KG): number | null {
   if (!(carga > 0)) return null
   if (repsFeitas === repsAlvo) return carga
   const rm = rmEstimado(carga, repsFeitas)
@@ -66,7 +71,7 @@ const mediana = (v: number[]) => {
 // Troca por um valor plausível a série digitada com erro óbvio (ex.: 600 em vez de 60): com 3 ou mais séries válidas, a que
 // fica a mais de LIMITE_DIGITACAO da mediana vira a carga equivalente da mediana para as reps dela. Menos de 3: não mexe.
 // Devolve o novo vetor e quais posições foram trocadas.
-export function corrigirDigitacao(series: (number | null | undefined)[], reps: number[]) {
+export function corrigirDigitacao(series: (number | null | undefined)[], reps: number[], passo: Passo = PASSO_KG) {
   const pontos = series.flatMap((kg, i) => {
     const d = kg == null ? null : logDesvio(kg, reps[i])
     return d == null ? [] : [{ i, d }]
@@ -78,7 +83,7 @@ export function corrigirDigitacao(series: (number | null | undefined)[], reps: n
   for (const { i, d } of pontos) {
     if (Math.abs(d - med) <= LIMITE_DIGITACAO) continue
     const f = fracaoDoRM(reps[i], REPS_MAX_ORIGEM)!
-    const kg = arredondarKg(Math.exp(med) * f)
+    const kg = arredondarKg(Math.exp(med) * f, passo)
     if (kg > 0) {
       out[i] = kg
       trocadas.push(i)

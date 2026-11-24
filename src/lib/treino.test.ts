@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Meso, Slot } from '../engine'
+import type { Aparelho, Meso, Slot } from '../engine'
 import { cargaAnterior, semanaAtual } from './treino'
 
 const sp = (iso: string) => new Date(`${iso}-03:00`)
@@ -186,6 +186,19 @@ describe('cargaAnterior ajustada às reps de hoje (tabela de RM)', () => {
   })
   it('menos reps hoje: carga sobe pela tabela e fica em múltiplo de 0,5', () => {
     expect(cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, {})).toMatchObject({ series: [63, 63], estimada: true })
+  })
+  it('nome com tipo conhecido: cai no degrau do aparelho (seletora 2,5 kg)', () => {
+    const mx: Meso = { ...m, divisao: [[slot('a', 'Cadeira Extensora')]] }
+    expect(cargaAnterior(mx, regs, 2, 1, 1, undefined, undefined, {})).toMatchObject({ series: [62.5, 62.5], estimada: true })
+  })
+  it('aparelho do catálogo passa por cima do padrão (incremento 0,625)', () => {
+    const ap: Aparelho = { id: 'lf', nome: 'Polia', local: 'X', tipo: 'polia', unidade: 'kg', incremento: 0.625 }
+    const r = cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, {}, { aparelho: ap })
+    expect(r).toMatchObject({ series: [63.125, 63.125], estimada: true })
+  })
+  it('aparelho em nível: o anotado é nível, sem ajuste por reps', () => {
+    const ap: Aparelho = { id: 'n', nome: 'Extensora', local: 'X', tipo: 'maquina', unidade: 'nivel', niveis: 12 }
+    expect(cargaAnterior(m, { '1-1': { a: [6, 6] } }, 2, 1, 1, undefined, undefined, {}, { aparelho: ap })).toMatchObject({ series: [6, 6], estimada: false })
   })
   it('usa as reps realmente anotadas naquele dia, não as prescritas', () => {
     const r = cargaAnterior(m, regs, 2, 1, 1, undefined, undefined, { '1-1': { a: [8, 8] } })

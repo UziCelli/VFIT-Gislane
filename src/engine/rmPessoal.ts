@@ -5,7 +5,7 @@
 // valores, com encolhimento para 0) que deixa o 1RM implícito mais estável entre séries de reps diferentes; o nível vale no
 // ÚLTIMO treino (sem atraso quando a força sobe) e a tendência é só para não atrasar (não se projeta o futuro).
 // Limites de segurança: a previsão nunca passa de −12%/+8% sobre a da tabela pura; sem dado suficiente, δ = 0 (= tabela).
-import { arredondarKg, fracaoDoRM, LIMITE_DIGITACAO, logDesvio, REPS_MAX_ALVO, REPS_MAX_ORIGEM } from './rm'
+import { arredondarKg, fracaoDoRM, type Passo, PASSO_KG, LIMITE_DIGITACAO, logDesvio, REPS_MAX_ALVO, REPS_MAX_ORIGEM } from './rm'
 
 export interface PontoRm {
   t: number // tempo em semanas (semana + (treino−1)/frequência), sem usar o relógio do aparelho
@@ -115,12 +115,12 @@ export function ajustarRm(pontosBrutos: PontoRm[]): ModeloRm | null {
 }
 
 // Carga (kg) para `reps` repetições na série `serie` (0 = S1). null fora de 1..20 reps. Presa a −12%/+8% da tabela pura.
-export function cargaPessoal(m: ModeloRm, reps: number, serie = 0): number | null {
+export function cargaPessoal(m: ModeloRm, reps: number, serie = 0, passo: Passo = PASSO_KG): number | null {
   if (!Number.isFinite(reps) || reps < 1 || reps > REPS_MAX_ALVO) return null
   const tabela = Math.exp(m.nivelTabela) * F(reps, 0)
   const pessoal = Math.exp(m.nivel + (m.desvios[serie] ?? 0)) * F(reps, m.delta)
   const razao = Math.min(TETO_ALTO, Math.max(TETO_BAIXO, pessoal / tabela))
-  const kg = arredondarKg(tabela * razao)
+  const kg = arredondarKg(tabela * razao, passo)
   return kg > 0 ? kg : null
 }
 

@@ -1,8 +1,14 @@
 import { useMemo, useState } from 'react'
 import type { PropostaFisio } from '../../fisio/propostaEditor'
 import { acimaDoLimite, fmtMin } from '../../../lib/tempo'
-import { isometrico, linhaIsometrica, progressaoIsometrica, analisarProgressao, polimento, prescreverSessao, progressaoAutomatica, reduzirVolume, tempoPorSemana } from '../../../engine'
+import { isometrico, linhaIsometrica, progressaoIsometrica, analisarProgressao, prescreverSessao, progressaoAutomatica, reduzirVolume, tempoPorSemana } from '../../../engine'
 import type { AlvoVolume, Meso, TipoPolimento } from '../../../engine'
+import { planejarPolimento } from '../../../engine/polimento'
+import { comPrescricoesRegistradas } from '../../../lib/prescricaoRegistrada'
+import { docsParaLados, docsParaRegistrosReps, docsParaRegistros, type RegistroDoc } from '../../../lib/conversores'
+import { corpoEhCarga } from '../../../lib/pesoCorporal'
+import { doisLados } from '../../../lib/lados'
+import { dataSP } from '../../aluno/mesoAtual'
 import GraficoVolume from './GraficoVolume'
 import { Botao, campoBase, Cartao, CampoNumero } from '../../../ui'
 
@@ -29,7 +35,7 @@ function resumo(meso: Meso): Previa {
   }))
 }
 
-export default function TabProgressao({ meso, onAtualizar, proposta = null }: { meso: Meso; onAtualizar: (patch: Partial<Meso>) => void; proposta?: PropostaFisio | null }) {
+export default function TabProgressao({ meso, onAtualizar, proposta = null, registros, historicoPronto }: { meso: Meso; onAtualizar: (patch: Partial<Meso>) => void; proposta?: PropostaFisio | null; registros: RegistroDoc[]; historicoPronto: boolean }) {
   const padrao = meso.progressao.padrao ?? meso.progressao.auxiliares
   const proprias = meso.progressaoExercicio ?? {}
   const setPadrao = (l: (number | null)[][]) => onAtualizar({ progressao: { ...meso.progressao, padrao: l } })
@@ -43,7 +49,7 @@ export default function TabProgressao({ meso, onAtualizar, proposta = null }: { 
 
   return (
     <div className="space-y-4">
-      <AjustarVolume meso={meso} onAtualizar={onAtualizar} proposta={proposta} />
+      <AjustarVolume meso={meso} onAtualizar={onAtualizar} proposta={proposta} registros={registros} historicoPronto={historicoPronto} />
       <TabelaProgressao
         titulo="Progressão padrão"
         linhas={padrao}
@@ -84,12 +90,14 @@ export default function TabProgressao({ meso, onAtualizar, proposta = null }: { 
   )
 }
 
-function AjustarVolume({ meso, onAtualizar, proposta }: { meso: Meso; onAtualizar: (patch: Partial<Meso>) => void; proposta: PropostaFisio | null }) {
+function AjustarVolume({ meso, onAtualizar, proposta, registros, historicoPronto }: { meso: Meso; onAtualizar: (patch: Partial<Meso>) => void; proposta: PropostaFisio | null; registros: RegistroDoc[]; historicoPronto: boolean }) {
   const [modo, setModo] = useState<Modo>(proposta ? 'pol' : 'prog')
   const [reducao, setReducao] = useState('5')
   const [reducaoPol, setReducaoPol] = useState('40')
   const [pausas, setPausas] = useState<number[]>([])
   const [semPol, setSemPol] = useState<number[]>(proposta?.semanas ?? [meso.semanas])
+  const [folga, setFolga] = useState(0)
+  const [degraus, setDegraus] = useState<0 | 1 | 2>(0)
   const [tipoPol, setTipoPol] = useState<TipoPolimento>('degrau')
   const [de, setDe] = useState('2')
   const [ate, setAte] = useState(String(meso.semanas))
@@ -102,18 +110,39 @@ function AjustarVolume({ meso, onAtualizar, proposta }: { meso: Meso; onAtualiza
   const slotId = slots.some((x) => x.slotId === slotSel) ? slotSel : (slots[0]?.slotId ?? '')
   const pctSemana = meso.progressaoPct ?? 5
 
+  const historico = useMemo(() => {
+    const congelado = comPrescricoesRegistradas(meso, registros)
+    const chave = (r: RegistroDoc) => `${r.semana}-${r.treino}`
+    const porDia = new Map(registros.map(r => [chave(r), r]))
+    return {
+      meso: congelado,
+      completos: new Set(registros.filter(r => r.realizado).map(chave)),
+      // Até registro apenas iniciado protege a semana/treino contra uma mudança na prescrição.
+      protegidos: new Set(registros.map(chave)),
+      cargas: docsParaRegistros(registros, congelado),
+      reps: docsParaRegistrosReps(registros),
+      lados: docsParaLados(registros),
+      doisLados: (e: NonNullable<ReturnType<typeof prescreverSessao>>['exercicios'][number]) => doisLados(e.slot),
+      semKgNoPlano: (e: NonNullable<ReturnType<typeof prescreverSessao>>['exercicios'][number]) => corpoEhCarga(e.slot.nome),
+      semKg: (k: string, e: NonNullable<ReturnType<typeof prescreverSessao>>['exercicios'][number]) =>
+        corpoEhCarga(e.slot.nome) || (porDia.get(k)?.pc?.[e.slot.slotId] ?? 0) > 0,
+    }
+  }, [meso, registros])
+  const hoje = dataSP(new Date())
+
   // Prévia sempre atual: recalcula quando o meso ou algum parâmetro muda.
   const previa = useMemo(() => {
     const alvo: AlvoVolume = onde === 'fisio' && proposta ? { tipo: 'exercicios', slotIds: proposta.slotIds } : onde === 'todos' ? { tipo: 'todos' } : onde === 'treino' ? { tipo: 'treino', treino: +treino } : { tipo: 'exercicio', slotId }
+    const pol = modo === 'pol' && historicoPronto ? planejarPolimento(meso, { pct: Number(reducaoPol) || 0, semanas: semPol, alvo, tipo: tipoPol, degraus, folga, historico, hoje }) : null
     const novo =
       modo === 'prog'
         ? progressaoAutomatica(meso, { pct: pctSemana, de: +de, ate: +ate, alvo, pausas })
         : modo === 'red'
           ? reduzirVolume(meso, { pct: Number(reducao) || 0, de: +de, ate: +ate, retorno: +retorno, alvo })
-          : polimento(meso, { pct: Number(reducaoPol) || 0, semanas: semPol, alvo, tipo: tipoPol })
+          : pol?.meso ?? meso
     const depois = resumo(novo)
-    return { antes: resumo(meso), depois, novo, igual: JSON.stringify(novo) === JSON.stringify(meso), analise: analisarProgressao(depois.map((x) => x.mov)) }
-  }, [meso, modo, pctSemana, reducao, reducaoPol, pausas, semPol, tipoPol, de, ate, retorno, onde, treino, slotId, proposta])
+    return { antes: resumo(meso), depois, novo, pol: pol?.linhas ?? [], igual: JSON.stringify(novo) === JSON.stringify(meso), analise: analisarProgressao(depois.map((x) => x.mov)) }
+  }, [meso, modo, pctSemana, reducao, reducaoPol, pausas, semPol, tipoPol, de, ate, retorno, onde, treino, slotId, proposta, degraus, folga, historico, historicoPronto, hoje])
 
   // Chips de semana (como o seletor de séries do drop set): um clique liga/desliga.
   const alternar = (lista: number[], w: number) => (lista.includes(w) ? lista.filter((x) => x !== w) : [...lista, w].sort((a, b) => a - b))
@@ -173,11 +202,28 @@ function AjustarVolume({ meso, onAtualizar, proposta }: { meso: Meso; onAtualiza
               <span className="text-xs text-slate-500">{TIPOS_POL[tipoPol][1]}</span>
             </label>
             <CampoNumero rotulo="% de redução na última semana" min={0} max={90} valor={+reducaoPol || 0} onConfirmar={(n) => setReducaoPol(String(n))} />
+            <label className={`${rot} col-span-2`}>
+              Esforço (folga orientada pelo coach)
+              <select value={folga} onChange={(e) => setFolga(Number(e.target.value))} className={sel}>
+                <option value={0}>Sem orientação extra</option>
+                {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>Encerrar com cerca de {n} {n === 1 ? 'repetição em reserva' : 'repetições em reserva'}</option>)}
+              </select>
+              <span className="text-xs">É uma orientação, não uma medição. Com folga ou carga menor, os exercícios elegíveis ficam sem dropset e rest-pause.</span>
+            </label>
+            <label className={`${rot} col-span-2`}>
+              Carga sugerida
+              <select value={degraus} onChange={(e) => setDegraus(Number(e.target.value) as 0 | 1 | 2)} className={sel}>
+                <option value={0}>Manter a carga de referência</option>
+                <option value={1}>Descer 1 degrau</option>
+                <option value={2}>Descer 2 degraus</option>
+              </select>
+              <span className="text-xs">Não aumenta reps para compensar a carga menor. A carga menor é uma sugestão, se houver um degrau válido.</span>
+            </label>
             <div className={`${rot} col-span-2`}>
               Semanas de polimento
               {chipsSemana(Array.from({ length: meso.semanas - 1 }, (_, i) => i + 2), semPol, (w) => setSemPol(alternar(semPol, w)))}
               <span className="text-xs text-slate-500">
-                O volume cai em relação à semana anterior ao polimento. As cargas continuam as mesmas.
+                O polimento corta séries primeiro e depois ajusta as reps, sem mudar a progressão normal.
                 {tipoPol !== 'degrau' && semPol.length < 2 && ' Marque 2 ou mais semanas seguidas para ver a diferença entre os tipos.'}
               </span>
             </div>
@@ -227,6 +273,17 @@ function AjustarVolume({ meso, onAtualizar, proposta }: { meso: Meso; onAtualiza
         )}
       </div>
       <p className="mt-3 text-xs text-slate-400">Isometria progride em segundos, até 60 s por série e 6 séries. O gráfico de movimentos inclui apenas exercícios com repetições.</p>
+      {modo === 'pol' && !historicoPronto && <p className="mt-3 text-sm text-amber-200">Conecte-se e aguarde os registros para proteger treinos já iniciados.</p>}
+      {modo === 'pol' && previa.pol.length > 0 && (
+        <ul className="mt-3 space-y-2 text-sm">
+          {previa.pol.map(p => <li key={p.semana}>
+            <strong>S{p.semana}:</strong> {p.plano} → {p.aplicado} séries no alvo · semana estimada {fmtMin(p.tempoAntes)} → {fmtMin(p.tempoDepois)}.
+            {' '}{p.metaKg == null ? 'Base: plano, sem histórico completo comparável em kg.' : `Base: ${p.base.map(w => `S${w}`).join(', ')} (registros completos). Meta ≈ ${fmt(p.metaKg)} kg; estimativa ≈ ${fmt(p.previstoKg!)} kg após o degrau (estimativa pela média e pelo tipo de aparelho), em ${p.medidos} exercício(s) com histórico em kg; os demais seguem a base do plano.`}
+            {p.semIntensificadores > 0 && ` ${p.semIntensificadores} exercício(s) sem dropset/rest-pause nesta sessão.`}
+            {p.ignorados > 0 && ` ${p.ignorados} item(ns) intacto(s), fora do polimento: histórico, sessão editada ou método não compatível.`}
+          </li>)}
+        </ul>
+      )}
       <GraficoVolume antes={previa.antes.map((x) => x.mov)} depois={previa.depois.map((x) => x.mov)} analise={previa.analise} />
       <table className="mt-3 w-full text-sm">
         <thead>

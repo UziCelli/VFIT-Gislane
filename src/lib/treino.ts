@@ -1,5 +1,7 @@
 // Ajudas da tela do aluno. Funções puras.
 import { arredondarKg, arredondarNoAparelho, cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, passoDoAparelho, passoPorLado, prescreverSessao, REPS_MAX_ORIGEM, repsEfetivas, type Aparelho, type Meso, type ModeloRm, type Registros } from '../engine'
+import { cargaPolimento } from '../engine/degrauPolimento'
+import { corpoEhCarga } from './pesoCorporal'
 import { diaSP } from './acesso'
 import { normalizar } from './iaTreino'
 import { doisLados, lerCelula } from './lados'
@@ -75,7 +77,7 @@ export function cargaAnterior(
     const comCarga = (e: (typeof exs)[number]) => {
       const cs = reg[e.slot.slotId]
       const ls = f.lados?.[chave]?.[e.slot.slotId]
-      return mesmo(e) && !!cs?.some((c, i) => c != null && (!dois || ls?.[i] != null))
+      return e.polimento == null && mesmo(e) && !!cs?.some((c, i) => c != null && (!dois || ls?.[i] != null))
     }
     const e = (t === treino ? [exs[pos - 1], ...exs] : exs).find((x) => x && comCarga(x))
     if (!e) return null
@@ -96,7 +98,7 @@ export function cargaAnterior(
     // (10 | 8 vira, por exemplo, 11 | 9), cada lado no degrau por lado (passoPorLado).
     let estimada = false
     const dirs = cels ? cels.map((c) => c.dir) : null // cópia: abaixo pode ser ajustada
-    if (ajusta && !corpo && !iso && !emNivel) {
+    if (ajusta && hoje.polimento == null && !corpo && !iso && !emNivel) {
       const feitas = repsEfetivas(e.reps, (doAnterior ? f.reps : repsFeitas)?.[chave]?.[e.slot.slotId])
       const fino = dois ? 0.001 : passo // 2 lados: conta sem arredondar; arredonda cada lado no fim
       // 2 lados: cópias de esquerdo e direito; a digitação é corrigida em CADA lado (600 num braço só não mexe no outro).
@@ -148,6 +150,19 @@ export function cargaAnterior(
         const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k, fino) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k], fino) : null)
         if (kg != null && gravar(k, kg)) estimada = true
       })
+    }
+    if (hoje.polimento && !corpo && !corpoEhCarga(alvo.nome) && !iso && !emNivel) {
+      const ajustar = (xs: (number | null | undefined)[]) => {
+        for (let k = 0; k < Math.min(e.n, hoje.n); k++) {
+          const v = xs[k]
+          if (v == null || (dois && (cels?.[k].esq == null || cels[k].dir == null))) continue
+          const novo = cargaPolimento(v, alvo.nome, hoje.polimento!, dois, opcoes?.aparelho)
+          if (novo !== v) estimada = true
+          xs[k] = novo
+        }
+      }
+      ajustar(extra)
+      if (dirs) ajustar(dirs)
     }
     // `dir`: lado direito (só em 2 lados); `series`/`drops` ficam com o esquerdo.
     return {

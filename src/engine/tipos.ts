@@ -51,7 +51,10 @@ export interface SessaoEditada {
   metodos: AplicacaoMetodo[]
 }
 
+export type PolimentoExercicio = { nome: string; reps: number[]; degraus: 0 | 1 | 2; folga?: number }
 export interface Meso {
+  // Sobreposição por semana-treino e slot. A progressão normal fica intacta.
+  polimentos?: Record<string, Record<string, PolimentoExercicio>>
   prescricoesRegistradas?: Record<string, { versao: 1; sessao: Sessao; metodos: AplicacaoMetodo[]; referenciaHistorica?: boolean } | null>
   prescricoesAnteriores?: Record<string, { versao: 1; sessao: Sessao; metodos: AplicacaoMetodo[] }[]>
   historicoIncerto?: string[]
@@ -94,6 +97,8 @@ export type Cargas = Record<string /* slotId */, (number | null)[]> // índice =
 export type Registros = Record<string /* `${semana}-${treino}` */, Cargas>
 
 export interface ExercicioPrescrito {
+  polimento?: PolimentoExercicio['degraus']
+  folgaPolimento?: number
   pos: number
   slot: Slot
   n: number // séries da progressão

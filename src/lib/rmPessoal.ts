@@ -21,7 +21,7 @@ function pontosDe(f: Fonte, deslocamento: number, antes: { semana: number; trein
     for (const e of prescreverSessao(f.meso, w, t)?.exercicios ?? []) {
       const dois = doisLados(e.slot)
       const iso = isometrico(e.slot)
-      if (iso || corpoEhCarga(e.slot.nome) || (f.pcs?.[chave]?.[e.slot.slotId] ?? 0) > 0) continue
+      if (e.polimento != null || iso || corpoEhCarga(e.slot.nome) || (f.pcs?.[chave]?.[e.slot.slotId] ?? 0) > 0) continue
       const cargas = reg[e.slot.slotId]
       if (!cargas) continue
       const feitas = repsEfetivas(e.reps, f.reps?.[chave]?.[e.slot.slotId])

@@ -7,7 +7,6 @@ import {
   migrarProgressao,
   METODOS,
   padraoMetodo,
-  polimento,
   progressaoAutomatica,
   reduzirVolume,
   salvarLinha,
@@ -37,6 +36,7 @@ export function limitarPlanejamento(meso: Meso): Meso {
     ...meso,
     metodos: meso.metodos.filter((m) => m.semana <= meso.semanas && m.treino <= meso.frequencia),
     ...(meso.trocas && { trocas: Object.fromEntries(Object.entries(meso.trocas).filter(([k]) => dentro(k))) }),
+    ...(meso.polimentos && { polimentos: Object.fromEntries(Object.entries(meso.polimentos).filter(([k]) => dentro(k))) }),
     ...(meso.adicoes && { adicoes: Object.fromEntries(Object.entries(meso.adicoes).filter(([k]) => dentro(k))) }),
   }
 }
@@ -342,20 +342,22 @@ export function aplicarAcoes(
     }
 
     if (a.tipo === 'volume') {
+      if (a.modo === 'polimento') {
+        bloqueios.push('Polimento: use Progressão → Ajustar volume para conferir o histórico e proteger os treinos registrados.')
+        continue
+      }
       const alvo: AlvoVolume = slot ? { tipo: 'exercicio', slotId: slot.slotId } : t != null ? { tipo: 'treino', treino: t } : { tipo: 'todos' }
       const ate = Math.min(a.ate ?? m.semanas, m.semanas)
-      if (a.de > m.semanas || (a.modo === 'polimento' && a.de < 2 && ate < 2)) {
-        bloqueios.push(`Volume: semana fora do meso (ele tem ${m.semanas} semanas${a.modo === 'polimento' ? '; o polimento começa na semana 2' : ''}).`)
+      if (a.de > m.semanas) {
+        bloqueios.push(`Volume: semana fora do meso (ele tem ${m.semanas} semanas).`)
         continue
       }
       const novo =
         a.modo === 'progredir'
           ? progressaoAutomatica(m, { pct: a.pct ?? m.progressaoPct ?? 5, de: a.de, ate, alvo })
-          : a.modo === 'reduzir'
-            ? reduzirVolume(m, { pct: a.pct ?? 0, de: a.de, ate, retorno: a.retorno, alvo })
-            : polimento(m, { pct: a.pct ?? 0, semanas: todas.slice(a.de - 1, ate), alvo })
+          : reduzirVolume(m, { pct: a.pct ?? 0, de: a.de, ate, retorno: a.retorno, alvo })
       m = { ...m, progressao: novo.progressao, progressaoExercicio: novo.progressaoExercicio }
-      const rotulo = a.modo === 'progredir' ? 'progressão' : a.modo === 'reduzir' ? 'redução' : 'polimento'
+      const rotulo = a.modo === 'progredir' ? 'progressão' : 'redução'
       aplicados.push(`${nomeAlvo || 'Todos'}: ${rotulo}`)
       continue
     }

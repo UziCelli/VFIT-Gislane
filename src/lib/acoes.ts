@@ -200,7 +200,7 @@ export async function salvarProximoMeso(origemId: string, alunoId: string, nome:
     const original = docParaMeso(fonte.data() as MesoDoc)
     const depois = somarDias(fimISO(original), 1)
     const hoje = hojeMaisDias(0)
-    const meso = { ...original, inicio: depois > hoje ? depois : hoje }
+    const meso = { ...original, polimentos: {}, inicio: depois > hoje ? depois : hoje }
     tx.set(destino, { nome, ...mesoParaDoc(meso), alunoId, criadoEm: serverTimestamp(), atualizadoEm: serverTimestamp() })
   })
   return destino.id

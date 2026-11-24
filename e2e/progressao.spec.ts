@@ -72,6 +72,8 @@ test('pausar a progressão e polimento: seletor de semanas', async ({ page }) =>
   await page.getByLabel('Modo').selectOption('pol')
   await expect(page.getByRole('button', { name: 'S4', exact: true })).toHaveAttribute('aria-pressed', 'true')
   await expect(linhaSem(4).locator('td').nth(1)).toHaveText('36')
+  await expect(page.getByText(/6 → 4 séries no alvo/)).toBeVisible()
+  await expect(page.getByText(/Base: plano, sem histórico completo comparável em kg/)).toBeVisible()
   await page.getByRole('button', { name: 'Aplicar alterações' }).click()
   await expect(page.getByRole('button', { name: 'Aplicar alterações' })).toBeDisabled()
 })

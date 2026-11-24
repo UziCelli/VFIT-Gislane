@@ -21,6 +21,19 @@ Propósito: mudanças pequenas, legíveis e compatíveis com o treino offline. E
 - Preserve acessibilidade, foco, rótulos, áreas de toque e telas estreitas; animação não pode perder carga, posição ou cronômetro. Consulte os pontos sensíveis específicos antes de alterar UI compartilhada.
 - Hooks sem efeitos durante renderização; efeitos precisam limpar recursos quando aplicável.
 
+## Hierarquia visual e UX (toda mudança que aparece na tela)
+
+- **Uma coisa principal por tela/card.** Ordem de leitura: o quê (título curto) → por quê (1 linha) → o que fazer/muda. O mais importante é o maior, mais forte e mais alto.
+- **Poucas palavras.** Título de 2–4 palavras; frases de até ~12 palavras; listas com " · ". Linguagem do aluno, sem jargão.
+- **Escala fixa:** título `text-base`/`text-lg` bold; texto `text-sm`; apoio `text-xs text-slate-400`. Sem tamanhos novos sem motivo.
+- **Cor tem significado e é consistente:** a mesma cor para o mesmo conceito no app inteiro; não reutilize cor de método para outra coisa; texto nunca só por cor (ícone ou palavra junto); contraste legível no fundo escuro.
+- **Aviso no nível certo:** o que vale para a semana ou o dia vai uma vez no topo; no item, só o específico dele. Não repita o mesmo aviso em cada card.
+- **Destaque é raro:** borda/fundo colorido só para o que muda a ação do usuário; o resto fica neutro.
+- **Espaço agrupa:** itens relacionados juntos, blocos separados por espaço (`gap`/`mb` da escala vizinha), não por linhas extras.
+- **Toque e leitura:** alvo ≥ 44 px (`min-h-11`), funciona em 360 px de largura, uma mão, com pressa e suado; estado vazio, carregando e erro sempre ditos.
+- **Feedback e reversão:** toda ação responde na hora; ação destrutiva pede confirmação ou permite desfazer.
+- **Siga o padrão vizinho** (componentes, ícones, espaçamento) antes de criar um novo; mudança visual relevante pede print/conferência em tela estreita.
+
 ## Comentários, documentação e testes
 
 - Comente decisões, fórmulas e restrições; evite narrar código óbvio. Documente contrato alterado na fonte principal, sem copiar histórico.

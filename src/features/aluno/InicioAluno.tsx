@@ -10,7 +10,8 @@ import { db } from '../../lib/firebase'
 import { TEXTO_SEM_INTERNET, useDoc, useHoje, useLista, useSemInternet } from '../../lib/hooks'
 import { dataBR } from '../../lib/avaliacao'
 import { fmtMin } from '../../lib/tempo'
-import { IcCartao, IcCheck, IcFogo, IcGrafico, IcLivro, IcPrancheta, IcRelogio, IcSeta } from '../../icones'
+import { IcCartao, IcCheck, IcFogo, IcGrafico, IcLivro, IcPrancheta, IcQueda, IcRelogio, IcSeta } from '../../icones'
+import { escopoPolimento, semanaDePolimento } from '../../lib/polimentoAluno'
 import { ir } from '../../rota'
 import { Avatar } from '../../avatar'
 import { Chip, IconeQuadrado, Quadro } from '../../vidro'
@@ -95,7 +96,10 @@ function Treinos({ mesoId, meso, registros, hoje }: { mesoId: string; meso: Meso
   const dataTreino = 'treino' in h ? h.dataTreino : ''
   const ehHoje = !!dataTreino && dataTreino <= hojeISO
   const treinoHoje = ehHoje ? treinoProx : null // só vira "hoje" no dia dele
-  const sessao = treinoProx ? prescreverSessao(comVolta(meso, registros, hoje), h.semana, treinoProx) : null
+  const mesoHoje = comVolta(meso, registros, hoje)
+  const sessao = treinoProx ? prescreverSessao(mesoHoje, h.semana, treinoProx) : null
+  const semanaPol = semanaDePolimento(mesoHoje, h.semana)
+  const diaPol = escopoPolimento(sessao) === 'dia'
   const abrir = () => ir(`/treino/${mesoId}/${h.semana}/${treinoProx}`) // só abre a tela: o cronômetro liga no "Iniciar treino"
 
   // Sua semana: 7 dias do calendário (com "dias" no meso) ou só os treinos, sem datas.
@@ -120,6 +124,11 @@ function Treinos({ mesoId, meso, registros, hoje }: { mesoId: string; meso: Meso
               <Chip cor="bg-white/15 text-white">{ehHoje ? 'Hoje' : `Próximo · ${quando(dataTreino, hojeISO)}`}</Chip>
               <span className="text-xs font-semibold text-white/70">Semana {h.semana} de {meso.semanas}</span>
             </div>
+            {diaPol && !('feito' in h && h.feito) && (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-teal-300/20 px-3 py-1 text-sm font-semibold text-teal-50 ring-1 ring-teal-200/40">
+                <IcQueda className="size-4" /> Polimento · treino mais leve
+              </p>
+            )}
             <h2 className="mt-3 text-[34px] leading-none text-white">{'feito' in h && h.feito ? <>Treino de hoje concluído <IcCheck className="inline size-6 align-[-3px]" /></> : `Treino ${treinoProx}`}</h2>
             <p className="mt-2 flex items-center gap-3 text-sm text-white/80">
               <span>{sessao.exercicios.length} exercícios</span>
@@ -146,7 +155,10 @@ function Treinos({ mesoId, meso, registros, hoje }: { mesoId: string; meso: Meso
 
       <Quadro>
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-base">Sua semana</h3>
+          <div>
+            <h3 className="text-base">Sua semana</h3>
+            {semanaPol && <p className="flex items-center gap-1 text-xs font-semibold text-teal-300"><IcQueda className="size-3.5" /> Semana de polimento: mais leve de propósito</p>}
+          </div>
           <span className="flex items-center gap-1 text-sm font-semibold text-emerald-400">
             <IcFogo className="size-4" /> {dias.filter((d) => d.estado === 'feito').length} de {total} feitos
           </span>

@@ -13,20 +13,26 @@ export const useVoz = () => useContext(VozTreino)
 export const primeiroNome = (nome?: string) => nome?.trim().split(/\s+/)[0] ?? ''
 
 export function textosVoz({ coach, nome }: Voz) {
-  const n = primeiroNome(nome) || 'O aluno'
+  const n = primeiroNome(nome) || 'o aluno' // no meio da frase
+  const N = n[0].toUpperCase() + n.slice(1) // no começo da frase
   return {
     // Pergunta de repetições que sobraram (RIR)
-    rirPergunta: coach ? `${n} ainda faria quantas?` : 'Ainda faria quantas?',
+    rirPergunta: coach ? `${N} ainda faria quantas?` : 'Ainda faria quantas?',
     rirRotulo: coach ? `Quantas repetições ${n} ainda faria?` : 'Quantas repetições ainda faria?',
     // Relato de dor
-    dorBotao: coach ? `${n} sentiu dor` : 'Senti dor',
-    dorOrientacao: (texto: string) => (coach ? `Oriente ${n}: ${texto}` : texto),
+    dorBotao: coach ? `${N} sentiu dor` : 'Senti dor',
+    dorOrientacao: (nivel: 'seguir' | 'reduzir' | 'parar', texto: string) => (coach ? {
+      parar: `${N} deve parar esse exercício hoje.`,
+      reduzir: `Reduza a carga, a amplitude ou a velocidade para ${n}.`,
+      seguir: `${N} pode seguir com atenção. Se aumentar, reduza ou pare.`,
+    }[nivel] : texto),
+    adaptado: coach ? `O treino de ${n} foi adaptado para progredir dentro do tempo disponível.` : 'Seu coach adaptou seu treino para você progredir dentro do seu tempo.',
     dorQuemVe: coach ? `O relato fica no histórico de dor de ${n}.` : 'Seu coach vai ver o relato no app.',
     dorErro: coach ? 'Não conseguimos enviar o relato. Confira a internet e registre de novo.' : 'Não conseguimos enviar o relato. Fale diretamente com seu coach.',
     // Físio
     fisioPausado: coach ? `Físio pausado — ${n} relatou um sinal de alerta` : 'Físio pausado — fale com seu coach',
     recado: coach ? 'Seu recado:' : 'Seu coach:',
-    sinalBotao: coach ? `${n} está com um desses sinais de alerta` : 'Estou com um desses sinais de alerta',
+    sinalBotao: coach ? `${N} está com um desses sinais de alerta` : 'Estou com um desses sinais de alerta',
     sinalParar: coach
       ? `Interrompa este exercício e oriente ${n} a procurar médico ou fisioterapeuta. O protocolo desta orientação foi ocultado.`
       : 'Pare este exercício e procure médico ou fisioterapeuta. Não espere uma resposta do coach para buscar atendimento. O protocolo desta orientação foi ocultado.',
@@ -38,12 +44,12 @@ export function textosVoz({ coach, nome }: Voz) {
     // Peso do corpo
     pesoPergunta: coach ? `Qual é o peso de ${n} (kg)?` : 'Qual é o seu peso (kg)?',
     // Anamnese (o coach nunca fica travado: só fica sabendo)
-    anamnesePendente: `${n} ainda não respondeu a anamnese.`,
+    anamnesePendente: `${N} ainda não respondeu a anamnese.`,
     // Check-in do fim do treino
     checkinTitulo: coach ? `Como ${n} está?` : 'Como você está?',
     checkinSub: coach ? `Pergunte a ${n} e marque as respostas.` : 'Vai só para o seu coach.',
     checkinRecebido: coach ? 'Check-in registrado.' : 'Recebido pelo seu coach.',
-    checkinJa: coach ? `${n} já respondeu este treino.` : 'Você já respondeu este treino.',
+    checkinJa: coach ? `${N} já respondeu este treino.` : 'Você já respondeu este treino.',
     checkinOffline: coach ? 'Salvo no aparelho; envia quando houver internet.' : 'Salvo no aparelho; vai para o seu coach quando houver internet.',
     checkinPergunta: (id: string, rotulo: string) => (coach ? ({
       sono: `Como ${n} dormiu esta noite?`,

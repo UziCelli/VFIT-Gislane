@@ -42,7 +42,7 @@ export default function RelatarDor({ uid, exercicio = '', exercicios, momentoIni
           <div className="flex flex-wrap gap-2">{exercicios.map((x) => <button key={x} type="button" aria-pressed={f.exercicio === x} className={chip(f.exercicio === x)} onClick={() => set({ exercicio: x })}>{x}</button>)}</div>
         </fieldset> : <p className="mb-3 text-sm text-slate-400">{exercicio}</p>}
         {dica ? <div className="space-y-3">
-          <p className="text-lg font-semibold">{t.dorOrientacao(dica.texto)}</p>
+          <p className="text-lg font-semibold">{t.dorOrientacao(dica.nivel, dica.texto)}</p>
           <p className="text-sm text-slate-300">{t.dorQuemVe}</p>
           <div role="alert" className="rounded-xl border border-red-600 bg-red-950/60 p-3 text-sm font-semibold text-red-100">{ALERTA_DOR}</div>
           {erro && <Aviso>{t.dorErro}</Aviso>}

@@ -10,7 +10,7 @@ Fonte única do assunto. Código: `src/engine/aparelho.ts` (contas) e `src/data/
 ## Modelo
 
 - `nome`, `local` (academia/condomínio), `tipo` (halter, barra, máquina, articulada, polia, 2 polias).
-- `unidade: 'kg'`: `incremento` (de quanto em quanto sobe), `minimo`/`maximo` opcionais.
+- `unidade: 'kg'`: `incremento` (de quanto em quanto sobe), `minimo`/`maximo` opcionais, `complementos` (plaquinhas que somam por cima do degrau, cada uma 1 vez; ex.: Life Fitness `[0.625, 0.625]`: 11,25 → 11,875 → 12,5 → 13,75).
 - `unidade: 'nivel'`: `niveis` (1..N) e `kgNivel` (kg **estimado** de cada nível; `null` = não sei).
 - `fabricante`/`modelo` opcionais (ex.: Movement W4, Life Fitness G7).
 - Pilha com placa do topo mais leve: `kgDaPilha(topo, placa, niveis)` gera o kg estimado de cada nível.
@@ -18,8 +18,10 @@ Fonte única do assunto. Código: `src/engine/aparelho.ts` (contas) e `src/data/
 
 ## Regras das contas
 
+- Arredondamento: sempre para o valor que existe mais perto; empate sobe (igual ao arredondamento padrão por tipo). Aparelho do catálogo vence o padrão por tipo.
+
 - Valor anotado: aparelho em kg = número da etiqueta (como hoje); aparelho em nível = número do nível.
-- Sugestão (`sugestaoNoAparelho`): kg do motor vira valor que existe no aparelho. Nível = o de kg estimado mais perto; empate fica no mais leve. Sem kg estimado: sem sugestão (o coach decide).
+- Sugestão (`sugestaoNoAparelho`): kg do motor vira valor que existe no aparelho. Nível = o de kg estimado mais perto. Sem kg estimado: sem sugestão (o coach decide).
 - Volume e carga média (`volumeNoAparelho`): o aluno anota só o nível; o nível vira kg estimado. Série sem kg estimado fica fora e é contada à parte (`semKg`).
 - Nível sem kg anotado entre dois anotados: linha reta entre eles. Fora deles: não estima.
 

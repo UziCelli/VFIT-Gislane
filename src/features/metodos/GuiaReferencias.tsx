@@ -168,6 +168,26 @@ export default function GuiaReferencias() {
         </Cartao>
 
         <Cartao>
+          <Titulo>Leitura do período: carga, dor e medida</Titulo>
+          <p className="mb-2">
+            Na avaliação, o coach vê por segmento a carga, a frequência de treino, os relatos de dor e a medida entre duas avaliações, com uma frase de leitura. <strong>São inferências interpretativas sobre o
+            histórico, não causa e efeito</strong>: não há estudo que ligue, na mesma pessoa, carga ou dor à mudança de perímetro, e força e tamanho do músculo quase não andam juntos no indivíduo. Tórax, cintura e
+            abdômen usam limiar de 1 cm (os demais, 0,5 cm), porque oscilam mais por gordura e líquido.
+          </p>
+          <h3 className="mb-1 text-xs font-semibold uppercase text-slate-400">Fontes</h3>
+          <ul className="list-disc space-y-1 pl-5">
+            <Fonte>
+              Lees MJ, Mcleod JC, Morton RW et al. Resistance training load does not determine resistance training-induced hypertrophy across upper and lower limbs in healthy young males. J Physiol. 2025.{' '}
+              <a className={link} href="https://doi.org/10.1113/JP289684" target="_blank" rel="noreferrer">doi:10.1113/JP289684</a>
+            </Fonte>
+            <Fonte>
+              Ulijaszek SJ, Kerr DA. Anthropometric measurement error and the assessment of nutritional status. Br J Nutr. 1999;82(3):165-177.{' '}
+              <a className={link} href="https://doi.org/10.1017/s0007114599001348" target="_blank" rel="noreferrer">doi:10.1017/s0007114599001348</a>
+            </Fonte>
+          </ul>
+        </Cartao>
+
+        <Cartao>
           <Titulo>Peso do corpo nos exercícios</Titulo>
           <p className="mb-2">
             Em exercícios em que o corpo é a carga, o app soma ao que o aluno digita uma fração do peso corporal (por exemplo, 64% na flexão de braços). Os valores vêm da massa dos segmentos corporais e de estudos de força em flexões.

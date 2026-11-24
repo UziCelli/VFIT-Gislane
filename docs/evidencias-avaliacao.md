@@ -63,6 +63,9 @@ Cálculo: `src/lib/esqueletoTreino.ts` (cartão na anamnese do coach).
 Entra como inferência interpretativa. Tórax, cintura e abdômen oscilam mais (gordura e líquido): limiar maior e leitura
 mais cautelosa.
 
+Cálculo: `src/lib/oscilacoes.ts` (cartão "Leitura do período", só o coach vê, pois usa relato de dor). Limiar do
+tronco (tórax, cintura, abdômen) de 1 cm também no relatório (`LIMIAR_TRONCO_CM`).
+
 ## 5. Áreas musculares
 
 - Coxa: Housh et al., 1995 (MRI; erro de 10 a 25 cm² na área total); Knapik et al., 1996 (MRI, r = 0,96, mas

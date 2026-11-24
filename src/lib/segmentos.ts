@@ -2,7 +2,7 @@
 // Só descreve; nunca diz "piorou". Funções puras.
 import catalogo from '../data/exercicios.json'
 import { diaSP } from './acesso'
-import { DESCE, fmtDelta, fmtNum, lerSegmento, PAR_DOBRA, PERIMETROS, REGIAO, type Avaliacao, type Leitura, type Tom } from './avaliacao'
+import { DESCE, fmtDelta, fmtNum, lerSegmento, LIMIAR_TRONCO_CM, PAR_DOBRA, TRONCO_PERIM, PERIMETROS, REGIAO, type Avaliacao, type Leitura, type Tom } from './avaliacao'
 import { norm } from './busca'
 import type { Ocorrencia } from './evolucao'
 
@@ -113,7 +113,7 @@ export function medidaSegmento(seg: (typeof SEGMENTOS)[number], atual: Avaliacao
   const lip = REGIAO[seg.perimetros[0]].lipedema
   const comLip = !!lip && !!atual.lipedema?.includes(lip)
   const desce = comLip || seg.perimetros.some((p) => DESCE.has(p))
-  return { rotulo: 'Medida', delta: `${fmtDelta(delta)} cm`, leitura: lerSegmento(desce ? 'descer' : 'subir', delta, dDobra, comLip) }
+  return { rotulo: 'Medida', cm: delta, delta: `${fmtDelta(delta)} cm`, leitura: lerSegmento(desce ? 'descer' : 'subir', delta, dDobra, comLip, seg.perimetros.some((p) => TRONCO_PERIM.has(p)) ? LIMIAR_TRONCO_CM : undefined) }
 }
 
 // "Leg Press 45: 200 → 230 kg (+15%)" do melhor exercício.

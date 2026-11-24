@@ -17,6 +17,8 @@ import { BotaoVoltar } from '../../voltar'
 import { useDadosAluno } from '../relatorio/useDadosAluno'
 import Avaliacao, { BotaoPdfAvaliacao } from './Avaliacao'
 import { useAvaliacoesDoAluno } from './AvaliacoesCoach'
+import OscilacoesCoach from './OscilacoesCoach'
+import { useDores } from '../fisio/useDores'
 
 const botaoLink = 'grid min-h-11 flex-1 place-items-center rounded-lg bg-slate-800 px-3 py-2 text-center text-sm font-semibold text-slate-100 hover:bg-slate-700'
 type Faixa = readonly [number, number]
@@ -73,6 +75,7 @@ export default function AvaliacaoCoach({ uid, id: idRota }: { uid: string; id: s
 
 function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: string; aluno: Usuario; ficha: Av | null; outras: Av[]; dados: ReturnType<typeof useDadosAluno> }) {
   const cargas = useMemo(() => historicoExercicios(dados.mesos, dados.registros), [dados.mesos, dados.registros])
+  const dores = useDores(uid)
   const base = ficha ?? outras[0] // nova: sexo, idade e altura vêm da avaliação mais recente
   const [v, setV] = useState<Textos>(() => ({
     data: ficha?.data ?? hoje(),
@@ -201,6 +204,7 @@ function Editor({ uid, id, aluno, ficha, outras, dados }: { uid: string; id: str
       </section>
 
       {r ? <Avaliacao r={r} aluno={aluno.nome} comentario={v.comentario} /> : <p className="text-sm text-slate-400">Preencha a data e o peso (dentro das faixas) para ver o resultado.</p>}
+      {r && <OscilacoesCoach atual={r.atual} ant={outras.filter((a) => a.id !== id && a.data < r.atual.data).sort((a, b) => a.data.localeCompare(b.data)).at(-1) ?? null} cargas={cargas} dores={dores.todos} />}
 
       <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900 p-4">
         <label className="block text-sm font-semibold" htmlFor="recado-avaliacao">Seu recado para o aluno</label>

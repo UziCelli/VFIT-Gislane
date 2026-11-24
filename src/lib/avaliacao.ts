@@ -237,12 +237,15 @@ export const REGIAO: Record<PerimetroId, { grupo: 'Tronco' | 'Braços' | 'Pernas
   panturrilhaD: { grupo: 'Pernas', lipedema: 'pernas' }, panturrilhaE: { grupo: 'Pernas', lipedema: 'pernas' },
 }
 export const DESCE = new Set<PerimetroId>(['cintura', 'abdomen']) // esperado cair; os demais, subir
+export const TRONCO_PERIM = new Set<PerimetroId>(['torax', 'cintura', 'abdomen'])
+export const LIMIAR_TRONCO_CM = 1
 
 // Medida x dobra do mesmo segmento. `dPerim` em cm, `dDobra` em mm (null = sem dobra para confirmar).
 // Esperado "subir": medida maior sem dobra maior = massa; com dobra maior = gordura. Esperado "descer" (cintura,
 // abdômen, região com lipedema): medida menor é bom; maior com dobra maior é a observar. Só descreve; nunca "piorou".
-export function lerSegmento(esperado: 'subir' | 'descer', dPerim: number, dDobra: number | null, lipedema: boolean): Leitura {
-  if (Math.abs(dPerim) < limiarDe('cm')) return { tom: 'neutro', texto: 'estável' }
+// `limiarCm`: tórax, cintura e abdômen usam 1 cm (LIMIAR_TRONCO_CM): oscilam mais por gordura e líquido.
+export function lerSegmento(esperado: 'subir' | 'descer', dPerim: number, dDobra: number | null, lipedema: boolean, limiarCm = limiarDe('cm')): Leitura {
+  if (Math.abs(dPerim) < limiarCm) return { tom: 'neutro', texto: 'estável' }
   const subiu = dPerim > 0
   const dobraSobe = dDobra != null && dDobra >= limiarDe('mm')
   const dobraCai = dDobra != null && dDobra <= -limiarDe('mm')
@@ -342,7 +345,7 @@ export function relatorioAvaliacao(avs: Avaliacao[], id: string, ciclo?: Ciclo |
       const dDobra = par && atual.dobras[par] != null && ant?.dobras[par] != null ? r1(atual.dobras[par]! - ant.dobras[par]!) : null
       const comLip = !!REGIAO[p.id].lipedema && lip.has(REGIAO[p.id].lipedema!)
       const esperado = comLip || DESCE.has(p.id) ? 'descer' : 'subir'
-      return linha(p.rotulo, 'cm', atual.perimetros[p.id], ant?.perimetros[p.id], { leitura: (d) => lerSegmento(esperado, d, dDobra, comLip) })
+      return linha(p.rotulo, 'cm', atual.perimetros[p.id], ant?.perimetros[p.id], { leitura: (d) => lerSegmento(esperado, d, dDobra, comLip, TRONCO_PERIM.has(p.id) ? LIMIAR_TRONCO_CM : undefined), limiar: TRONCO_PERIM.has(p.id) ? LIMIAR_TRONCO_CM : undefined })
     })
   const composicao = [
     ...linha('Peso', 'kg', atual.pesoKg, ant?.pesoKg),

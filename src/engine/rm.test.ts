@@ -80,3 +80,16 @@ describe('corrigirDigitacao', () => {
     expect(r.series).toEqual([60, 60, 60, null, 40])
   })
 })
+
+describe('passo do aparelho', () => {
+  it('passo como função do peso', () => {
+    const halter = (kg: number) => (kg <= 10 ? 1 : 2)
+    expect(arredondarKg(8.6, halter)).toBe(9)
+    expect(arredondarKg(13.1, halter)).toBe(14)
+  })
+  it('máquina de placas de 5 kg: 60 x 10 para 8 reps vira 65, não 63', () => {
+    expect(cargaEquivalente(60, 10, 8, 5)).toBe(65)
+    expect(cargaEquivalente(60, 10, 15, 5)).toBe(55)
+  })
+  it('mesmas reps: não arredonda o anotado nem com passo grande', () => expect(cargaEquivalente(62, 10, 10, 5)).toBe(62))
+})

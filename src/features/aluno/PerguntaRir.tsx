@@ -1,4 +1,5 @@
 import { registrarRir } from '../../lib/acoes'
+import { useTextosVoz } from './voz'
 
 type Rir = 0 | 1 | 2 | 3
 const OPCOES: { v: Rir; rotulo: string }[] = [
@@ -29,10 +30,11 @@ export default function PerguntaRir({
   valor: number | null
   disabled?: boolean
 }) {
+  const t = useTextosVoz() // no presencial, o coach pergunta pelo aluno
   const grava = (n: Rir | null) => registrarRir(mesoId, uid, semana, treino, slotId, coluna, n).catch(() => {}) // sem await: offline só resolve no servidor
   return (
-    <div role="group" aria-label="Quantas repetições ainda faria?" className="flex flex-wrap items-center gap-2 pl-1 pt-0.5">
-      <span className="text-xs text-slate-400">Ainda faria quantas?</span>
+    <div role="group" aria-label={t.rirRotulo} className="flex flex-wrap items-center gap-2 pl-1 pt-0.5">
+      <span className="text-xs text-slate-400">{t.rirPergunta}</span>
       {OPCOES.map(({ v, rotulo }) => (
         <button
           key={v}

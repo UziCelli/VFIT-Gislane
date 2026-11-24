@@ -1,11 +1,13 @@
-import { collection, query, where } from 'firebase/firestore'
+import { collection, doc as docRef, query, where } from 'firebase/firestore'
 import { AnimatePresence, m, useAnimationControls, useReducedMotion } from 'motion/react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { prescreverSessao, type Meso } from '../../engine'
 import { comVolta, diasDaSemana, semanaDeVolta, travado, treinoDeHoje } from '../../lib/agenda'
 import { repsAbaixo, type RegistroAlerta } from '../../lib/alertas'
 import { db } from '../../lib/firebase'
-import { TEXTO_SEM_INTERNET, useHoje, useLista, useSemInternet } from '../../lib/hooks'
+import { TEXTO_SEM_INTERNET, useDoc, useHoje, useLista, useSemInternet } from '../../lib/hooks'
+import type { Usuario } from '../../lib/acesso'
+import { useTextosVoz, VozTreino } from './voz'
 import { IcCadeado, IcCheck, IcRaio, IcRelogio } from '../../icones'
 import { ir } from '../../rota'
 import { agil, elastico, saida } from '../../movimento'
@@ -26,6 +28,7 @@ export default function Hoje({ uid, base = '', coach, abrirHoje }: { uid: string
   const { dados: mesos, carregando } = useLista<MesoSalvo>(query(collection(db, 'mesos'), where('alunoId', '==', uid)))
   const hoje = useHoje()
   const semInternet = useSemInternet()
+  const nome = useDoc<Usuario>(docRef(db, 'usuarios', uid)).dados?.nome ?? ''
   if (carregando) return <Centro>Carregando…</Centro>
 
   const atual = mesoAtual(mesos, hoje)
@@ -37,7 +40,7 @@ export default function Hoje({ uid, base = '', coach, abrirHoje }: { uid: string
       <AvisoNotificacoes />
       {estado.estado === 'antes' && <Msg>Seu próximo ciclo começa em {fmtData(meso.inicio)}.</Msg>}
       {estado.estado === 'depois' && <Msg>Mesociclo concluído — fale com seu coach.</Msg>}
-      {estado.estado === 'durante' && <Semana uid={uid} base={base} coach={coach} abrirHoje={abrirHoje} mesoId={doc.id} nome={doc.nome} meso={meso} hoje={hoje} />}
+      {estado.estado === 'durante' && <VozTreino.Provider value={{ coach: !!coach, nome }}><Semana uid={uid} base={base} coach={coach} abrirHoje={abrirHoje} mesoId={doc.id} nome={doc.nome} meso={meso} hoje={hoje} /></VozTreino.Provider>}
     </main>
   )
 }
@@ -54,6 +57,7 @@ function Semana({ uid, base, coach, abrirHoje, mesoId, nome, meso, hoje }: { uid
 
 // Aviso de reps abaixo da meta nos últimos 7 dias; "Entendi" guarda no aparelho (sem armazenamento, volta no próximo acesso).
 function AvisoReps({ meso, mesoId, registros }: { meso: Meso; mesoId: string; registros: RegistroFlag[] }) {
+  const t = useTextosVoz() // presencial: o coach vê o mesmo aviso, falando do aluno
   const a = repsAbaixo(meso, registros, new Date())
   const chave = `alerta-reps-${mesoId}-${a?.ultimoDia}`
   const [fechou, setFechou] = useState('') // chave dispensada nesta tela (vale mesmo sem localStorage)
@@ -67,8 +71,7 @@ function AvisoReps({ meso, mesoId, registros }: { meso: Meso; mesoId: string; re
   return (
     <div role="alert" className="mb-4 space-y-3 rounded-3xl border-2 border-amber-500 bg-amber-950 p-4 text-sm text-amber-100">
       <p>
-        <b>Reps abaixo da meta:</b> nos últimos 7 dias você fez menos reps que o previsto em {a.abaixo} séries (ex.: {a.exercicios[0].nome}).
-        Pode ser descanso curto, sono ou alimentação. No próximo treino, diminua um pouco o peso para completar as reps.
+        <b>Reps abaixo da meta:</b> {t.repsAbaixo(a.abaixo, a.exercicios[0].nome)}
       </p>
       <Botao tipo="vidro" onClick={entendi}>Entendi</Botao>
     </div>
@@ -205,7 +208,7 @@ function SemanaCarregada({ base, coach, abrirHoje, meso, mesoId, nome, registros
           })}
         </m.div>
       </Deslizar>
-      {!coach && <div className="mt-4"><AvisoReps meso={meso} mesoId={mesoId} registros={registros} /></div>}
+      <div className="mt-4"><AvisoReps meso={meso} mesoId={mesoId} registros={registros} /></div>
       </m.div>
     </>
   )

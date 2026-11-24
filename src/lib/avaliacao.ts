@@ -134,7 +134,7 @@ export function lerAvaliacao(id: string, d: unknown): Avaliacao | null {
 // Campos da avaliação para gravar: sem undefined e sem mapa vazio (liberado/horas entram em acoes.ts).
 export function paraDoc(f: AvaliacaoForm) {
   const mapas = Object.fromEntries(
-    (['perimetros', 'dobras', 'bio'] as const)
+    (['perimetros', 'dobras', 'bio', 'perimetros2', 'dobras2'] as const)
       .map((k) => [k, Object.fromEntries(Object.entries(f[k] ?? {}).filter(([, v]) => v != null))] as const)
       .filter(([, m]) => Object.keys(m).length > 0),
   )

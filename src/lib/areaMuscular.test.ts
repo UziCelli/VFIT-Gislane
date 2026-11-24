@@ -31,3 +31,12 @@ describe('massa muscular entre avaliações', () => {
     expect(l.delta).toBe(0)
   })
 })
+
+describe('gravação da 2ª medida e da equação', () => {
+  it('paraDoc → lerAvaliacao preserva perimetros2, dobras2 e equacao', async () => {
+    const { paraDoc, lerAvaliacao } = await import('./avaliacao')
+    const f = { alunoId: 'u', data: '2026-01-01', pesoKg: 80, perimetros: { cintura: 87 }, perimetros2: { cintura: 87.4 }, dobras: { triceps: 10 }, dobras2: { triceps: 11 }, equacao: 'dw' as const, bio: {}, comentario: '' }
+    const lido = lerAvaliacao('x', { ...paraDoc(f), liberado: false })!
+    expect(lido).toMatchObject({ perimetros2: { cintura: 87.4 }, dobras2: { triceps: 11 }, equacao: 'dw' })
+  })
+})

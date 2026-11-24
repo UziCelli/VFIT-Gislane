@@ -14,3 +14,5 @@ export { aplicarSugestao, classificarEquipamento, sugerirMetodos } from './suges
 export type { Equipamento, PropostaMetodo } from './sugestao'
 export { emGrupo, linhasDoExercicio, METODOS, removerLinha, salvarLinha, semanasTexto, seriesDoExercicio, seriesTexto, totalCerto } from './planoMetodos'
 export type { LinhaMetodo, LinhaSalva } from './planoMetodos'
+export { arredondarNoAparelho, kgAnotado, kgDoNivel, kgSentido, nivelParaKg, problemasAparelho, proximoValor, sugestaoNoAparelho } from './aparelho'
+export type { Aparelho, AparelhoKg, AparelhoNivel, RazaoPolia, TipoAparelho, Unidade } from './aparelho'

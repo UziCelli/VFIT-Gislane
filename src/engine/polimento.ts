@@ -1,3 +1,4 @@
+import { lerCelula } from './celulaLados'
 import { cargaPolimento } from './degrauPolimento'
 import { isometrico } from './isometria'
 import { metodosDaSessao, prescreverSessao } from './sessao'
@@ -106,8 +107,11 @@ export function planejarPolimento(meso: Meso, { pct, semanas, alvo, tipo, degrau
         const levesKg = leves.map((_,i) => soma(base.map((b,j) => {
           const total = amostras[j].kg[i]
           const dirigir = (v: number) => cargaPolimento(v, a.e.slot.nome, degraus, dois)
-          const esq = h.lados?.[chave(b.w,a.t)]?.[a.e.slot.slotId]?.[i]
-          return !degraus ? total : dois ? valida(esq) && total > esq ? dirigir(esq) + dirigir(total-esq) : total : dirigir(total)
+          if (!degraus) return total
+          if (!dois) return dirigir(total)
+          const { esq, dir } = lerCelula(total, h.lados?.[chave(b.w,a.t)]?.[a.e.slot.slotId]?.[i])
+          // Zero é conhecido, não é falta de dado. Formato legado não informa a divisão; não adivinhe.
+          return esq != null && dir != null ? dirigir(esq) + dirigir(dir) : total
         })) / amostras.length)
         previstoKg += soma(leves.map((r,i) => r*levesKg[i]))
       }

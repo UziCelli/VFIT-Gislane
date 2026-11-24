@@ -3,7 +3,7 @@ import { planejarPolimento, seriesPolimento } from './polimento'
 import { prescreverSessao } from './sessao'
 import { cargaPolimento } from './degrauPolimento'
 import { cargaAnterior } from '../lib/treino'
-import { docParaMeso, mesoParaDoc } from '../lib/conversores'
+import { docsParaLados, docsParaRegistros, docsParaRegistrosReps, docParaMeso, mesoParaDoc, type RegistroDoc } from '../lib/conversores'
 import { lerPrescricaoRegistrada } from '../lib/prescricaoRegistrada'
 import type { Meso } from './tipos'
 
@@ -48,6 +48,36 @@ describe('polimento com meta de volume e tempo', () => {
     expect(cargaAnterior(copia,regs,4,1,1)).toMatchObject({origem:{semana:2,treino:1},series:[50,50,50,50]})
     expect(cargaPolimento(28,'Supino Reto Halter',1,true)).toBe(26)
     expect(cargaPolimento(10,'Supino Reto Halter',1,true)).toBe(9)
+  })
+  it.each([
+    { esq: 0, total: 10, sugerido: [0, 9], previsto: 216 },
+    { esq: 10, total: 10, sugerido: [9, 0], previsto: 216 },
+    { esq: 10, total: 18, sugerido: [9, 7], previsto: 384 },
+    { esq: null, total: 10, sugerido: null, previsto: 240 },
+    { esq: 12, total: 10, sugerido: null, previsto: 240 },
+  ])('usa a mesma interpretação do registro por lado: $esq / total $total', ({ esq, total, sugerido, previsto }) => {
+    const m: Meso = { ...base, divisao: [[{ slotId: 'sup', nome: 'Supino Reto Halter', doisLados: true }]] }
+    const colunas = (v: number | null) => ({ s1: v, s2: v, s3: v, s4: v })
+    const registros: RegistroDoc[] = [{
+      semana: 2, treino: 1, realizado: true,
+      cargas: { sup: colunas(total) }, reps: { sup: colunas(10) },
+      ...(esq !== null && { lados: { sup: colunas(esq) } }),
+    }]
+    const cargas = docsParaRegistros(registros), lados = docsParaLados(registros), reps = docsParaRegistrosReps(registros)
+    const { meso, linhas } = planejarPolimento(m, {
+      pct: 40, semanas: [3], alvo: { tipo: 'todos' }, tipo: 'degrau', degraus: 1, hoje: '2026-10-15',
+      historico: { meso: m, completos: new Set(['2-1']), protegidos: new Set(['2-1']), cargas, lados, reps },
+    })
+    expect(prescreverSessao(meso, 3, 1)?.exercicios[0].reps).toEqual([8, 8, 8])
+    expect(linhas[0]).toMatchObject({ metaKg: total * 24, previstoKg: previsto })
+    const carga = cargaAnterior(meso, cargas, 3, 1, 1, undefined, lados, reps)
+    if (!sugerido) {
+      // A prévia mantém o total como estimativa conservadora, mas não inventa qual lado deve carregar o quê.
+      expect([carga?.series[0] ?? null, carga?.dir?.series[0] ?? null]).toEqual([null, null])
+    } else {
+      expect([carga?.series[0], carga?.dir?.series[0]]).toEqual(sugerido)
+      expect((sugerido[0] + sugerido[1]) * 24).toBe(previsto)
+    }
   })
   it('não usa registro parcial, nem reescreve data com treino registrado', () => {
     expect(plano(base,{parcial:true}).linhas[0]).toMatchObject({base:[],metaKg:null,previstoKg:null})

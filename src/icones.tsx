@@ -56,6 +56,7 @@ export const IcCardio = svg(<path d="M2 12h4l2.5-6 4 12 3-9 1.5 3H22" />)
 export const IcCamera = svg(<path d="M4 8h3l2-3h6l2 3h3v11H4zM12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />)
 export const IcFisio = svg(<path d="M12 21s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.8C19.5 16.4 12 21 12 21zM12 10v5M9.5 12.5h5" />)
 export const IcSubir = svg(<path d="M12 20V5m0 0-6 6m6-6 6 6" />)
+export const IcQueda = svg(<path d="m4 7 5.5 5.5 3.5-3.5L20 16m0 0h-5.5m5.5 0v-5.5" />) // polimento (treino mais leve)
 
 export const D_TROFEU = 'M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 21h8M9.5 17h5'
 export const D_SUBIR = 'M12 20V5m0 0-6 6m6-6 6 6'

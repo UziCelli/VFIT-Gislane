@@ -9,6 +9,7 @@ Instruções comuns: Codex lê CODEX.md; Claude Code lê CLAUDE.md; cada agente 
 - Busque só arquivos/trechos relacionados à tarefa. Graphify existente pode localizar relações: `graphify query "símbolo ou tema específico" --budget 1000 --depth 1`. Confirme no código; se desatualizado ou pouco útil, use `rg`. Não leia o grafo/relatório inteiro nem regenere por rotina de revisão.
 - Antes de alterar uma área, busque seu nome em [Pontos sensíveis](docs/mapa.md#pontos-sensíveis-leia-antes-de-auditar-ou-mexer); leia apenas as linhas pertinentes. Para dados, autenticação, backend ou infraestrutura, consulte [segurança](SECURITY.md).
 - Para implementar, consulte [estilo](CODE_STYLE.md); para mudanças estruturais, [arquitetura](ARCHITETURE.md).
+- **Mexeu em algo que aparece na tela (front-end, layout, design, UI ou UX)?** Siga obrigatoriamente [Hierarquia visual e UX](CODE_STYLE.md#hierarquia-visual-e-ux-toda-mudança-que-aparece-na-tela).
 
 ## Entrega e revisão
 

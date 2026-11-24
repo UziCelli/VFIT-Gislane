@@ -1,5 +1,5 @@
 // Ajudas da tela do aluno. Funções puras.
-import { cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, prescreverSessao, REPS_MAX_ORIGEM, repsEfetivas, type Meso, type ModeloRm, type Registros } from '../engine'
+import { cargaEquivalente, cargaPessoal, corrigirDigitacao, isometrico, passoDoAparelho, prescreverSessao, REPS_MAX_ORIGEM, repsEfetivas, type Meso, type ModeloRm, type Registros } from '../engine'
 import { diaSP } from './acesso'
 import { normalizar } from './iaTreino'
 import { doisLados, lerCelula } from './lados'
@@ -28,7 +28,8 @@ export type Origem = { semana: number; treino: number; anterior?: true } // ante
 // "contém" ("Supino Reto Barra" não é "Supino Reto Halter").
 // `origem` (semana e treino de onde saiu; `anterior` se do meso anterior) deixa a tela avisar de onde veio.
 // Com `repsFeitas`, a série vem corrigida de digitação óbvia (corrigirDigitacao) e ajustada às reps de hoje pela tabela de
-// RM (`estimada: true`); reps não anotadas valem as prescritas naquele dia. Passo de 0,5 kg.
+// RM (`estimada: true`); reps não anotadas valem as prescritas naquele dia. A carga estimada cai no degrau real do aparelho
+// (passoDoAparelho: halter, placa, polia...); a anotada não é arredondada.
 // Devolve `series` (S1..Sn daquele registro) e `drops` separados: o n muda entre registros. `drops[j]` segue os drops
 // de hoje: a mesma etapa da mesma série naquele registro, senão a mesma etapa de outra série (o drop mudou de série).
 // Sem `pcs`, devolve o total gravado. Com `pcs` (`${semana}-${treino}` -> { slotId: kg do corpo }),
@@ -52,6 +53,7 @@ export function cargaAnterior(
   const nomeAlvo = normalizar(alvo.nome)
   const ajusta = !!repsFeitas
   const modelo = ajusta ? opcoes?.modelos?.get(chaveModelo(alvo.nome, dois, iso)) : undefined
+  const passo = passoDoAparelho(alvo.nome)
   const tentar = (f: Fonte, w: number, t: number, doAnterior: boolean) => {
     const chave = `${w}-${t}`
     const reg = f.registros[chave]
@@ -84,7 +86,7 @@ export function cargaAnterior(
     if (ajusta && !dois && !corpo && !iso) {
       const feitas = repsEfetivas(e.reps, (doAnterior ? f.reps : repsFeitas)?.[chave]?.[e.slot.slotId])
       // 1º, digitação óbvia (600 em vez de 60) vira a carga equivalente da mediana das séries.
-      const limpa = corrigirDigitacao(extra.slice(0, e.n), feitas.slice(0, e.n))
+      const limpa = corrigirDigitacao(extra.slice(0, e.n), feitas.slice(0, e.n), passo)
       limpa.series.forEach((c, k) => (extra[k] = c))
       if (limpa.trocadas.length) estimada = true
       // 2º, reps de hoje diferentes das daquele registro: a carga vira a equivalente. Com o modelo pessoal do aluno (curva dele,
@@ -95,7 +97,7 @@ export function cargaAnterior(
         // fica como foi anotado.
         const baseValida = feitas[k] >= 1 && feitas[k] <= REPS_MAX_ORIGEM
         if (c != null && (feitas[k] === hoje.reps[k] || !baseValida)) return
-        const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k]) : null)
+        const kg = (modelo ? cargaPessoal(modelo, hoje.reps[k], k, passo) : null) ?? (c != null ? cargaEquivalente(c, feitas[k], hoje.reps[k], passo) : null)
         if (kg != null && kg !== c) {
           extra[k] = kg
           estimada = true

@@ -131,11 +131,12 @@ jobs:
        github.event.workflow_run.head_branch == 'main' &&
        github.event.workflow_run.head_repository.full_name == github.repository)
     runs-on: ubuntu-latest
-    env:
-      APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN_GISLANE }}
     steps:
+      # O segredo só entra nas etapas que precisam dele (nunca na instalação de dependências).
       - name: Aguardar configuração do App Check da Gislane
         id: config
+        env:
+          APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN_GISLANE }}
         run: |
           if [ -z "$APPCHECK_DEBUG_TOKEN" ]; then
             echo "::warning::Conector da Gislane não publicado: cadastre o segredo APPCHECK_DEBUG_TOKEN_GISLANE (docs/conector-prescricao.md)."
@@ -192,6 +193,7 @@ jobs:
       - name: Validar App Check da Gislane antes da publicação
         if: steps.config.outputs.pronto == '1'
         env:
+          APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN_GISLANE }}
           FIREBASE_PROJECT_ID: gislane-personal-trainer
           APP_REFERER: https://app.gislanepersonaltrainer.com/
         run: |
@@ -203,6 +205,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          APPCHECK_DEBUG_TOKEN: ${{ secrets.APPCHECK_DEBUG_TOKEN_GISLANE }}
           EDICAO_COMPLETA: ${{ vars.EDICAO_COMPLETA }}
           BUILD_COMMIT: ${{ github.event.workflow_run.head_sha || github.sha }}
         working-directory: conector

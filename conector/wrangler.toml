@@ -32,3 +32,34 @@ class_name = "PropostaTreino"
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["PropostaTreino"]
+
+# ---- Gislane: outro Worker com o mesmo código, só para o projeto gislane-personal-trainer ----
+# Publicado com `wrangler deploy --env gislane`. KV e Durable Objects próprios: nenhuma concessão,
+# pedido ou proposta é compartilhado com a VFIT. O KV sem id é criado pelo Wrangler na 1ª publicação
+# e reaproveitado nas seguintes (fica associado ao Worker pelo nome do binding).
+[env.gislane]
+name = "gislane-conector"
+
+[[env.gislane.kv_namespaces]]
+binding = "OAUTH_KV"
+
+[env.gislane.vars]
+MCP_RESOURCE = "https://gislane-conector.vfitcoach-site.workers.dev/mcp"
+APP_URL = "https://app.gislanepersonaltrainer.com"
+PROJETO = "gislane-personal-trainer"
+
+[[env.gislane.durable_objects.bindings]]
+name = "PEDIDOS"
+class_name = "PedidoOAuth"
+
+[[env.gislane.durable_objects.bindings]]
+name = "PROPOSTAS"
+class_name = "PropostaTreino"
+
+[[env.gislane.migrations]]
+tag = "v1"
+new_sqlite_classes = ["PedidoOAuth"]
+
+[[env.gislane.migrations]]
+tag = "v2"
+new_sqlite_classes = ["PropostaTreino"]

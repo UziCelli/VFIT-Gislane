@@ -1,14 +1,14 @@
 // Confere a mesma troca usada pelo Worker antes de alterar o segredo publicado.
 import { pathToFileURL } from 'node:url'
 
-export async function verificarAppCheck({ projeto, appId, apiKey, debugToken }, buscar = fetch) {
+export async function verificarAppCheck({ projeto, appId, apiKey, debugToken, referer = 'https://app.vfitcoachapp.com/' }, buscar = fetch) {
   if (![projeto, appId, apiKey, debugToken].every((v) => typeof v === 'string' && v.trim())) return false
   try {
     const resposta = await buscar(
       `https://firebaseappcheck.googleapis.com/v1/projects/${encodeURIComponent(projeto)}/apps/${encodeURIComponent(appId)}:exchangeDebugToken?key=${encodeURIComponent(apiKey)}`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Referer: 'https://app.vfitcoachapp.com/' },
+        headers: { 'Content-Type': 'application/json', Referer: referer },
         body: JSON.stringify({ debugToken }),
         signal: AbortSignal.timeout(10_000),
       },
@@ -28,6 +28,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     appId: process.env.FIREBASE_APP_ID,
     apiKey: process.env.FIREBASE_API_KEY,
     debugToken: process.env.APPCHECK_DEBUG_TOKEN,
+    // Domínio do app da marca (a chave web de cada projeto só aceita o seu).
+    ...(process.env.APP_REFERER && { referer: process.env.APP_REFERER }),
   })
   if (!ok) {
     console.error('::error::Não foi possível validar o App Check. Confira o registro no Firebase e o segredo APPCHECK_DEBUG_TOKEN no GitHub; consulte docs/seguranca.md.')

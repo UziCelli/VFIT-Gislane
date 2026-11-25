@@ -82,6 +82,12 @@ Atualize a PWA para visualizar os campos históricos novos; versões antigas con
 | App | `VITE_CONECTOR_URL`, CSP e rotas de consentimento/confirmação | Manter domínio correto e respostas privadas sem cache. |
 | Assistente | Mesmo endpoint `/mcp`, OAuth/DCR, ferramenta de preparação habilitada, política da conta permite escrita | Atualizar catálogo de ferramentas após publicar; não criar outro conector nem revogar concessões válidas sem necessidade. |
 
+### Gislane (conector próprio)
+
+Mesmo código em outro Worker: `gislane-conector` (`wrangler deploy --env gislane`), endpoint `https://gislane-conector.vfitcoach-site.workers.dev/mcp`, projeto `gislane-personal-trainer`, app `app.gislanepersonaltrainer.com`. KV e Durable Objects próprios: concessões, pedidos e propostas nunca se misturam com a VFIT. O Referer enviado ao Google segue o projeto (`refererDoProjeto`). O job `gislane` de `conector.yml` aguarda o job `gislane` de Publicar e, sem o segredo, só avisa e não publica.
+
+Uma vez, pelo dono: (1) no Firebase da Gislane, App Check → app web → adicionar debug token; guardar como segredo do GitHub `APPCHECK_DEBUG_TOKEN_GISLANE`; (2) no Google Cloud da Gislane, a chave web (`.env.gislane`) precisa permitir Secure Token, Firestore e Firebase App Check com o domínio do app; (3) Gislane com MFA ativo (workflow "2 etapas do coach", marca gislane) e `papel=coach`; (4) rodar "Publicar conector" e, no assistente dela, adicionar o conector com o endpoint acima.
+
 O workflow do conector aguarda o job VFIT `deploy` do mesmo commit publicar app e regras. Se ele falhar ou a espera expirar, não atualiza o Worker. Para desativar a preparação, use `EDICAO_COMPLETA=0`; leituras permanecem disponíveis. A reversão deve preservar KV, DOs e migrações; não apagar recursos para tentar corrigir conexão.
 
 Na revisão de 16/11/2026, OAuth público respondeu 200, MCP sem token respondeu 401, a conexão existente informou consentimento aprovado e a última publicação registrou sucesso no App Check e bindings. Isso não certifica toda configuração atual do console nem valida a nova versão em produção. Confirme pelo `build` e pelos testes nos dois assistentes após publicar.

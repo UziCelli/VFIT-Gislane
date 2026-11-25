@@ -18,14 +18,21 @@ export const RECONECTAR = 'Sem permissão. Peça ao coach para desconectar e con
 export class ErroRenovacaoRecusada extends ErroConector {}
 export class ErroCommitDesconhecido extends ErroConector {}
 
-export async function trocarToken(refreshToken: string, apiKey: string, buscar: Buscar = fetch): Promise<string> {
+// A chave web de cada projeto só aceita pedidos com o domínio do app da própria marca.
+const REFERERS: Record<string, string> = {
+  'forca--app': 'https://app.vfitcoachapp.com/',
+  'gislane-personal-trainer': 'https://app.gislanepersonaltrainer.com/',
+}
+export const refererDoProjeto = (projeto?: string) => REFERERS[projeto ?? ''] ?? REFERERS['forca--app']
+
+export async function trocarToken(refreshToken: string, apiKey: string, buscar: Buscar = fetch, referer = refererDoProjeto()): Promise<string> {
   let r: Response
   try {
     r = await buscar(`https://securetoken.googleapis.com/v1/token?key=${encodeURIComponent(apiKey)}`, {
       method: 'POST',
       // A chave web do Firebase é restrita ao domínio do app. O pedido do Worker
       // precisa identificar essa origem para que o Google aceite a chave pública.
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Referer: 'https://app.vfitcoachapp.com/' },
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', Referer: referer },
       body: new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken }),
       signal: AbortSignal.timeout(10_000),
     })

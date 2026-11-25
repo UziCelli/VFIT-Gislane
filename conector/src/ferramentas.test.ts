@@ -198,5 +198,7 @@ describe('renovação do Firebase', () => {
     }) as typeof fetch
     await executar({ refreshToken: 'refresh', apiKey: 'chave', projeto: 'forca--app', buscar }, async () => ({}))
     expect(cabecalhos?.get('referer')).toBe('https://app.vfitcoachapp.com/')
+    await executar({ refreshToken: 'refresh', apiKey: 'chave', projeto: 'gislane-personal-trainer', buscar }, async () => ({}))
+    expect(cabecalhos?.get('referer')).toBe('https://app.gislanepersonaltrainer.com/')
   })
 })

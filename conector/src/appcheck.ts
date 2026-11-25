@@ -1,6 +1,6 @@
 // App Check do Worker: sem navegador, ele troca um debug token (segredo da Cloudflare) por um token de App Check.
 // Nunca expõe o debug token nem o corpo das respostas.
-import { ErroConector, type Buscar } from './firestore'
+import { ErroConector, refererDoProjeto, type Buscar } from './firestore'
 
 const MARGEM_MS = 5 * 60_000
 const cache = new Map<string, { token: string; vence: number }>()
@@ -23,7 +23,7 @@ export async function tokenAppCheck(c: ConfigAppCheck): Promise<string | undefin
       {
         method: 'POST',
         // A chave web é restrita ao domínio do app (igual a trocarToken).
-        headers: { 'Content-Type': 'application/json', Referer: 'https://app.vfitcoachapp.com/' },
+        headers: { 'Content-Type': 'application/json', Referer: refererDoProjeto(c.projeto) },
         body: JSON.stringify({ debugToken: c.debugToken }),
         signal: AbortSignal.timeout(10_000),
       },

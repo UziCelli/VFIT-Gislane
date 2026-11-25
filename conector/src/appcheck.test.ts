@@ -26,6 +26,11 @@ describe('tokenAppCheck', () => {
     expect(h.get('content-type')).toBe('application/json')
     expect(JSON.parse(String(f.chamadas[0].init?.body))).toEqual({ debugToken: DEBUG })
   })
+  it('Gislane usa o domínio do app dela no Referer', async () => {
+    const f = falso()
+    await tokenAppCheck({ ...base, projeto: 'gislane-personal-trainer', buscar: f.buscar, agora: 0 })
+    expect(new Headers(f.chamadas[0].init?.headers).get('referer')).toBe('https://app.gislanepersonaltrainer.com/')
+  })
   it('reutiliza até ttl - 5 min e renova depois', async () => {
     const f = falso()
     await tokenAppCheck({ ...base, buscar: f.buscar, agora: 0 })

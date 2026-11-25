@@ -3,7 +3,7 @@
 import { b64u } from '../../push/src/b64'
 import { verificarIdToken } from '../../push/src/jwt'
 import { tokenAppCheck } from './appcheck'
-import { ErroConector, ErroRenovacaoRecusada, Firestore, RECONECTAR, trocarToken, type Buscar } from './firestore'
+import { ErroConector, ErroRenovacaoRecusada, Firestore, RECONECTAR, refererDoProjeto, trocarToken, type Buscar } from './firestore'
 
 export const VALIDADE_PEDIDO_MS = 10 * 60_000
 const CHAVE = 'conector:pedido:'
@@ -79,7 +79,7 @@ export async function concluirLogin(d: Deps, corpo: unknown): Promise<Resultado>
   }
   try {
     // A renovação precisa manter o 2º fator, o projeto e a mesma pessoa.
-    const tokenRenovado = await trocarToken(refreshToken, d.apiKey, d.buscar)
+    const tokenRenovado = await trocarToken(refreshToken, d.apiKey, d.buscar, refererDoProjeto(d.projeto))
     const novo = await verificarIdToken(tokenRenovado, d.obterChave, agoraS, false)
     if (!novo) return nega(403, 'Não foi possível validar o login renovado. Saia do app e entre novamente para conectar.')
     if (novo.uid !== quem.uid || novo.projeto !== quem.projeto) return nega(403, 'O login renovado não corresponde à conta ou ao projeto da sessão. Saia do app e entre novamente para conectar.')

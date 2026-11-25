@@ -1,7 +1,7 @@
 // Cada chamada de ferramenta: troca o refreshToken do coach por um idToken novo e roda a leitura como ele.
 import { chaveDoGoogle, verificarIdToken } from '../../push/src/jwt'
 import { tokenAppCheck } from './appcheck'
-import { ErroConector, Firestore, trocarToken, type Buscar } from './firestore'
+import { ErroConector, Firestore, refererDoProjeto, trocarToken, type Buscar } from './firestore'
 
 export type Resposta = { content: { type: 'text'; text: string }[]; isError?: true; structuredContent?: Record<string, unknown> }
 
@@ -11,7 +11,7 @@ export async function executar(
 ): Promise<Resposta> {
   try {
     if (typeof cfg.refreshToken !== 'string') throw new ErroConector('Conexão incompleta. Desconecte e conecte o assistente de novo.')
-    const token = await trocarToken(cfg.refreshToken, cfg.apiKey, cfg.buscar)
+    const token = await trocarToken(cfg.refreshToken, cfg.apiKey, cfg.buscar, refererDoProjeto(cfg.projeto))
     if (cfg.uid) {
       const quem = await verificarIdToken(token, cfg.obterChave ?? chaveDoGoogle, Math.floor((cfg.agora ?? Date.now()) / 1000), true)
       if (!quem || quem.uid !== cfg.uid || quem.projeto !== cfg.projeto) throw new ErroConector('Conexão inválida. Desconecte e conecte o assistente de novo com o código de 2 etapas.', 'IDENTIDADE_MFA', 'autenticacao', false)

@@ -55,7 +55,7 @@ jobs:
             echo "::error::App ou regras não publicados; conector preservado."
             exit 1
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
           persist-credentials: false
@@ -170,7 +170,7 @@ jobs:
             echo "::error::App ou regras da Gislane não publicados; conector preservado."
             exit 1
           fi
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.config.outputs.pronto == '1'
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}

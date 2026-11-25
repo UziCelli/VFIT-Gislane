@@ -176,6 +176,7 @@ export async function gerarPdfAvaliacao({ r, aluno, comentario }: EntradaPdfAval
   // Colunas da tabela: medida à esquerda; anterior, atual e diferença alinhadas à direita.
   const xAnt = M + LARG * 0.62
   const xAtual = M + LARG * 0.81
+  const ALTURA_NOME = 38
   for (const g of r.grupos) {
     f.espaco(40 + 120 + 34 + 58) // divisória, título, rótulos das colunas e a 1ª linha ficam na mesma folha
     divisoria(f)
@@ -185,13 +186,25 @@ export async function gerarPdfAvaliacao({ r, aluno, comentario }: EntradaPdfAval
     f.texto('atual', r.anterior ? xAtual : PW - M, sans(24), MUDO, 'right')
     if (r.anterior) f.texto('diferença', PW - M, sans(24), MUDO, 'right')
     for (const l of g.linhas) {
-      f.espaco(58 + 34)
+      // O nome quebra em linhas antes de chegar ao 1º número (nomes longos não passam por cima dos valores).
+      const ant = l.anterior == null ? '—' : fmtMedida(l.anterior, l.un)
+      const atual = fmtMedida(l.atual, l.un)
+      f.ctx.font = r.anterior ? sans(30) : sans(30, 700)
+      const limite = (r.anterior ? xAnt - f.ctx.measureText(ant).width : PW - M - f.ctx.measureText(atual).width) - 30 - M
+      f.ctx.font = sans(30)
+      const nome = quebrar(f.ctx, l.rotulo, limite)
+      f.espaco(58 + 34 + (nome.length - 1) * ALTURA_NOME)
       f.y += 14
       f.caixa(M, LARG, 2, 1, TRILHA)
       f.y += 44
-      f.texto(l.rotulo, M, sans(30), TEXTO)
-      if (r.anterior) f.texto(l.anterior == null ? '—' : fmtMedida(l.anterior, l.un), xAnt, sans(30), MUDO, 'right')
-      f.texto(fmtMedida(l.atual, l.un), r.anterior ? xAtual : PW - M, sans(30, 700), TEXTO, 'right')
+      const topo = f.y
+      nome.forEach((t, i) => {
+        f.y = topo + i * ALTURA_NOME
+        f.texto(t, M, sans(30), TEXTO)
+      })
+      f.y = topo // valores alinhados à 1ª linha do nome
+      if (r.anterior) f.texto(ant, xAnt, sans(30), MUDO, 'right')
+      f.texto(atual, r.anterior ? xAtual : PW - M, sans(30, 700), TEXTO, 'right')
       if (r.anterior) {
         if (l.delta == null) f.texto('—', PW - M, sans(30), MUDO, 'right')
         else {
@@ -203,6 +216,7 @@ export async function gerarPdfAvaliacao({ r, aluno, comentario }: EntradaPdfAval
           seta(f.ctx, l.seta ?? 'igual', PW - M - w - 34, f.y, cor)
         }
       }
+      f.y = topo + (nome.length - 1) * ALTURA_NOME
       if (l.leitura) f.paragrafo(l.leitura.texto, sans(24), MUDO, 34)
     }
   }

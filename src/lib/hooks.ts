@@ -54,15 +54,20 @@ export function useLista<T>(q: Query | null): Estado<(T & { id: string })[]> {
       alvo,
       { includeMetadataChanges: true },
       (s) =>
-        setE((x) => ({
+        setE((x) => {
           // Só a confirmação do servidor mudou (nenhum documento mudou): mantém a mesma lista, senão todo
           // useMemo que depende dela recalcula à toa (relatório, avaliação, evolução: o dobro de trabalho ao abrir).
-          dados: !x.carregando && s.docChanges().length === 0 ? x.dados : s.docs.map((d) => ({ ...(d.data() as T), id: d.id })),
-          carregando: false,
-          erro: null,
-          pendente: s.metadata.hasPendingWrites,
-          cache: s.metadata.fromCache,
-        })),
+          // Mudou um documento: os outros mantêm o mesmo objeto (o treino só refaz o que depende do que mudou, #237).
+          // A 1ª leitura de cada inscrição traz todos como "added": nada é reaproveitado de outra consulta.
+          const mudou = s.docChanges()
+          let dados = x.dados
+          if (x.carregando || mudou.length > 0) {
+            const ids = new Set(mudou.map((c) => c.doc.id))
+            const antes = new Map(x.dados.map((d) => [d.id, d]))
+            dados = s.docs.map((d) => (!ids.has(d.id) && antes.get(d.id)) || { ...(d.data() as T), id: d.id })
+          }
+          return { dados, carregando: false, erro: null, pendente: s.metadata.hasPendingWrites, cache: s.metadata.fromCache }
+        }),
       (erro) => setE({ dados: [], carregando: false, erro, pendente: false, cache: false }),
     )
   }, [alvo])

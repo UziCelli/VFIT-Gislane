@@ -11,6 +11,9 @@ export const MAX_S_ALUNO = 60
 export const MAX_S_COACH = 90
 export const MAX_BYTES = 50 * 1024 * 1024 // mesmo teto de push/src/midia.ts e das regras
 export const PARTE = 1024 * 1024
+// O Worker apaga o arquivo pronto depois disso (RETENCAO_DIAS em push/src/midia.ts); o registro e o histórico ficam.
+export const RETENCAO_DIAS = 60
+const RETENCAO_MS = RETENCAO_DIAS * 86_400_000
 export const MIMES = ['video/mp4', 'video/webm', 'video/quicktime'] as const
 export type Mime = (typeof MIMES)[number]
 export type TipoMidia = 'execucao' | 'orientacao'
@@ -82,21 +85,24 @@ export function resumoPorExercicio(lista: DocMidia[]): Map<string, Resumo> {
   return m
 }
 
-// Situação do envio do aluno, para o cartão.
-export type Situacao = 'nada' | 'enviando' | 'aguardando' | 'respondida'
-export function situacaoExecucao(r: Resumo | undefined): Situacao {
+// Arquivo já apagado pelo prazo de guarda (o documento continua como histórico).
+export const expirou = (d: DocMidia, agora: number) => d.status === 'pronto' && agora - ms(d.prontoEm ?? d.em) > RETENCAO_MS
+
+// Situação do envio do aluno, para o cartão. 'expirada' = ficou sem resposta até o vídeo sair do ar: libera novo envio.
+export type Situacao = 'nada' | 'enviando' | 'aguardando' | 'respondida' | 'expirada'
+export function situacaoExecucao(r: Resumo | undefined, agora = Date.now()): Situacao {
   const e = r?.execucao
   if (!e) return 'nada'
   if (e.status !== 'pronto') return 'enviando'
   if (e.respondida) return 'respondida'
   // Orientação mais nova que o envio também conta como resposta (coach respondeu pelo cartão).
   if (r?.orientacao && ms(r.orientacao.prontoEm) >= ms(e.prontoEm ?? e.em)) return 'respondida'
-  return 'aguardando'
+  return expirou(e, agora) ? 'expirada' : 'aguardando'
 }
 
-// Fila do coach: execuções prontas sem resposta, mais antigas primeiro (quem esperou mais).
-export const filaDoCoach = (lista: DocMidia[]) =>
-  lista.filter((d) => d.tipo === 'execucao' && d.status === 'pronto' && !d.respondida).sort((a, b) => ms(a.prontoEm ?? a.em) - ms(b.prontoEm ?? b.em))
+// Fila do coach: execuções prontas sem resposta e ainda no ar, mais antigas primeiro (quem esperou mais).
+export const filaDoCoach = (lista: DocMidia[], agora = Date.now()) =>
+  lista.filter((d) => d.tipo === 'execucao' && d.status === 'pronto' && !d.respondida && !expirou(d, agora)).sort((a, b) => ms(a.prontoEm ?? a.em) - ms(b.prontoEm ?? b.em))
 
 // Marcações: só números de 0 a 1, tempo >= 0, até 300 itens e 400 pontos por traço (limites das regras/doc).
 export const MAX_MARCAS = 300

@@ -79,6 +79,7 @@ export default function VideosDoCartao({ alunoId, nome, exercicioId, sessao, coa
         </div>
       )}
       {!envio && !coach && situacao === 'aguardando' && <p className="text-sm text-slate-300" role="status">Vídeo enviado · Aguardando análise</p>}
+      {!envio && !coach && situacao === 'expirada' && <p className="text-sm text-slate-400">O vídeo anterior saiu do ar sem análise. Pode enviar outro.</p>}
       {!envio && coach && situacao === 'aguardando' && <p className="text-sm text-amber-200">Execução do aluno aguardando sua análise.</p>}
       {ver && orient && (
         <Suspense fallback={<p className="text-sm text-slate-400">Carregando…</p>}>

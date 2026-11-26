@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apagarPerto, chaveExercicio, conferirArquivo, filaDoCoach, limparMarcas, marcasNoTempo, mimeOk, momentosMarcados, resumoPorExercicio, simplificar, situacaoExecucao, type DocMidia, type Marca } from './midias'
 
 const ts = (ms: number) => ({ toMillis: () => ms })
@@ -33,6 +33,9 @@ describe('arquivo', () => {
 })
 
 describe('resumo por exercício', () => {
+  // Datas pequenas nos dados: o relógio fica perto delas (nada passou do prazo de guarda).
+  beforeEach(() => vi.useFakeTimers({ now: 1000, toFake: ['Date'] }))
+  afterEach(() => vi.useRealTimers())
   it('orientação pronta mais recente vale para o exercício (próximos treinos); envio mais recente para o status', () => {
     const lista = [
       d({ id: 'o1', tipo: 'orientacao', prontoEm: ts(100) }),
@@ -54,6 +57,16 @@ describe('resumo por exercício', () => {
     expect(situacaoExecucao({ execucao: d({ prontoEm: ts(10), respondida: true }) })).toBe('respondida')
     expect(situacaoExecucao({ execucao: d({ prontoEm: ts(10) }), orientacao: d({ tipo: 'orientacao', prontoEm: ts(20) }) })).toBe('respondida')
     expect(situacaoExecucao({ execucao: d({ prontoEm: ts(30) }), orientacao: d({ tipo: 'orientacao', prontoEm: ts(20) }) })).toBe('aguardando')
+  })
+  it('sem resposta até o vídeo sair do ar (60 dias): libera novo envio e sai da fila do coach', () => {
+    const dia = 86_400_000
+    const agora = 100 * dia
+    const velha = d({ id: 'v', prontoEm: ts(agora - 61 * dia) })
+    const nova = d({ id: 'n', prontoEm: ts(agora - 59 * dia) })
+    expect(situacaoExecucao({ execucao: velha }, agora)).toBe('expirada')
+    expect(situacaoExecucao({ execucao: nova }, agora)).toBe('aguardando')
+    expect(situacaoExecucao({ execucao: { ...velha, respondida: true } }, agora)).toBe('respondida')
+    expect(filaDoCoach([velha, nova], agora).map((x) => x.id)).toEqual(['n'])
   })
   it('fila do coach: só execuções prontas sem resposta, mais antigas primeiro', () => {
     const f = filaDoCoach([

@@ -27,7 +27,9 @@ Avisos sem nome, link ou miniatura. Tipos novos `video` (coach) e `orientacao` (
 ## Privacidade
 - Nada privado vai para link público ou "não listado". O link de tocar é assinado, curto (10 min) e só sai depois de o Firestore confirmar que quem pede pode ler o registro.
 - Isolamento entre marcas: cada marca tem o próprio Firebase; no Worker o nome da instância leva o projeto e o link assinado também.
-- Envio largado no meio é apagado em 24 h. Vídeo pronto fica **60 dias** (`RETENCAO_DIAS`) e depois o arquivo some; o registro, as marcações e o histórico ficam.
+- Envio largado no meio é apagado em 24 h. Vídeo pronto fica **60 dias** (`RETENCAO_DIAS`) e depois o arquivo some; o registro, as marcações e o histórico ficam. Execução sem resposta nesse prazo sai da fila do coach e o aluno pode enviar outra.
+- Cancelar não apaga envio já confirmado (`pronto`): o Worker responde 409 e o arquivo fica.
+- "Dar acesso ao app" do presencial leva os `midias` para a conta nova (regra: só `alunoId`, só para o `migradoPara`).
 
 ## Custo (zero, sem cartão)
 - Firebase Storage exige plano pago (o projeto é Spark): descartado. R2 tem cota grátis, mas a ativação pede forma de pagamento: descartado.

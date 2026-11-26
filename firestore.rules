@@ -363,6 +363,10 @@ service cloud.firestore {
         && marcasValidas(request.resource.data) && request.resource.data.respondida is bool
         && (!('respondidaEm' in request.resource.data) || request.resource.data.respondidaEm == request.time
           || request.resource.data.respondidaEm == resource.data.get('respondidaEm', null));
+      // "Dar acesso ao app" do aluno presencial: o coach troca só o alunoId para a conta nova (migradoPara do perfil antigo).
+      allow update: if isCoach()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['alunoId'])
+        && get(/databases/$(database)/documents/usuarios/$(resource.data.alunoId)).data.get('migradoPara', '') == request.resource.data.alunoId;
       // Aluno: "visto" na orientação dele.
       allow update: if liberado() && resource.data.alunoId == request.auth.uid && resource.data.tipo == 'orientacao'
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vistoEm'])

@@ -1251,6 +1251,16 @@ describe('midias', () => {
     await assertSucceeds(deleteDoc(mid('coach')));
   });
 
+  it('dar acesso ao app: coach leva a orientação do presencial para a conta nova (só alunoId, só para migradoPara)', async () => {
+    await env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore() as unknown as Firestore, 'usuarios', 'presv'), { papel: 'aluno', presencial: true, nome: 'P', migradoPara: 'ana' }));
+    await semRegras(orient({ alunoId: 'presv', status: 'pronto' }), ID2);
+    await assertFails(updateDoc(mid('coach', ID2), { alunoId: 'bia' }));
+    await assertFails(updateDoc(mid('coach', ID2), { alunoId: 'ana', duracaoS: 10 }));
+    await assertFails(updateDoc(mid('ana', ID2), { alunoId: 'ana' }));
+    await assertSucceeds(updateDoc(mid('coach', ID2), { alunoId: 'ana' }));
+    await assertSucceeds(getDoc(mid('ana', ID2)));
+  });
+
   it('aluno vê a orientação dele, marca visto e não mexe no resto; autor cancela só enquanto envia', async () => {
     await semRegras(orient({ status: 'pronto' }), ID2);
     await assertSucceeds(getDoc(mid('ana', ID2)));

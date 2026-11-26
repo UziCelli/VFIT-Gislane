@@ -149,7 +149,7 @@ export async function darAcessoAoApp(idPresencial: string, a: { email: string; p
     await updateDoc(antigo, { migradoPara: uid })
   }
   await setDoc(doc(db, 'usuarios', uid), { ...perfilApp(p.nome, a.email, a.pagoAte), criadoEm: p.criadoEm ?? serverTimestamp() })
-  for (const col of ['mesos', 'registros', 'relatorios', 'avaliacoes', 'anamneses', 'fisioOrientacoes', 'fisioDores', 'fisioCheckins']) {
+  for (const col of ['mesos', 'registros', 'relatorios', 'avaliacoes', 'anamneses', 'fisioOrientacoes', 'fisioDores', 'fisioCheckins', 'midias']) {
     // Do servidor (nunca do cache): offline dá erro antes de apagar o perfil antigo.
     const docs = (await getDocsFromServer(query(collection(db, col), where('alunoId', '==', idPresencial)))).docs
     // As regras do relatório, da avaliação e da anamnese exigem atualizadoEm da hora do servidor; registros não (atualizadoEm deles é a janela de 14 dias).

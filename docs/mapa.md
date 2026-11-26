@@ -293,6 +293,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 | `/aluno/:uid/avaliacao/:id` | AvaliacaoCoach (`nova` = criar) | Coach |
 | `/ranking` | RankingAlunos | Coach |
 | `/feedbacks` | Feedbacks (`coach/feedbacks/Feedbacks.tsx`) | Coach |
+| `/videos` | Videos (`videos/Videos.tsx`, 4ª aba das Guias) | Coach |
 | `/conta` | MinhaConta (coach) · ContaAluno (aluno) | Ambos |
 | `/evolucao` | EvolucaoAluno (`PainelEvolucao.tsx`) | Aluno |
 | `/feedback` | EnviarFeedback (`feedback/EnviarFeedback.tsx`) | Aluno |
@@ -347,6 +348,9 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 
 ### `arquivados/{chave}`
 - `em` (hora do servidor). Alerta arquivado pelo coach; a chave muda quando a situação muda (`chaveAlerta` em `src/lib/alertas.ts`). Só o coach.
+
+### `videos/{exercicioId}`
+- `status` (`gravado` | `no-ar`), `link?` (https, ≤ 300; obrigatório em `no-ar`), `nota?` (≤ 140), `por` (nome do coach), `em`. Sem documento = "A gravar" (voltar apaga). O vídeo fica no YouTube "não listado" (Storage exige plano pago). Só o coach com 2º fator; o aluno ainda não vê. Regras puras em `src/lib/videos.ts`. Cada marca tem o próprio Firebase: a lista não é compartilhada entre os apps.
 
 ### `relatorios/{mesoId}`
 - `alunoId`, `mesoId`, `comentario` (≤ 3000), `liberado`, `liberadoEm`, `atualizadoEm`. Os números não são gravados (`relatorioCiclo`). Aluno lê só o próprio liberado, pela consulta.

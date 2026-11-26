@@ -281,6 +281,11 @@ export async function duplicarMeso(mesoId: string, novoAlunoId: string, novoNome
 export const arquivarAlerta = (chave: string) => setDoc(doc(db, 'arquivados', chave), { em: serverTimestamp() })
 export const desarquivarAlerta = (chave: string) => deleteDoc(doc(db, 'arquivados', chave))
 
+// Vídeo de demonstração do exercício (videos/{exercicioId}); dados de dadosVideo em videos.ts, null = "A gravar".
+// Substitui o doc inteiro (link ou nota apagados somem). Sem await (offline).
+export const gravarVideo = (exercicioId: string, dados: Record<string, string> | null) =>
+  dados ? setDoc(doc(db, 'videos', exercicioId), { ...dados, em: serverTimestamp() }) : deleteDoc(doc(db, 'videos', exercicioId))
+
 // Cardio do dia (cardios/{uid}_{dia}). Substitui o doc inteiro; sem await (offline) e sem campos undefined.
 export const registrarCardio = (uid: string, dia: string, c: { tipo?: TipoCardio; min?: number }) =>
   setDoc(doc(db, 'cardios', idCardio(uid, dia)), { alunoId: uid, dia, em: serverTimestamp(), ...(c.tipo ? { tipo: c.tipo } : {}), ...(c.min ? { min: c.min } : {}) })

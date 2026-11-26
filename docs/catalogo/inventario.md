@@ -32,7 +32,6 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 2. **"Guiada" (2).** Elevação Pélvica Máquina Guiada e Remada Linear 45º Guiada: é de pinos ou de anilhas?
 3. **Agachamento Halter Banco:** é com 1 halter?
 4. **Cinto de carga e bola de adução:** viram equipamentos próprios?
-5. **Rótulo da articulada:** o plano diz **Articulado**, e a lista dos novos usa **Articulada**.
 
 ## Variantes novas que saem das respostas
 
@@ -44,6 +43,7 @@ Já entraram em [exercicios-novos.csv](exercicios-novos.csv): Agachamento Livre 
 - **Pull Over, Agachamento Livre, Tríceps Francês e Rosca Scott "Halter"** usam 1 halter. A versão com 2 halteres vira exercício novo.
 - Terra Sumô, Elevação Pélvica, Flexão de Joelhos deitado, Abdominal Oblíquo, Supinação e Pronação: **1 halter**. Isto é uma premissa, porque é o uso comum.
 - **Puxadas e remadas baixas sem equipamento no nome = máquina seletora.** "Máquina" sem detalhe também é seletora.
+- **Rótulo: Articulada** (máquina articulada), como na lista dos novos.
 - **Box Jump e Box Jumps** são exercícios diferentes e continuam separados.
 
 - **Retrocesso vira Recuo.** O nome antigo fica como apelido.

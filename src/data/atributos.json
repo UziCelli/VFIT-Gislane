@@ -1507,7 +1507,9 @@
   "unidade": "reps",
   "carga": "por_lado",
   "movimento": "peck_deck",
-  "apelidos": []
+  "apelidos": [
+   "Peck Deck Articulado"
+  ]
  },
  "crossover-no-cabo": {
   "base": "Crossover",

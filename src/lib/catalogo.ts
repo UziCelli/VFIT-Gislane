@@ -10,7 +10,7 @@ import { norm } from './busca'
 export const EQUIPAMENTOS = {
   halter: 'Halter', halteres: 'Halteres', barra: 'Barra', barra_w: 'Barra W', barra_hexagonal: 'Barra Hexagonal',
   smith: 'Smith', smith_dual: 'Smith Dual', polia: 'Polia', duas_polias: 'Duas Polias',
-  maquina_seletora: 'Máquina Seletora', maquina_articulada: 'Articulado', elastico: 'Elástico', anilha: 'Anilha',
+  maquina_seletora: 'Máquina Seletora', maquina_articulada: 'Articulada', elastico: 'Elástico', anilha: 'Anilha',
   kettlebell: 'Kettlebell', kettlebells: 'Kettlebells', medicine_ball: 'Medicine Ball', caneleira: 'Caneleira',
   peso_do_corpo: 'Peso do Corpo', suspensao: 'Suspensão', bola_suica: 'Bola Suíça', landmine: 'Landmine',
   outro: 'Outro',

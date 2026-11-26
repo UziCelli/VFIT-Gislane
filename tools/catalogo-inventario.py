@@ -37,7 +37,7 @@ COLUNAS = [
 ROTULO = {
     'halter': 'Halter', 'halteres': 'Halteres', 'barra': 'Barra', 'barra_w': 'Barra W',
     'barra_hexagonal': 'Barra Hexagonal', 'smith': 'Smith', 'smith_dual': 'Smith Dual', 'caneleira': 'Caneleira', 'polia': 'Polia', 'duas_polias': 'Duas Polias',
-    'maquina_seletora': 'Máquina Seletora', 'maquina_articulada': 'Articulado', 'elastico': 'Elástico',
+    'maquina_seletora': 'Máquina Seletora', 'maquina_articulada': 'Articulada', 'elastico': 'Elástico',
     'anilha': 'Anilha', 'medicine_ball': 'Medicine Ball', 'kettlebell': 'Kettlebell',
 }
 

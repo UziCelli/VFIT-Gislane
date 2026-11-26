@@ -44,7 +44,7 @@ function Editor({ l, nome, confirmado, fechar, aviso }: { l: LinhaVideo; nome: s
         <>
           <div>
             <Campo rotulo="Link do vídeo" type="url" inputMode="url" placeholder="https://youtu.be/…" maxLength={MAX_LINK} value={link} onChange={(e) => setLink(e.target.value)} />
-            <p className="mt-1 text-xs text-slate-400">Suba no YouTube como "não listado" e cole o link.</p>
+            <p className="mt-1 text-xs text-slate-400">Suba no YouTube como "não listado" e cole o link. No ar, o aluno vê o vídeo e a nota.</p>
           </div>
           <Campo rotulo="Nota (opcional)" placeholder="Ex.: regravar com luz melhor" maxLength={MAX_NOTA} value={nota} onChange={(e) => setNota(e.target.value)} />
         </>

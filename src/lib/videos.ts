@@ -56,5 +56,31 @@ export function dadosVideo(status: StatusVideo, link: string, nota: string, por:
   const n = nota.trim().slice(0, MAX_NOTA)
   if (l && !linkValido(l)) return { erro: 'Link precisa começar com https://' } as const
   if (status === 'no-ar' && !l) return { erro: 'Cole o link do vídeo para marcar "No ar".' } as const
+  // "No ar" aparece no cartão do aluno: só o player do YouTube abre dentro do app (CSP: frame-src youtube-nocookie).
+  if (status === 'no-ar' && !fonteDemo(l)) return { erro: 'Para o aluno ver no app, use um link do YouTube.' } as const
   return { dados: { status, por: por.trim().slice(0, 80) || 'Coach', ...(l ? { link: l } : {}), ...(n ? { nota: n } : {}) } } as const
+}
+
+// ---- Demonstração no cartão do exercício (#253, etapa 1) ----
+// O aluno só vê o que está "No ar" com link do YouTube: o player é o embed sem cookies, mudo e em loop, criado só
+// quando ele toca "Ver demonstração" (nada é baixado com o cartão fechado).
+
+const idPorNome = new Map(catalogo.flatMap((g) => g.exercicios.map((e) => [norm(e.nome.trim()), e.id] as const)))
+
+// Id do catálogo pelo nome do exercício no treino; fora do catálogo = undefined (sem demonstração).
+export const idDoCatalogo = (nome: string) => idPorNome.get(norm(nome.trim()))
+
+// youtu.be/ID, youtube.com/watch?v=ID, /shorts/ID, /embed/ID, /live/ID (com ou sem www./m.).
+const RE_YT = /^https:\/\/(?:(?:www\.|m\.)?youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[?&#/][^\s]*)?$/
+
+export type FonteDemo = { src: string; vertical: boolean }
+
+// Endereço do player embutido; link que não é do YouTube = null (o cartão não mostra o botão).
+export function fonteDemo(link: string | undefined): FonteDemo | null {
+  const m = link?.trim().match(RE_YT)
+  if (!m) return null
+  const id = m[1]
+  // autoplay só depois do toque (o iframe nasce no toque); mute porque a demonstração é sem áudio.
+  const src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}&playsinline=1&rel=0&modestbranding=1`
+  return { src, vertical: /\/shorts\//.test(link!) }
 }

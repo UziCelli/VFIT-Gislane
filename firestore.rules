@@ -300,9 +300,12 @@ service cloud.firestore {
 
     // Vídeos de demonstração do catálogo: videos/{exercicioId} = { status, link?, nota?, por, em }. Sem documento =
     // "A gravar" (voltar para "A gravar" apaga). O vídeo fica fora do app (YouTube não listado): aqui só o link.
-    // Só o coach com 2º fator lê e grava; o aluno ainda não vê. Limites iguais a src/lib/videos.ts.
+    // A nota também chega ao aluno quando está "No ar" (regras não escondem campo): o editor avisa.
+    // Só o coach com 2º fator grava e vê todos. O aluno liberado lê só o que está "No ar" (demonstração no cartão do
+    // exercício, #253): a consulta dele precisa filtrar status == 'no-ar'. Limites iguais a src/lib/videos.ts.
     match /videos/{exercicioId} {
       allow read, delete: if isCoach();
+      allow read: if liberado() && resource.data.status == 'no-ar';
       allow create, update: if isCoach()
         && exercicioId.matches('[a-z0-9-]{1,80}')
         && request.resource.data.keys().hasOnly(['status', 'link', 'nota', 'por', 'em'])

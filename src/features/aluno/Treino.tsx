@@ -48,6 +48,8 @@ import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/pre
 import AvisoEstimativaRm from './AvisoEstimativaRm'
 import { textosVoz, useTextosVoz, VozTreino, type Voz } from './voz'
 import PerguntaRir from './PerguntaRir'
+import { Demonstracao, useDemos } from '../videos/Demonstracao'
+import { idDoCatalogo, type FonteDemo } from '../../lib/videos'
 import { FaixaPolimento, SeloPolimento } from './Polimento'
 import { escopoPolimento, mudancasPolimento, prescricaoNormal, resumoPolimento, semanaDePolimento } from '../../lib/polimentoAluno'
 
@@ -533,6 +535,7 @@ type PropsCartao = {
   rir: number | null // da última série
   dropsAbertos: Record<string, boolean>
   pesoKg?: number
+  demo?: FonteDemo // demonstração "No ar" deste exercício (#253)
   vivo: RefObject<Vivo>
 }
 
@@ -540,7 +543,7 @@ type PropsCartao = {
 // outros nove. Tudo que aparece na tela vem por prop (comparada por valor); o que só vale no toque vem de `vivo`.
 const CartaoExercicio = memo(function CartaoExercicio({
   e, grupo, colunasCargas, colunasReps, colunasLados, anterior, corpo, auto, pol, discretoPol, edAberto, trocandoPc, travado, volta, coach,
-  meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, fisio, rir, dropsAbertos, pesoKg, vivo,
+  meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, fisio, rir, dropsAbertos, pesoKg, demo, vivo,
 }: PropsCartao) {
   const t = useTextosVoz()
   const slot = e.slot.slotId
@@ -584,7 +587,10 @@ const CartaoExercicio = memo(function CartaoExercicio({
         </div>
       )}
       <div className="mb-3 space-y-2.5">
-        <div className="break-words text-base font-semibold leading-snug tracking-tight" data-treino-nome>{e.slot.nome}</div>
+        <div>
+          <div className="break-words text-base font-semibold leading-snug tracking-tight" data-treino-nome>{e.slot.nome}</div>
+          {demo && <Demonstracao nome={e.slot.nome.trim()} fonte={demo} />}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           {e.rotulo && (
             <div className="flex min-w-0 flex-wrap gap-2">
@@ -781,6 +787,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     query(collection(db, 'registros'), where('alunoId', '==', uid), where('mesoId', '==', mesoId)),
   )
   const { dados: notas } = useDoc<NotasDoc>(doc(db, 'notas', uid))
+  const demos = useDemos() // demonstrações dos exercícios (uma leitura por abertura do app)
   // Presencial: sempre à lista do aluno (a pilha mistura alunos do grupo). Aluno: à tela de onde veio (Início ou Treino).
   const sair = () => (coach ? ir(base) : voltar('/treino'))
   const [pcLocal, setPcLocal] = useState<Record<string, number>>({}) // vale até o Firestore confirmar
@@ -1142,6 +1149,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
               rir={rirFeito[chave]?.[slot]?.[e.n - 1] ?? null}
               dropsAbertos={dropsAbertos}
               pesoKg={perfil?.pesoKg}
+              demo={demos?.get(idDoCatalogo(nome) ?? '')}
               vivo={vivo}
             />
           )

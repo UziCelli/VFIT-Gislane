@@ -1118,7 +1118,7 @@ describe('arquivados', () => {
   });
 });
 
-// Vídeos de demonstração do catálogo: videos/{exercicioId}. Só o coach com 2º fator; aluno não vê.
+// Vídeos de demonstração do catálogo: videos/{exercicioId}. Só o coach com 2º fator grava; aluno liberado lê o que está no ar.
 describe('videos', () => {
   const vid = (uid: string | undefined, id = 'supino-reto-barra') => doc(db(uid), 'videos', id);
   const semCoach = (token: object) => doc(contexto('coach', token).firestore() as unknown as Firestore, 'videos', 'supino-reto-barra');
@@ -1150,7 +1150,7 @@ describe('videos', () => {
     await assertFails(setDoc(vid('coach'), { status: 'gravado', em: serverTimestamp() }));
   });
 
-  it('coach sem 2º fator, aluno e anônimo: tudo negado', async () => {
+  it('coach sem 2º fator, aluno e anônimo: nada gravado; "Gravado" (fora do ar) ninguém além do coach lê', async () => {
     await existente();
     await assertFails(setDoc(semCoach(SEM_FATOR), ok()));
     await assertFails(getDoc(semCoach(SEM_FATOR)));
@@ -1161,6 +1161,26 @@ describe('videos', () => {
       await assertFails(getDocs(collection(db(uid), 'videos')));
       await assertFails(deleteDoc(vid(uid)));
     }
+  });
+
+  // #253: demonstração no cartão. O aluno liberado lê o que está "No ar", só por consulta filtrada.
+  it('aluno liberado lê "No ar" (doc e consulta filtrada); sem filtro, bloqueado, vencido e anônimo: negado', async () => {
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore() as unknown as Firestore, 'videos', 'supino-reto-barra'), { status: 'no-ar', link: 'https://youtu.be/dQw4w9WgXcQ', por: 'Gislane', em: Timestamp.now() }),
+    );
+    const noAr = (uid?: string) => getDocs(query(collection(db(uid), 'videos'), where('status', '==', 'no-ar')));
+    for (const uid of ['ana', 'car']) {
+      await assertSucceeds(getDoc(vid(uid)));
+      await assertSucceeds(noAr(uid));
+      await assertFails(getDocs(collection(db(uid), 'videos')));
+      await assertFails(setDoc(vid(uid), ok({ status: 'no-ar', link: 'https://youtu.be/dQw4w9WgXcQ' })));
+      await assertFails(deleteDoc(vid(uid)));
+    }
+    for (const uid of ['exp', 'blq', 'agu', 'arq', undefined]) {
+      await assertFails(getDoc(vid(uid)));
+      await assertFails(noAr(uid));
+    }
+    await assertFails(getDoc(semCoach(SEM_FATOR))); // coach sem 2º fator não é aluno liberado
   });
 });
 

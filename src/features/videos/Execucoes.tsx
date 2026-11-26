@@ -1,8 +1,8 @@
 import { collection, doc, query, updateDoc, where } from 'firebase/firestore'
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
 import { IcCamera } from '../../icones'
-import { cancelarEnvio, enviarVideo, linkVideo, retomarEnvio, useEnvios } from '../../lib/envioVideo'
-import { db } from '../../lib/firebase'
+import { cancelarEnvio, enviarVideo, envioPendentes, linkVideo, retomarEnvio, useEnvios } from '../../lib/envioVideo'
+import { auth, db } from '../../lib/firebase'
 import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet } from '../../lib/hooks'
 import { apagarPerto, filaDoCoach, limparMarcas, MAX_MARCAS, MAX_S_COACH, simplificar, type DocMidia, type Marca } from '../../lib/midias'
 import type { Usuario } from '../../lib/acesso'
@@ -71,6 +71,11 @@ export function RevisarExecucao({ id }: { id: string }) {
   const c = useRef<HTMLCanvasElement>(null)
   const envio = [...useEnvios().values()].find((e) => e.tipo === 'orientacao' && d && e.alunoId === d.alunoId && e.exercicioId === d.exercicioId && e.fase !== 'pronto')
 
+  // Orientação que ficou no aparelho (app fechado no meio do envio) aparece aqui para retomar.
+  useEffect(() => {
+    const uid = auth.currentUser?.uid
+    if (uid) void envioPendentes(uid)
+  }, [])
   useEffect(() => {
     let vivo = true
     linkVideo(id).then((u) => vivo && setUrl(u)).catch((e) => vivo && setErro(e instanceof Error ? e.message : 'Não deu para abrir o vídeo.'))

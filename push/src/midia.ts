@@ -160,3 +160,10 @@ export const faltando = (m: Pick<Meta, 'partes' | 'recebidas'>) => {
 export function retomar(atual: Meta, m: Pick<Meta, 'autor' | 'bytes' | 'mime'>): { faltam: number[] } | 'conflito' {
   return atual.autor !== m.autor || atual.bytes !== m.bytes || atual.mime !== m.mime ? 'conflito' : { faltam: faltando(atual) }
 }
+
+// Quem apaga o arquivo: o autor só enquanto o envio não foi confirmado (se 'pronto' já foi gravado e a resposta se
+// perdeu, "Cancelar" não pode deixar o registro sem vídeo); um coach da marca apaga envio de outra pessoa.
+export function podeApagar(d: Pick<DocMidia, 'autor' | 'status'>, uid: string, coach: boolean): 200 | 403 | 409 {
+  if (d.autor === uid) return d.status === 'pronto' ? 409 : 200
+  return coach ? 200 : 403
+}

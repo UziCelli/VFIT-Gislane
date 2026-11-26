@@ -21,6 +21,7 @@ type Arquivo = { bytes: number; mime: string; partes: Map<number, Buffer>; compl
 const arquivos = new Map<string, Arquivo>()
 const chamadas: string[] = []
 let falhar = 0
+let perderConfirmacao = false // concluir grava 'pronto', mas a resposta não chega ao app
 
 async function simularWorker(page: Page) {
   await page.route(`${WORKER}/**`, async (r) => {
@@ -49,6 +50,7 @@ async function simularWorker(page: Page) {
       a.completo = true
       const q = 'updateMask.fieldPaths=status&updateMask.fieldPaths=prontoEm'
       await fetch(`${FS}/midias/${id}?${q}`, { method: 'PATCH', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { status: { stringValue: 'pronto' }, prontoEm: { timestampValue: new Date().toISOString() } } }) })
+      if (perderConfirmacao) return r.abort('connectionreset')
       return r.fulfill({ json: { ok: true } })
     }
     if (u.pathname === '/midia/link') return r.fulfill({ json: { url: `${WORKER}/midia/ver?id=${corpo().id}`, expira: Date.now() + 600_000 } })
@@ -57,7 +59,13 @@ async function simularWorker(page: Page) {
       const tudo = Buffer.concat([...a.partes.entries()].sort((x, y) => x[0] - y[0]).map(([, b]) => b))
       return r.fulfill({ status: 200, contentType: a.mime, body: tudo, headers: { 'Accept-Ranges': 'none' } })
     }
-    if (u.pathname === '/midia/apagar') return r.fulfill({ json: { ok: true } })
+    if (u.pathname === '/midia/apagar') {
+      // Como o Worker real: o autor não apaga um vídeo já confirmado.
+      const { id } = corpo()
+      if ((await campo(`midias/${id}`, 'status'))?.stringValue === 'pronto') return r.fulfill({ status: 409, json: { erro: 'vídeo já enviado' } })
+      arquivos.delete(id)
+      return r.fulfill({ json: { ok: true } })
+    }
     return r.fulfill({ json: { ok: true } })
   })
 }
@@ -196,4 +204,28 @@ test('aluno vê a orientação com "Ligue o som", as marcações e de novo no tr
   await expect(cartoes.filter({ hasText: 'Supino Reto Barra' }).getByRole('button', { name: /Orientação do coach/ })).toBeVisible()
   await expect(cartoes.filter({ hasText: 'Stiff Barra' }).getByRole('button', { name: /Orientação do coach/ })).toHaveCount(0)
   await expect(cartoes.filter({ hasText: 'Stiff Barra' }).getByRole('button', { name: 'Enviar minha execução' })).toBeVisible()
+})
+
+test('confirmação gravada com a resposta perdida: Cancelar não apaga o vídeo já enviado', async ({ page }) => {
+  await entrar(page, ANA)
+  await expect(page.getByRole('navigation', { name: 'Menu', exact: true })).toBeVisible()
+  await page.goto(`/#/treino/${mesoId}/1/2`)
+  const cartao = page.locator('[data-treino-cartao]').filter({ hasText: 'Stiff Barra' })
+  await cartao.getByRole('button', { name: 'Enviar minha execução' }).click()
+  const modal = page.getByRole('dialog', { name: 'Enviar minha execução' })
+  await modal.getByRole('button', { name: 'Gravar agora' }).click()
+  await expect(modal.getByRole('timer')).toContainText('Gravando')
+  await page.waitForTimeout(1500)
+  await modal.getByRole('button', { name: 'Parar' }).click()
+  perderConfirmacao = true
+  await modal.getByRole('button', { name: 'Enviar' }).click()
+  // A confirmação foi gravada, mas o app não soube: o envio aparece parado.
+  await expect(cartao.getByRole('button', { name: 'Retomar' })).toBeVisible({ timeout: 15_000 })
+  perderConfirmacao = false
+  const exec = (await midiasDe('execucao')).find((d) => d.f.exercicio?.stringValue === 'Stiff Barra')!
+  expect(exec.f.status.stringValue).toBe('pronto')
+  await cartao.getByRole('button', { name: 'Cancelar' }).click()
+  await expect(cartao.getByText('Vídeo enviado · Aguardando análise')).toBeVisible({ timeout: 15_000 })
+  expect(arquivos.get(exec.id)?.completo).toBe(true)
+  expect((await campo(`midias/${exec.id}`, 'status'))?.stringValue).toBe('pronto')
 })

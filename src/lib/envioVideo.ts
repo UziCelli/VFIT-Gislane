@@ -99,6 +99,13 @@ const esperar = (ms: number, sinal: AbortSignal) =>
     sinal.addEventListener('abort', () => (clearTimeout(t), falha(new DOMException('cancelado', 'AbortError'))), { once: true })
   })
 
+// Envio confirmado no servidor: respondeu a um envio do aluno (tira da fila do coach) e sai do aparelho.
+async function finalizar(g: Guardado) {
+  if (g.tipo === 'orientacao' && g.respondeA)
+    await updateDoc(doc(db, 'midias', g.respondeA), { respondida: true, respondidaEm: serverTimestamp() }).catch(() => {})
+  await tirar(g.id)
+}
+
 // Manda o que falta e conclui. Cada parte tenta 3 vezes (rede instável); depois para e deixa "Retomar".
 async function subir(g: Guardado) {
   const c = new AbortController()
@@ -131,10 +138,7 @@ async function subir(g: Guardado) {
     }
     const f = await chamar('/midia/concluir', { json: { id: g.id } }, c.signal)
     if (!f.ok) throw new Error(await erroDe(f))
-    // Respondeu a um envio do aluno: tira da fila do coach.
-    if (g.tipo === 'orientacao' && g.respondeA)
-      await updateDoc(doc(db, 'midias', g.respondeA), { respondida: true, respondidaEm: serverTimestamp() }).catch(() => {})
-    await tirar(g.id)
+    await finalizar(g)
     publicar({ ...base, progresso: 1, fase: 'pronto' })
     setTimeout(() => publicar({ id: g.id, remover: true }), 4000)
   } catch (e) {
@@ -171,11 +175,17 @@ export async function retomarEnvio(id: string) {
 }
 
 // Cancela: para o envio, apaga o arquivo no Worker e o registro (as regras só deixam enquanto 'enviando').
+// Se o Worker responde 409, a confirmação já tinha passado (a resposta se perdeu): o vídeo fica e o envio conta como feito.
 export async function cancelarEnvio(id: string) {
   controles.get(id)?.abort()
   publicar({ id, remover: true })
+  const g = await ler(id).catch(() => undefined)
   await tirar(id)
-  await chamar('/midia/apagar', { json: { id } }).catch(() => {})
+  const r = await chamar('/midia/apagar', { json: { id } }).catch(() => null)
+  if (r?.status === 409) {
+    if (g) await finalizar(g)
+    return
+  }
   await deleteDoc(doc(db, 'midias', id)).catch(() => {})
 }
 

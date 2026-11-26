@@ -6,7 +6,7 @@ import { cors } from './cors'
 import { chaveDaConta, chaveDoGoogle, verificarAviso, verificarIdToken, type Projeto } from './jwt'
 import { alvosDe, comAparelho, endpointOk, semAparelho, type Fixa, inicioDoDiaBrasilia, nomeAgenda, nomeCoaches, nomeDO, passoAgenda, prefixoAgenda, tipoCoachOk, uidOk, validarAvisos, validarDesligados, validarEsquecer, validarFimEm, validarInscricao, validarRecado, type Aviso, type Inscricao, type Tipo, type TipoCoach } from './validar'
 import { enviarPush, gerarParVapid, type ParVapid } from './webpush'
-import { assinar, conferir, faixa, faltando, idOk, LINK_MS, limitarFaixa, lerMidia, marcarPronto, nomeMidia, ORFAO_MS, PARTE, partesDe, RETENCAO_DIAS, retomar, tamanhoParte, TETO_TOTAL, validarInicio, type Meta } from './midia'
+import { assinar, conferir, faixa, faltando, idOk, LINK_MS, limitarFaixa, lerMidia, marcarPronto, nomeMidia, ORFAO_MS, PARTE, partesDe, podeApagar, RETENCAO_DIAS, retomar, tamanhoParte, TETO_TOTAL, validarInicio, type Meta } from './midia'
 
 // VIDEOS = "1" liga as rotas /midia/* (vídeos privados, #253). Desligado por padrão em wrangler.toml.
 type Env = { DESCANSO: DurableObjectNamespace<Descanso>; MIDIA: DurableObjectNamespace<Midia>; VIDEOS?: string }
@@ -640,7 +640,8 @@ async function atenderMidia(req: Request, env: Env, pathname: string, token: str
   if (pathname === '/midia/apagar') {
     const d = await lerMidia(projeto, mid, token, fetch, appCheck)
     if (d === null) return json({ erro: 'não foi possível verificar o vídeo' }, 503)
-    if (!d || (d.autor !== uid && !(await ehCoach(projeto, uid, token, fetch, appCheck)))) return json({ erro: 'sem permissão' }, 403)
+    const pode = d ? podeApagar(d, uid, d.autor !== uid && (await ehCoach(projeto, uid, token, fetch, appCheck))) : 403
+    if (pode !== 200) return json({ erro: pode === 409 ? 'vídeo já enviado' : 'sem permissão' }, pode)
     await midia(projeto, mid).apagar()
     return json({ ok: true })
   }

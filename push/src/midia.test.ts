@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assinar, conferir, faixa, faltando, idOk, LINK_MS, lerCampos, lerMidia, limitarFaixa, marcarPronto, MAX_BYTES, MAX_RESPOSTA, PARTE, partesDe, retomar, tamanhoParte, validarInicio, type Meta } from './midia'
+import { assinar, conferir, faixa, faltando, idOk, LINK_MS, lerCampos, lerMidia, limitarFaixa, marcarPronto, MAX_BYTES, MAX_RESPOSTA, PARTE, partesDe, podeApagar, retomar, tamanhoParte, validarInicio, type Meta } from './midia'
 
 const ID = 'AbCdEfGhIjKlMnOpQrSt'
 const chave = () => crypto.subtle.importKey('raw', new Uint8Array(32).fill(7), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
@@ -120,5 +120,15 @@ describe('retomar envio', () => {
     expect(retomar(meta({}), { autor: 'bia', bytes: 3 * PARTE, mime: 'video/mp4' })).toBe('conflito')
     expect(retomar(meta({}), { autor: 'ana', bytes: 2 * PARTE, mime: 'video/mp4' })).toBe('conflito')
     expect(retomar(meta({}), { autor: 'ana', bytes: 3 * PARTE, mime: 'video/webm' })).toBe('conflito')
+  })
+})
+
+describe('podeApagar', () => {
+  it('autor cancela só envio não confirmado; coach apaga o de outra pessoa; aluno estranho não', () => {
+    expect(podeApagar({ autor: 'ana', status: 'enviando' }, 'ana', false)).toBe(200)
+    expect(podeApagar({ autor: 'ana', status: 'pronto' }, 'ana', false)).toBe(409)
+    expect(podeApagar({ autor: 'coach', status: 'pronto' }, 'coach', true)).toBe(409)
+    expect(podeApagar({ autor: 'ana', status: 'pronto' }, 'coach', true)).toBe(200)
+    expect(podeApagar({ autor: 'ana', status: 'enviando' }, 'bia', false)).toBe(403)
   })
 })

@@ -23,8 +23,9 @@ describe('atributos do catálogo', () => {
       expect(e.modo.length, e.id).toBeGreaterThan(0)
       for (const m of e.modo) expect(['dinamico', 'isometrico', 'excentrico'], e.id).toContain(m)
       expect(e.base.trim(), e.id).toBe(e.base)
-      // Equipamento vazio ⇔ dúvida registrada: nada a confirmar fica exposto como atributo definido.
-      expect(e.equipamento === null, e.id).toBe(!!e.aConfirmar)
+      // Equipamento vazio ⇔ dúvida registrada (ou exercício excluído): nada a confirmar fica exposto como atributo definido.
+      expect(e.equipamento === null, e.id).toBe(!!e.aConfirmar || (!!e.oculto && e.equipamento === null))
+      if (e.aConfirmar) expect(e.equipamento, e.id).toBeNull()
     }
   })
 
@@ -81,7 +82,8 @@ describe('resolverExercicio (compatibilidade)', () => {
 
   it('nome gerado e apelidos resolvem para o mesmo id', () => {
     for (const e of EXERCICIOS) for (const n of nomesConhecidos(e)) expect(resolverExercicio(n)?.id, n).toBe(e.id)
-    expect(resolverExercicio('T-Bar Row')?.id).toBe('remada-cavalinho')
+    expect(resolverExercicio('Remada Cavalinho')?.id).toBe('remada-cavalinho')
+    expect(resolverExercicio('T-Bar Row')).toBeNull() // Celli: T-Bar Row é a versão Articulada (exercício novo)
     expect(resolverExercicio('Recuo Barra')?.id).toBe('retrocesso-barra')
   })
 

@@ -13,9 +13,10 @@ O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-
 
 ## Totais dos 359 atuais
 
-- **213 iguais**: o nome já segue o padrão.
-- **133 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
-- **13 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
+- **216 iguais**: o nome já segue o padrão.
+- **141 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
+- **0 a confirmar**: o Celli respondeu os 13 em 26/11 (ver abaixo).
+- **2 excluídos**: Stiff no Smith com Halter e Remada Isométrica. Saem da busca, do catálogo e da lista de vídeos, mas o histórico de quem já usou continua ligado.
 
 Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos novos. Exemplos:
 
@@ -26,12 +27,23 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 - Crossover no Cabo → Crossover Duas Polias
 - Máquinas com nome próprio (Leg Press 45, Hack, Cadeira Extensora, Puxada Frente) **não** ganham sufixo. O tipo aparece só na pílula.
 
-## Ainda a confirmar (13)
+## Respostas do Celli aos 13 (26/11/2026)
 
-1. **Sem equipamento no nome (10).** Remada Unilateral (serrote), Remada Cavalinho, Remada Isométrica, Panturrilha em Pé Unilateral, Panturrilha Sentado Unilateral, Elevação Lateral Inclinado, Elevação Lateral Isométrica, Rosca Isométrica a 90º, Tríceps Coice Apoiado e Stiff no Smith com Halter.
-2. **"Guiada" (2).** Elevação Pélvica Máquina Guiada e Remada Linear 45º Guiada: é de pinos ou de anilhas?
-3. **Agachamento Halter Banco:** é com 1 halter?
-4. **Cinto de carga e bola de adução** ficam em "outro" por enquanto. Viram equipamentos próprios?
+1. Agachamento Halter Banco → **1 halter**.
+2. Elevação Pélvica Máquina Guiada → **Seletora**. A Articulada já existe à parte.
+3. Remada Linear 45º Guiada → **Articulada**.
+4. Stiff no Smith com Halter → **excluído** (carga seria a do halter).
+5. Remada Unilateral (serrote) → **Halter**. Versão polia: Remada Unilateral em Pé Polia (lista dos novos).
+6. Remada Cavalinho → **Barra**. **T-Bar Row = versão Articulada** (lista dos novos); deixou de ser apelido da de barra.
+7. Remada Isométrica → **excluída**.
+8. Panturrilha em Pé Unilateral → **Peso do corpo**. Versão Halter na lista dos novos.
+9. Panturrilha Sentado Unilateral → **Articulada**.
+10. Elevação Lateral Inclinado → **Elevação Lateral Banco Inclinado Halter**. Versão Polia adicionada à lista dos novos.
+11. Elevação Lateral Isométrica → **Halteres**. Versão Elástico adicionada à lista dos novos.
+12. Rosca Isométrica a 90º → "tanto faz": ficou **Halteres** (uso mais comum).
+13. Tríceps Coice Apoiado → **Halter**. Versão polia: Tríceps Coice Polia (lista dos novos).
+
+**Ainda em aberto:** cinto de carga e bola de adução continuam em "outro". Viram equipamentos próprios?
 
 ## Variantes novas que saem das respostas
 

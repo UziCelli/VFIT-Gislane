@@ -35,7 +35,9 @@ export const NOMES_ISOMETRICOS: readonly string[] = [
   'Rosca Isométrica a 90º'
 ]
 // Nomes novos (gerados pelo catálogo, src/data/catalogo.ts) dos mesmos exercícios. O teste do catálogo confere.
-export const APELIDOS_ISOMETRICOS: readonly string[] = ['Pallof Press Isométrico Polia', 'Pegada Isométrica (Farmer Hold) Halteres']
+export const APELIDOS_ISOMETRICOS: readonly string[] = [
+  'Pallof Press Isométrico Polia', 'Pegada Isométrica (Farmer Hold) Halteres', 'Elevação Lateral Isométrica Halteres', 'Rosca Isométrica a 90º Halteres',
+]
 const normalizar = (n: string) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()
 const nomes = new Set([...NOMES_ISOMETRICOS, ...APELIDOS_ISOMETRICOS].map(normalizar))
 export const isometrico = (slot: Pick<Slot, 'nome'>): boolean => nomes.has(normalizar(slot.nome))

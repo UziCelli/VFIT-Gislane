@@ -83,6 +83,25 @@ HALTER_PREMISSA_1 = {
 # Celli (26/11/2026): Remada Curvada sem equipamento no nome é "geralmente barra, mas existem os dois".
 # O item atual fica com barra; as versões com halteres são exercícios à parte (lista dos novos).
 BARRA_DECIDIDO = {'remada-curvada-fechada', 'remada-curvada-pronada', 'remada-curvada-supinada'}
+# Respostas do Celli às 13 dúvidas (26/11/2026). id → (equipamento, mecanismo). A outra forma, quando existe,
+# vira exercício novo (docs/catalogo/exercicios-novos.csv), sem mudar o id de quem já tem histórico.
+EQUIP_DECIDIDO = {
+    'agachamento-halter-banco': ('halter', 'livre'),
+    'elevacao-pelvica-maquina-guiada': ('maquina_seletora', 'pinos'),  # a articulada já existe à parte
+    'remada-linear-45o-guiada': ('maquina_articulada', 'anilhas'),
+    'stiff-no-smith-com-halter': ('halter', 'livre'),  # carga anotada = a do halter; sai da busca (OCULTOS)
+    'remada-unilateral-serrote': ('halter', 'livre'),  # + versão Polia
+    'remada-cavalinho': ('barra', 'livre'),  # + versão Articulada (T-Bar Row)
+    'panturrilha-em-pe-unilateral': ('peso_do_corpo', 'corporal'),  # + versão Halter
+    'panturrilha-sentado-unilateral': ('maquina_articulada', 'anilhas'),
+    'elevacao-lateral-inclinado': ('halter', 'livre'),  # + versão Polia
+    'elevacao-lateral-isometrica': ('halteres', 'livre'),  # + versão Elástico
+    'rosca-isometrica-a-90o': ('halteres', 'livre'),  # Celli: "tanto faz"; ficou o uso mais comum
+    'triceps-coice-apoiado': ('halter', 'livre'),  # + versão Polia
+}
+NOME_DECIDIDO = {'elevacao-lateral-inclinado': 'Elevação Lateral Banco Inclinado Halter', 'stiff-no-smith-com-halter': 'Stiff no Smith com Halter'}
+# Celli: "pode excluir / pode tirar". Não some do app: o histórico continua ligado; só sai da busca e do catálogo.
+OCULTOS = {'stiff-no-smith-com-halter': 'Excluído pelo Celli (ninguém usa).', 'remada-isometrica': 'Excluído pelo Celli (não precisa).'}
 DUPLICATAS_DESCARTADAS = {frozenset({'box-jumps', 'box-jump'})}  # Celli: exercícios diferentes
 
 
@@ -92,6 +111,10 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
         return 'peso_do_corpo', 'corporal', ''
     if ex_id in HALTER_DECIDIDO:
         return HALTER_DECIDIDO[ex_id], 'livre', ''
+    if ex_id in EQUIP_DECIDIDO:
+        return (*EQUIP_DECIDIDO[ex_id], '')
+    if ex_id in OCULTOS:
+        return 'a_confirmar', '', ''
     if ex_id in BARRA_DECIDIDO:
         return 'barra', 'livre', ''
     if ex_id in HALTER_PREMISSA_1:
@@ -225,7 +248,7 @@ def nome_proposto(nome: str, equip: str, n: str) -> str:
 
 # Decisões do Celli (26/11/2026): Retrocesso passa a Recuo; Pull Over Cabo passa a Pulldown; Remada Cavalinho também atende por T-Bar Row.
 TROCAS = [(r'\bRetrocesso\b', 'Recuo'), (r'^Pull Over Polia$', 'Pulldown Polia')]
-APELIDOS_EXTRA = {'remada-cavalinho': ['T-Bar Row']}
+APELIDOS_EXTRA: dict[str, list[str]] = {}  # T-Bar Row agora é a versão Articulada (exercício novo)
 MOVIMENTO_EXTRA = {'pull-over-cabo': 'pulldown'}
 
 
@@ -252,11 +275,11 @@ def main() -> None:
                 conv = 'total'
             secundarios = ', '.join(anat.get(ex_id, {}).get('secundarios', []))
             var = re.findall(r'\(([^)]*)\)', nome)
-            proposto = nome_proposto(nome, equip, n)
+            proposto = NOME_DECIDIDO.get(ex_id) or nome_proposto(nome, equip, n)
             for padrao, novo in TROCAS:
                 proposto = re.sub(padrao, novo, proposto)
             aliases = ([nome] if proposto != nome else []) + APELIDOS_EXTRA.get(ex_id, [])
-            status = 'a_confirmar' if duvida or equip == 'a_confirmar' else ('igual' if proposto == nome else 'renomear')
+            status = 'excluido' if ex_id in OCULTOS else 'a_confirmar' if duvida or equip == 'a_confirmar' else ('igual' if proposto == nome else 'renomear')
             linhas.append({
                 'id': ex_id, 'nome_atual': nome, 'nome_proposto': proposto, 'aliases': '; '.join(aliases), 'status': status, 'grupo': g['grupo'],
                 'grupos_secundarios': secundarios, 'movimento_base': MOVIMENTO_EXTRA.get(ex_id, movimento(n)), 'equipamento': equip,
@@ -313,6 +336,8 @@ def gerar_atributos(linhas: list[dict]) -> None:
         }
         if l['status'] == 'a_confirmar':
             item['aConfirmar'] = l['duvida'] or 'Equipamento a confirmar.'
+        if l['id'] in OCULTOS:
+            item['oculto'] = OCULTOS[l['id']]
         saida[l['id']] = item
     ATRIBUTOS.write_text(json.dumps(saida, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     print(f'{len(saida)} atributos → {ATRIBUTOS.relative_to(RAIZ)}')

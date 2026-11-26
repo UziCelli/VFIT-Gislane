@@ -36,6 +36,7 @@ export interface Atributos {
   movimento: string | null
   apelidos: string[]
   aConfirmar?: string
+  oculto?: string // excluído pelo Celli: sai da busca e do catálogo, mas continua resolvendo (histórico)
 }
 
 export interface Exercicio extends Atributos {
@@ -61,6 +62,9 @@ const POR_ID = new Map(EXERCICIOS.map((e) => [e.id, e]))
 const chave = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 // Todo nome conhecido (atual, gerado e apelidos) aponta para um único id. O teste garante que não há colisão.
 const POR_NOME = new Map(EXERCICIOS.flatMap((e) => [e.nomeCatalogo, e.nome, ...e.apelidos].map((n) => [chave(n), e] as const)))
+
+// O que o coach escolhe hoje (busca, catálogo, IA). Os ocultos continuam em EXERCICIOS para o histórico.
+export const EXERCICIOS_ATIVOS: readonly Exercicio[] = EXERCICIOS.filter((e) => !e.oculto)
 
 export const exercicioPorId = (id: string): Exercicio | null => POR_ID.get(id) ?? null
 

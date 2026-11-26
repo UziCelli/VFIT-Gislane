@@ -3,7 +3,7 @@
 // O vídeo fica fora do app (YouTube "não listado", sem custo): o app guarda só o link. Funções puras.
 import catalogo from '../data/exercicios.json'
 import { norm } from './busca'
-import { resolverExercicio } from '../data/catalogo'
+import { exercicioPorId, resolverExercicio } from '../data/catalogo'
 
 export type StatusVideo = 'gravar' | 'gravado' | 'no-ar'
 export const STATUS_VIDEO: { id: StatusVideo; rotulo: string }[] = [
@@ -30,8 +30,9 @@ type Catalogo = { grupo: string; exercicios: { id: string; nome: string }[] }[]
 // Status desconhecido (gravação de versão futura) conta como "A gravar", mas mantém link e nota.
 export function linhasVideos(docs: DocVideo[], cat: Catalogo = catalogo): LinhaVideo[] {
   const porId = new Map(docs.map((d) => [d.id, d]))
+  // Excluído do catálogo (oculto) só aparece se já tem vídeo registrado.
   return cat.flatMap((g) =>
-    g.exercicios.map((e) => {
+    g.exercicios.filter((e) => !exercicioPorId(e.id)?.oculto || porId.has(e.id)).map((e) => {
       const d = porId.get(e.id)
       const status: StatusVideo = d?.status === 'gravado' || d?.status === 'no-ar' ? d.status : 'gravar'
       return { id: e.id, nome: e.nome, grupo: g.grupo, status, link: texto(d?.link), nota: texto(d?.nota), por: texto(d?.por) }

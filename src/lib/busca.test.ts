@@ -25,7 +25,8 @@ describe('buscarExercicios', () => {
   })
   it('devolve o nome novo, mas acha pelo nome antigo e pelos apelidos', () => {
     expect(nomes('rosca direta cabo')).toEqual(['Rosca Direta Polia'])
-    expect(nomes('t-bar')).toEqual(['Remada Cavalinho'])
+    expect(nomes('remada cavalinho')).toEqual(['Remada Cavalinho Barra'])
+    expect(nomes('stiff no smith com halter')).toEqual([]) // excluído pelo Celli: sai da busca
     expect(nomes('supino reto halter')).toEqual(['Supino Reto Halteres'])
   })
   it('termo sem correspondência: vazio', () => {

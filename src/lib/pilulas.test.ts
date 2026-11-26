@@ -23,6 +23,7 @@ describe('pilulasDo', () => {
   it('nome antigo também tem pílulas; texto livre e equipamento a confirmar não inventam', () => {
     expect(ids('Supino Reto Halter')).toEqual(['halteres'])
     expect(pilulasDo('Meu exercício')).toEqual([])
-    expect(ids('Remada Cavalinho')).toEqual([])
+    expect(ids('Remada Cavalinho')).toEqual(['barra'])
+    expect(ids('Remada Isométrica')).toEqual(['isometrico']) // excluído, sem equipamento: não inventa
   })
 })

@@ -32,7 +32,10 @@ describe('linhasVideos', () => {
   it('o catálogo real tem ids únicos (um documento por exercício)', () => {
     const ids = linhasVideos([]).map((x) => x.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(ids.length).toBe(catalogo.reduce((s, g) => s + g.exercicios.length, 0))
+    // Os 2 excluídos pelo Celli (sem vídeo) ficam de fora; com vídeo registrado, voltam.
+    expect(ids.length).toBe(catalogo.reduce((s, g) => s + g.exercicios.length, 0) - 2)
+    expect(ids).not.toContain('remada-isometrica')
+    expect(linhasVideos([{ id: 'remada-isometrica', status: 'gravado', por: 'x' } as never]).map((x) => x.id)).toContain('remada-isometrica')
   })
 })
 

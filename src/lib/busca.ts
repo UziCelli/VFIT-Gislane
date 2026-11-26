@@ -1,12 +1,12 @@
 // Busca no catálogo de exercícios (combobox do coach). Função pura.
 // Devolve o nome novo (gerado em src/data/catalogo.ts), mas também acha pelo nome antigo e pelos apelidos.
-import { EXERCICIOS, nomesConhecidos } from '../data/catalogo'
+import { EXERCICIOS_ATIVOS, nomesConhecidos } from '../data/catalogo'
 import { proprios, versaoProprios } from './catalogoProprio'
 
 export const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
 type Item = { nome: string; grupo: string; proprio?: true; ns: string[] }
-const base: Item[] = EXERCICIOS.map((e) => ({ nome: e.nome, grupo: e.grupo, ns: [e.nome, ...nomesConhecidos(e).filter((n) => n !== e.nome)].map(norm) }))
+const base: Item[] = EXERCICIOS_ATIVOS.map((e) => ({ nome: e.nome, grupo: e.grupo, ns: [e.nome, ...nomesConhecidos(e).filter((n) => n !== e.nome)].map(norm) }))
 // Os cadastrados pelo coach entram depois do catálogo base (empate fica com o base). Refeito só quando a lista muda.
 let cache = { v: -1, itens: base }
 const itensAtuais = () => {

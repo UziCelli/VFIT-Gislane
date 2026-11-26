@@ -6,7 +6,7 @@ agachamento-frontal-halter,Agachamento Frontal Halter,Agachamento Frontal Halter
 agachamento-sumo-barra,Agachamento Sumô Barra,Agachamento Sumô Barra,,igual,Quadríceps e Glúteos,"adutores, lombar",agachamento,barra,livre,bilateral,dinamico,reps,,total,
 agachamento-sumo-cinto,Agachamento Sumô Cinto,Agachamento Sumô Cinto,,igual,Quadríceps e Glúteos,,agachamento,outro,livre,bilateral,dinamico,reps,,total,
 agachamento-livre-banco,Agachamento Livre Banco,Agachamento Livre Banco,,igual,Quadríceps e Glúteos,"adutores, lombar",agachamento,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,
-agachamento-halter-banco,Agachamento Halter Banco,Agachamento Halter Banco,,a_confirmar,Quadríceps e Glúteos,"adutores, lombar",agachamento,a_confirmar,,bilateral,dinamico,reps,,total,Confirmar: 1 halter (goblet/segurado no peito)?
+agachamento-halter-banco,Agachamento Halter Banco,Agachamento Banco Halter,Agachamento Halter Banco,renomear,Quadríceps e Glúteos,"adutores, lombar",agachamento,halter,livre,bilateral,dinamico,reps,,total,
 agachamento-com-peso-do-corpo,Agachamento com Peso do Corpo,Agachamento com Peso do Corpo,,igual,Quadríceps e Glúteos,"adutores, lombar",agachamento,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,
 agachamento-no-smith,Agachamento no Smith,Agachamento Smith,Agachamento no Smith,renomear,Quadríceps e Glúteos,"adutores, lombar",agachamento,smith,anilhas,bilateral,dinamico,reps,,total,
 agachamento-hack-35o,Agachamento Hack 35º,Agachamento Hack 35º,,igual,Quadríceps e Glúteos,adutores,agachamento,maquina_articulada,anilhas,bilateral,dinamico,reps,,total,
@@ -39,7 +39,7 @@ retrocesso-barra,Retrocesso Barra,Recuo Barra,Retrocesso Barra,renomear,Quadríc
 retrocesso-halter,Retrocesso Halter,Recuo Halteres,Retrocesso Halter,renomear,Quadríceps e Glúteos,"adutores, isquiotibiais",retrocesso,halteres,livre,unilateral,dinamico,reps,,por_lado,
 elevacao-pelvica-maquina-tradicional,Elevação Pélvica Máquina Tradicional,Elevação Pélvica Tradicional Máquina Seletora,Elevação Pélvica Máquina Tradicional,renomear,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 elevacao-pelvica-maquina-articulada,Elevação Pélvica Máquina Articulada,Elevação Pélvica Articulada,Elevação Pélvica Máquina Articulada,renomear,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,maquina_articulada,anilhas,bilateral,dinamico,reps,,total,
-elevacao-pelvica-maquina-guiada,Elevação Pélvica Máquina Guiada,Elevação Pélvica Máquina Guiada,,a_confirmar,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,a_confirmar,,bilateral,dinamico,reps,,total,"Máquina ""guiada"": seletora (pinos) ou com anilhas? Confirmar."
+elevacao-pelvica-maquina-guiada,Elevação Pélvica Máquina Guiada,Elevação Pélvica Guiada Máquina Seletora,Elevação Pélvica Máquina Guiada,renomear,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 elevacao-pelvica-halter-unilateral,Elevação Pélvica Halter Unilateral,Elevação Pélvica Unilateral Halter,Elevação Pélvica Halter Unilateral,renomear,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,halter,livre,unilateral,dinamico,reps,,total,
 elevacao-pelvica-halter,Elevação Pélvica Halter,Elevação Pélvica Halter,,igual,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,halter,livre,bilateral,dinamico,reps,,total,
 elevacao-pelvica-barra,Elevação Pélvica Barra,Elevação Pélvica Barra,,igual,Quadríceps e Glúteos,"isquiotibiais, quadriceps",elevacao_pelvica,barra,livre,bilateral,dinamico,reps,,total,
@@ -61,7 +61,7 @@ stiff-unilateral-barra,Stiff Unilateral Barra,Stiff Unilateral Barra,,igual,Post
 stiff-unilateral-halter,Stiff Unilateral Halter,Stiff Unilateral Halter,,igual,Posterior de Coxa,lombar,stiff,halter,livre,unilateral,dinamico,reps,,total,
 stiff-banco-romano,Stiff Banco Romano,Stiff Banco Romano,,igual,Posterior de Coxa,lombar,stiff,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,
 stiff-smith,Stiff Smith,Stiff Smith,,igual,Posterior de Coxa,lombar,stiff,smith,anilhas,bilateral,dinamico,reps,,total,
-stiff-no-smith-com-halter,Stiff no Smith com Halter,Stiff no Smith com Halter,,a_confirmar,Posterior de Coxa,lombar,stiff,a_confirmar,,bilateral,dinamico,reps,,total,Smith com halter: qual equipamento define a carga anotada?
+stiff-no-smith-com-halter,Stiff no Smith com Halter,Stiff no Smith com Halter,,excluido,Posterior de Coxa,lombar,stiff,halter,livre,bilateral,dinamico,reps,,total,
 mesa-flexora,Mesa Flexora,Mesa Flexora,,igual,Posterior de Coxa,panturrilha,mesa_flexora,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 flexora-vertical,Flexora Vertical,Flexora Vertical,,igual,Posterior de Coxa,panturrilha,flexora,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 cadeira-flexora,Cadeira Flexora,Cadeira Flexora,,igual,Posterior de Coxa,panturrilha,cadeira_flexora,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
@@ -119,7 +119,7 @@ puxada-aberta-maquina,Puxada Aberta Máquina,Puxada Aberta Máquina Seletora,Pux
 puxada-articulada-peso-acima,Puxada Articulada (Peso Acima),Puxada (Peso Acima) Articulada,Puxada Articulada (Peso Acima),renomear,Dorsais,"biceps, trapezio, deltoide-posterior",puxada,maquina_articulada,anilhas,bilateral,dinamico,reps,Peso Acima,por_lado,
 puxada-articulada-peso-abaixo,Puxada Articulada (Peso Abaixo),Puxada (Peso Abaixo) Articulada,Puxada Articulada (Peso Abaixo),renomear,Dorsais,"biceps, trapezio, deltoide-posterior",puxada,maquina_articulada,anilhas,bilateral,dinamico,reps,Peso Abaixo,por_lado,
 puxada-articulada-cross,Puxada Articulada Cross,Puxada Cross Articulada,Puxada Articulada Cross,renomear,Dorsais,"biceps, trapezio, deltoide-posterior",puxada,maquina_articulada,anilhas,bilateral,dinamico,reps,,por_lado,
-remada-linear-45o-guiada,Remada Linear 45º Guiada,Remada Linear 45º Guiada,,a_confirmar,Dorsais,"biceps, deltoide-posterior",remada,a_confirmar,,bilateral,dinamico,reps,,total,"Máquina ""guiada"": seletora (pinos) ou com anilhas? Confirmar."
+remada-linear-45o-guiada,Remada Linear 45º Guiada,Remada Linear 45º Guiada,,igual,Dorsais,"biceps, deltoide-posterior",remada,maquina_articulada,anilhas,bilateral,dinamico,reps,,total,
 remada-alta-articulada-pronada,Remada Alta Articulada Pronada,Remada Alta Pronada Articulada,Remada Alta Articulada Pronada,renomear,Dorsais,"biceps, deltoide-posterior",remada_alta,maquina_articulada,anilhas,bilateral,dinamico,reps,,por_lado,
 remada-sentada-aberta,Remada Sentada Aberta,Remada Sentada Aberta,,igual,Dorsais,"biceps, deltoide-posterior",remada,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 remada-baixa-barra-aberta,Remada Baixa Barra Aberta,Remada Baixa Barra Aberta,,igual,Dorsais,"biceps, deltoide-posterior",remada,barra,livre,bilateral,dinamico,reps,,total,
@@ -133,8 +133,8 @@ remada-articulada-supinada,Remada Articulada Supinada,Remada Supinada Articulada
 remada-tradicional-maquina-pegada-pronada-alta,Remada Tradicional Máquina (Pegada Pronada Alta),Remada Tradicional (Pegada Pronada Alta) Máquina Seletora,Remada Tradicional Máquina (Pegada Pronada Alta),renomear,Dorsais,"biceps, deltoide-posterior",remada,maquina_seletora,pinos,bilateral,dinamico,reps,Pegada Pronada Alta,total,
 remada-tradicional-maquina-pegada-neutra,Remada Tradicional Máquina (Pegada Neutra),Remada Tradicional (Pegada Neutra) Máquina Seletora,Remada Tradicional Máquina (Pegada Neutra),renomear,Dorsais,"biceps, deltoide-posterior",remada,maquina_seletora,pinos,bilateral,dinamico,reps,Pegada Neutra,total,
 remada-tradicional-maquina-pegada-supinada,Remada Tradicional Máquina (Pegada Supinada),Remada Tradicional (Pegada Supinada) Máquina Seletora,Remada Tradicional Máquina (Pegada Supinada),renomear,Dorsais,"biceps, deltoide-posterior",remada,maquina_seletora,pinos,bilateral,dinamico,reps,Pegada Supinada,total,
-remada-unilateral-serrote,Remada Unilateral (serrote),Remada Unilateral (serrote),,a_confirmar,Dorsais,"biceps, deltoide-posterior",remada,a_confirmar,,unilateral,dinamico,reps,serrote,total,"Remada sem equipamento no nome: halter, polia ou máquina?"
-remada-cavalinho,Remada Cavalinho,Remada Cavalinho,T-Bar Row,a_confirmar,Dorsais,"biceps, deltoide-posterior, lombar",remada,a_confirmar,,bilateral,dinamico,reps,,total,"Remada sem equipamento no nome: barra livre, máquina seletora ou articulada?"
+remada-unilateral-serrote,Remada Unilateral (serrote),Remada Unilateral (serrote) Halter,Remada Unilateral (serrote),renomear,Dorsais,"biceps, deltoide-posterior",remada,halter,livre,unilateral,dinamico,reps,serrote,total,
+remada-cavalinho,Remada Cavalinho,Remada Cavalinho Barra,Remada Cavalinho,renomear,Dorsais,"biceps, deltoide-posterior, lombar",remada,barra,livre,bilateral,dinamico,reps,,total,
 remada-curvada-com-barra,Remada Curvada com Barra,Remada Curvada com Barra,,igual,Dorsais,"biceps, deltoide-posterior, lombar",remada,barra,livre,bilateral,dinamico,reps,,total,
 remada-curvada-fechada,Remada Curvada Fechada,Remada Curvada Fechada Barra,Remada Curvada Fechada,renomear,Dorsais,"biceps, deltoide-posterior, lombar",remada,barra,livre,bilateral,dinamico,reps,,total,
 remada-curvada-no-smith,Remada Curvada no Smith,Remada Curvada Smith,Remada Curvada no Smith,renomear,Dorsais,"biceps, deltoide-posterior, lombar",remada,smith,anilhas,bilateral,dinamico,reps,,total,
@@ -146,14 +146,14 @@ barra-fixa-fechada,Barra Fixa Fechada,Barra Fixa Fechada,,igual,Dorsais,"biceps,
 suspensao-na-barra-isometrica-dead-hang,Suspensão na Barra Isométrica (Dead Hang),Suspensão na Barra Isométrica (Dead Hang),,igual,Dorsais,dorsal,suspensao,peso_do_corpo,corporal,bilateral,isometrico,tempo,Dead Hang,corporal,
 suspensao-ativa-na-barra-isometrica-escapulas,Suspensão Ativa na Barra Isométrica (escápulas),Suspensão Ativa na Barra Isométrica (escápulas),,igual,Dorsais,antebraco,suspensao,peso_do_corpo,corporal,bilateral,isometrico,tempo,escápulas,corporal,
 barra-fixa-isometrica-queixo-acima-da-barra,Barra Fixa Isométrica (queixo acima da barra),Barra Fixa Isométrica (queixo acima da barra),,igual,Dorsais,"antebraco, trapezio",barra_fixa,peso_do_corpo,corporal,bilateral,isometrico,tempo,queixo acima da barra,corporal,
-remada-isometrica,Remada Isométrica,Remada Isométrica,,a_confirmar,Dorsais,"biceps, deltoide-posterior",remada,a_confirmar,,bilateral,isometrico,tempo,,total,"Remada sem equipamento no nome: halter, polia ou máquina?"
+remada-isometrica,Remada Isométrica,Remada Isométrica,,excluido,Dorsais,"biceps, deltoide-posterior",remada,a_confirmar,,bilateral,isometrico,tempo,,total,
 panturrilha-em-pe-maquina,Panturrilha em Pé Máquina,Panturrilha em Pé Máquina Seletora,Panturrilha em Pé Máquina,renomear,Panturrilha,,panturrilha,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 panturrilha-em-pe-no-smith,Panturrilha em Pé no Smith,Panturrilha em Pé Smith,Panturrilha em Pé no Smith,renomear,Panturrilha,,panturrilha,smith,anilhas,bilateral,dinamico,reps,,total,
-panturrilha-em-pe-unilateral,Panturrilha em Pé Unilateral,Panturrilha em Pé Unilateral,,a_confirmar,Panturrilha,,panturrilha,a_confirmar,,unilateral,dinamico,reps,,total,Sem equipamento no nome: qual é?
+panturrilha-em-pe-unilateral,Panturrilha em Pé Unilateral,Panturrilha em Pé Unilateral,,igual,Panturrilha,,panturrilha,peso_do_corpo,corporal,unilateral,dinamico,reps,,corporal,
 panturrilha-leg-press-45,Panturrilha Leg Press 45,Panturrilha Leg Press 45,,igual,Panturrilha,,leg_press,maquina_articulada,anilhas,bilateral,dinamico,reps,,total,
 panturrilha-leg-press-horizontal,Panturrilha Leg Press Horizontal,Panturrilha Leg Press Horizontal,,igual,Panturrilha,,leg_press,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 panturrilha-sentado-maquina,Panturrilha Sentado Máquina,Panturrilha Sentado Máquina Seletora,Panturrilha Sentado Máquina,renomear,Panturrilha,,panturrilha,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
-panturrilha-sentado-unilateral,Panturrilha Sentado Unilateral,Panturrilha Sentado Unilateral,,a_confirmar,Panturrilha,,panturrilha,a_confirmar,,unilateral,dinamico,reps,,total,Sem equipamento no nome: qual é?
+panturrilha-sentado-unilateral,Panturrilha Sentado Unilateral,Panturrilha Sentado Unilateral,,igual,Panturrilha,,panturrilha,maquina_articulada,anilhas,unilateral,dinamico,reps,,total,
 panturrilha-em-pe-isometrica,Panturrilha em Pé Isométrica,Panturrilha em Pé Isométrica,,igual,Panturrilha,,panturrilha,peso_do_corpo,corporal,bilateral,isometrico,tempo,,corporal,
 abdominal-no-solo-peso-acima,Abdominal no Solo Peso Acima,Abdominal no Solo Peso Acima,,igual,Abdome e Lombar,obliquos,abdominal,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,
 abdominal-no-solo-peso-atras-braco-estendido,Abdominal no Solo Peso Atrás (Braço Estendido),Abdominal no Solo Peso Atrás (Braço Estendido),,igual,Abdome e Lombar,obliquos,abdominal,peso_do_corpo,corporal,bilateral,dinamico,reps,Braço Estendido,corporal,
@@ -203,7 +203,7 @@ elevacao-frontal-halter-alternado-com-giro,Elevação Frontal Halter Alternado c
 elevacao-frontal-halter-alternado-com-giro-sentado-a,Elevação Frontal Halter Alternado com Giro (sentado(a)),Elevação Frontal Alternado com Giro (sentado(a)) Halteres,Elevação Frontal Halter Alternado com Giro (sentado(a)),renomear,Ombros,peitoral,elevacao_frontal,halteres,livre,alternado,dinamico,reps,sentado(a,total,
 elevacao-frontal-barra,Elevação Frontal Barra,Elevação Frontal Barra,,igual,Ombros,peitoral,elevacao_frontal,barra,livre,bilateral,dinamico,reps,,total,
 elevacao-lateral-no-cabo,Elevação Lateral no Cabo,Elevação Lateral Polia,Elevação Lateral no Cabo,renomear,Ombros,trapezio,elevacao_lateral,polia,pinos,bilateral,dinamico,reps,,total,
-elevacao-lateral-inclinado,Elevação Lateral Inclinado,Elevação Lateral Inclinado,,a_confirmar,Ombros,trapezio,elevacao_lateral,a_confirmar,,bilateral,dinamico,reps,,total,Sem equipamento no nome: qual é?
+elevacao-lateral-inclinado,Elevação Lateral Inclinado,Elevação Lateral Banco Inclinado Halter,Elevação Lateral Inclinado,renomear,Ombros,trapezio,elevacao_lateral,halter,livre,bilateral,dinamico,reps,,total,
 elevacao-lateral-maquina-sentado-a,Elevação Lateral Máquina Sentado(a),Elevação Lateral Sentado(a) Máquina Seletora,Elevação Lateral Máquina Sentado(a),renomear,Ombros,trapezio,elevacao_lateral,maquina_seletora,pinos,bilateral,dinamico,reps,a,total,
 elevacao-lateral-maquina-em-pe,Elevação Lateral Máquina em pé,Elevação Lateral em pé Máquina Seletora,Elevação Lateral Máquina em pé,renomear,Ombros,trapezio,elevacao_lateral,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 elevacao-frontal-maquina-em-pe,Elevação Frontal Máquina em pé,Elevação Frontal em pé Máquina Seletora,Elevação Frontal Máquina em pé,renomear,Ombros,peitoral,elevacao_frontal,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
@@ -232,7 +232,7 @@ crucifixo-inverso-no-crossover-alto,Crucifixo Inverso no CrossOver Alto,Crucifix
 crucifixo-inverso-no-crossover-medio,Crucifixo Inverso no CrossOver Médio,Crucifixo Inverso Crossover Médio Duas Polias,Crucifixo Inverso no CrossOver Médio,renomear,Ombros,trapezio,crossover,duas_polias,pinos,bilateral,dinamico,reps,,total,
 crucifixo-inverso-no-crossover-baixo,Crucifixo Inverso no CrossOver Baixo,Crucifixo Inverso Crossover Baixo Duas Polias,Crucifixo Inverso no CrossOver Baixo,renomear,Ombros,trapezio,crossover,duas_polias,pinos,bilateral,dinamico,reps,,total,
 crucifixo-inverso-peck-deck,Crucifixo Inverso Peck Deck,Crucifixo Inverso Peck Deck,,igual,Ombros,trapezio,peck_deck,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
-elevacao-lateral-isometrica,Elevação Lateral Isométrica,Elevação Lateral Isométrica,,a_confirmar,Ombros,trapezio,elevacao_lateral,a_confirmar,,bilateral,isometrico,tempo,,total,Sem equipamento no nome: qual é?
+elevacao-lateral-isometrica,Elevação Lateral Isométrica,Elevação Lateral Isométrica Halteres,Elevação Lateral Isométrica,renomear,Ombros,trapezio,elevacao_lateral,halteres,livre,bilateral,isometrico,tempo,,total,
 rosca-punho-barra-reta,Rosca Punho Barra Reta,Rosca Punho Barra Reta,,igual,Antebraço,,rosca_punho,barra,livre,bilateral,dinamico,reps,,total,
 rosca-punho-barra-w,Rosca Punho Barra W,Rosca Punho Barra W,,igual,Antebraço,,rosca_punho,barra_w,livre,bilateral,dinamico,reps,,total,
 rosca-punho-halter,Rosca Punho Halter,Rosca Punho Halteres,Rosca Punho Halter,renomear,Antebraço,,rosca_punho,halteres,livre,bilateral,dinamico,reps,,por_lado,
@@ -273,7 +273,7 @@ rosca-com-giro-halter-simultanea,Rosca com Giro Halter Simultânea,Rosca com Gir
 rosca-com-giro-halter-alternada,Rosca Com Giro Halter Alternada,Rosca Com Giro Alternada Halteres,Rosca Com Giro Halter Alternada,renomear,Bíceps,antebraco,rosca,halteres,livre,alternado,dinamico,reps,,total,
 rosca-martelo-halter,Rosca Martelo Halter,Rosca Martelo Halteres,Rosca Martelo Halter,renomear,Bíceps,,rosca,halteres,livre,bilateral,dinamico,reps,,por_lado,
 rosca-martelo-cabo,Rosca Martelo Cabo,Rosca Martelo Polia,Rosca Martelo Cabo,renomear,Bíceps,,rosca,polia,pinos,bilateral,dinamico,reps,,total,
-rosca-isometrica-a-90o,Rosca Isométrica a 90º,Rosca Isométrica a 90º,,a_confirmar,Bíceps,antebraco,rosca,a_confirmar,,bilateral,isometrico,tempo,,total,Sem equipamento no nome: qual é?
+rosca-isometrica-a-90o,Rosca Isométrica a 90º,Rosca Isométrica a 90º Halteres,Rosca Isométrica a 90º,renomear,Bíceps,antebraco,rosca,halteres,livre,bilateral,isometrico,tempo,,total,
 triceps-pulley-barra-reta,Tríceps Pulley Barra Reta,Tríceps Pulley Barra Reta,,igual,Tríceps,,triceps,polia,pinos,bilateral,dinamico,reps,,total,
 triceps-pulley-barra-v,Tríceps Pulley Barra V,Tríceps Pulley Barra V,,igual,Tríceps,,triceps,polia,pinos,bilateral,dinamico,reps,,total,
 triceps-pulley-corda,Tríceps Pulley Corda,Tríceps Pulley Corda,,igual,Tríceps,,triceps,polia,pinos,bilateral,dinamico,reps,,total,
@@ -291,7 +291,7 @@ triceps-frances-cabo,Tríceps Francês Cabo,Tríceps Francês Polia,Tríceps Fra
 triceps-maquina,Tríceps Máquina,Tríceps Máquina Seletora,Tríceps Máquina,renomear,Tríceps,,triceps,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 triceps-banco,Tríceps Banco,Tríceps Banco,,igual,Tríceps,"peitoral, deltoide-anterior",triceps,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,
 triceps-barra-paralela,Tríceps Barra Paralela,Tríceps Barra Paralela,,igual,Tríceps,"peitoral, deltoide-anterior",triceps,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,
-triceps-coice-apoiado,Tríceps Coice Apoiado,Tríceps Coice Apoiado,,a_confirmar,Tríceps,,triceps,a_confirmar,,bilateral,dinamico,reps,,total,Tríceps coice sem equipamento no nome: halter ou polia?
+triceps-coice-apoiado,Tríceps Coice Apoiado,Tríceps Coice Apoiado Halter,Tríceps Coice Apoiado,renomear,Tríceps,,triceps,halter,livre,bilateral,dinamico,reps,,total,
 triceps-paralela-maquina,Tríceps Paralela Máquina,Tríceps Paralela Máquina Seletora,Tríceps Paralela Máquina,renomear,Tríceps,"peitoral, deltoide-anterior",triceps,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 supino-fechado,Supino Fechado,Supino Fechado Barra,Supino Fechado,renomear,Tríceps,deltoide-anterior,supino,barra,livre,bilateral,dinamico,reps,,total,
 flexao-de-bracos-militar,Flexão de Braços Militar,Flexão de Braços Militar,,igual,Tríceps,"deltoide-anterior, abdomen",flexao_de_bracos,peso_do_corpo,corporal,bilateral,dinamico,reps,,corporal,

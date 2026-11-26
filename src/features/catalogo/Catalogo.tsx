@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { EQUIPAMENTOS, EXERCICIOS, type ConvencaoCarga, type Equipamento, type Lateralidade } from '../../data/catalogo'
+import { EQUIPAMENTOS, EXERCICIOS_ATIVOS, type ConvencaoCarga, type Equipamento, type Lateralidade } from '../../data/catalogo'
 import { apagarProprio, gravarProprio } from '../../lib/acoes'
 import { norm } from '../../lib/busca'
 import { cargaPadrao, GRUPOS, MAX_BASE, nomeDoProprio, validarProprio, type ExercicioProprio } from '../../lib/catalogoProprio'
@@ -130,7 +130,7 @@ export default function Catalogo({ nome }: { nome: string }) {
   const linhas = useMemo<Linha[]>(
     () => [
       ...r.lista.map((p) => ({ id: p.id, nome: p.nome, grupo: p.grupo, equipamento: p.equipamento, proprio: p, ns: [norm(p.nome)] })),
-      ...EXERCICIOS.map((e) => ({
+      ...EXERCICIOS_ATIVOS.map((e) => ({
         id: e.id, nome: e.nome, grupo: e.grupo, equipamento: e.equipamento,
         ...(e.nomeCatalogo !== e.nome ? { antigo: e.nomeCatalogo } : {}),
         ns: [e.nome, e.nomeCatalogo, ...e.apelidos].map(norm),
@@ -156,7 +156,7 @@ export default function Catalogo({ nome }: { nome: string }) {
       <BotaoVoltar para="/videos" />
       <h1 className="mb-1 text-lg font-bold">Catálogo de exercícios</h1>
       <p className="mb-3 text-xs text-slate-400">
-        {EXERCICIOS.length} do catálogo · {r.lista.length} cadastrados por você
+        {EXERCICIOS_ATIVOS.length} do catálogo · {r.lista.length} cadastrados por você
       </p>
       {novo ? (
         <Novo existentes={r.lista} nome={nome} confirmado={!r.cache} fechar={() => setNovo(false)} aviso={setMsg} />

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dataDaNota, msDaNota } from './notas'
+import { dataDaNota, msDaNota, notaDoExercicio } from './notas'
 
 const DIA = 86_400_000
 // 12/11/2026 15:00 em São Paulo
@@ -55,5 +55,23 @@ describe('anotações recebidas do banco', () => {
   it('mantém texto válido e limita ao tamanho do editor', () => {
     expect(textoNota('Banco 3')).toBe('Banco 3')
     expect(textoNota('x'.repeat(10000))).toHaveLength(300)
+  })
+})
+
+describe('notaDoExercicio (nome antigo e novo do catálogo)', () => {
+  const ts = (ms: number) => ({ toMillis: () => ms })
+  it('acha a anotação gravada sob o nome antigo quando o slot usa o nome novo', () => {
+    const n = { exercicios: { 'Rosca Direta Cabo': 'banco 3' }, datas: { 'Rosca Direta Cabo': ts(1000) } }
+    expect(notaDoExercicio(n, 'Rosca Direta Polia')).toEqual({ texto: 'banco 3', em: 1000, outras: ['Rosca Direta Cabo'] })
+  })
+  it('com nota nos dois nomes, vale a mais recente; a do nome do slot não entra em outras', () => {
+    const n = { exercicios: { 'Rosca Direta Cabo': 'velha', 'Rosca Direta Polia': 'nova' }, datas: { 'Rosca Direta Cabo': ts(1000), 'Rosca Direta Polia': ts(2000) } }
+    expect(notaDoExercicio(n, 'Rosca Direta Polia')).toEqual({ texto: 'nova', em: 2000, outras: ['Rosca Direta Cabo'] })
+    expect(notaDoExercicio(n, 'Rosca Direta Cabo').texto).toBe('nova')
+  })
+  it('outro exercício e nota vazia não entram; sem nota: vazio', () => {
+    const n = { exercicios: { 'Rosca Direta Barra': 'x', 'Rosca Direta Polia': '' } }
+    expect(notaDoExercicio(n, 'Rosca Direta Cabo')).toEqual({ texto: '', em: undefined, outras: [] })
+    expect(notaDoExercicio(null, 'Supino')).toEqual({ texto: '', em: undefined, outras: [] })
   })
 })

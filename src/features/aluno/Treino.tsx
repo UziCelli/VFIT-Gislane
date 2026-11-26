@@ -1,5 +1,4 @@
 import './treino.css'
-import { textoNota } from '../../lib/notas'
 import { collection, doc, query, where } from 'firebase/firestore'
 import { AnimatePresence, animate, m, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { contagem, elastico, saida, suave } from '../../movimento'
@@ -33,7 +32,7 @@ import { ehRecorde } from '../../lib/recorde'
 import { cargaAnterior, semanaAtual, type Fonte } from '../../lib/treino'
 import { modelosPorExercicio } from '../../lib/rmPessoal'
 import { cargaVolta, comVolta, semanaDeVolta, travado as travadoAgenda } from '../../lib/agenda'
-import { confirmarExclusao, dataDaNota, msDaNota } from '../../lib/notas'
+import { confirmarExclusao, dataDaNota, notaDoExercicio } from '../../lib/notas'
 import { IcCadeado, IcCheck, IcInfo, IcLapis, IcLixeira, IcMais, IcPausa, IcPlay, IcReiniciar, IcSino, IcSinoMudo, IcVoltar } from '../../icones'
 import { ir, voltar } from '../../rota'
 import { Botao, classesBotao, cascata, Centro, item, Modal, Painel, sobe, useDepoisDaEntrada, useMontou, mexe } from '../../ui'
@@ -212,7 +211,7 @@ function AvisoAdaptado({ chave }: { chave: string }) {
   )
 }
 
-function Nota({ uid, nome, texto, em }: { uid: string; nome: string; texto: string; em?: number }) {
+function Nota({ uid, nome, texto, em, outras }: { uid: string; nome: string; texto: string; em?: number; outras: string[] }) {
   const [editando, setEditando] = useState(false)
   const [rascunho, setRascunho] = useState('')
   const montou = useMontou()
@@ -234,7 +233,7 @@ function Nota({ uid, nome, texto, em }: { uid: string; nome: string; texto: stri
             onClick={() => {
               // sem mudança não regrava (a data continua a de quando foi escrita)
               if (rascunho.trim() !== texto) {
-                salvarNota(uid, nome, rascunho)
+                salvarNota(uid, nome, rascunho, outras)
                 if (rascunho.trim()) avisarCoach('comentou')
               }
               setEditando(false)
@@ -261,7 +260,7 @@ function Nota({ uid, nome, texto, em }: { uid: string; nome: string; texto: stri
         <IcLapis className="size-4 shrink-0 text-slate-500" />
       </button>
       <button
-        onClick={() => confirmarExclusao(nome, texto, data, 'o coach') && salvarNota(uid, nome, '')}
+        onClick={() => confirmarExclusao(nome, texto, data, 'o coach') && salvarNota(uid, nome, '', outras)}
         aria-label={`Excluir anotação de ${nome}`}
         className="-m-1 shrink-0 rounded p-3 text-slate-500 hover:text-red-400"
       >
@@ -529,6 +528,7 @@ type PropsCartao = {
   isoAtivo: number | null // série da isometria cronometrando neste exercício
   notaTexto: string
   notaEm?: number
+  notaOutras: string[]
   fisio: Pick<OrientacaoFisio, 'id' | 'sinalRelatado' | 'metodoId'>[]
   rir: number | null // da última série
   dropsAbertos: Record<string, boolean>
@@ -540,7 +540,7 @@ type PropsCartao = {
 // outros nove. Tudo que aparece na tela vem por prop (comparada por valor); o que só vale no toque vem de `vivo`.
 const CartaoExercicio = memo(function CartaoExercicio({
   e, grupo, colunasCargas, colunasReps, colunasLados, anterior, corpo, auto, pol, discretoPol, edAberto, trocandoPc, travado, volta, coach,
-  meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, fisio, rir, dropsAbertos, pesoKg, vivo,
+  meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, notaOutras, fisio, rir, dropsAbertos, pesoKg, vivo,
 }: PropsCartao) {
   const t = useTextosVoz()
   const slot = e.slot.slotId
@@ -620,7 +620,7 @@ const CartaoExercicio = memo(function CartaoExercicio({
         </div>
       </div>
       {pol && <SeloPolimento mudancas={pol} discreto={discretoPol} />}
-      <Nota key={notaTexto} uid={uid} nome={e.slot.nome.trim()} texto={notaTexto} em={notaEm} />
+      <Nota key={notaTexto} uid={uid} nome={e.slot.nome.trim()} texto={notaTexto} em={notaEm} outras={notaOutras} />
       {iso && <p className="mb-2 text-xs text-slate-400">Tempo em segundos. Cronometre cada série e anote os segundos feitos. Carga opcional.</p>}
       {dois && (
         <div className="mb-2 flex items-center justify-between gap-2">
@@ -1136,8 +1136,9 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
               contagem={descanso.slot === slot ? descanso.contagem : undefined}
               rodando={descanso.slot === slot && descanso.rodando}
               isoAtivo={Number.isInteger(isoCol) ? isoCol : null}
-              notaTexto={textoNota(notas?.exercicios?.[nome])}
-              notaEm={msDaNota(notas?.datas?.[nome])}
+              notaTexto={notaDoExercicio(notas, nome).texto}
+              notaEm={notaDoExercicio(notas, nome).em}
+              notaOutras={notaDoExercicio(notas, nome).outras}
               fisio={an.pausado ? SEM_FISIO : orientacoesDoExercicio(orientacoes, e.slot.nome).map((o) => ({ id: o.id, sinalRelatado: o.sinalRelatado, metodoId: o.metodoId }))}
               rir={rirFeito[chave]?.[slot]?.[e.n - 1] ?? null}
               dropsAbertos={dropsAbertos}

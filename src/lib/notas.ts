@@ -1,3 +1,5 @@
+import { chaveExercicio } from '../data/catalogo'
+
 // Data de uma anotação do aluno ("12/11 · há 2 semanas"), para saber se ela ainda vale.
 const SP = 3 * 3_600_000 // São Paulo, sem horário de verão
 const diaSP = (ms: number) => Math.floor((ms - SP) / 86_400_000)
@@ -36,4 +38,22 @@ export const confirmarExclusao = (exercicio: string, texto: string, data: string
 // Dados externos: nunca renderizar objetos como texto.
 export function textoNota(valor: unknown): string {
   return typeof valor === "string" ? valor.slice(0, 300) : ""
+}
+
+// Anotação do exercício. As notas ficam por nome (notas/{aluno}.exercicios[nome]); o mesmo exercício pode ter
+// nota sob o nome antigo e o novo do catálogo. Vale a mais recente; `outras` são as demais chaves do mesmo
+// exercício, que o próximo salvamento apaga (junta tudo sob o nome atual, sem perder as já gravadas).
+export function notaDoExercicio(
+  notas: { exercicios?: Record<string, unknown>; datas?: Record<string, unknown> } | null | undefined,
+  nome: string,
+  agora = Date.now(),
+): { texto: string; em: number | undefined; outras: string[] } {
+  const alvo = chaveExercicio(nome)
+  const chaves = Object.keys(notas?.exercicios ?? {}).filter((k) => textoNota(notas?.exercicios?.[k]) && chaveExercicio(k) === alvo)
+  if (!chaves.length) return { texto: '', em: undefined, outras: [] }
+  const ms = (k: string) => msDaNota(notas?.datas?.[k], agora) ?? -Infinity
+  // Empate (ou sem data): a chave igual ao nome do slot ganha.
+  const melhor = [...chaves].sort((a, b) => ms(b) - ms(a) || Number(b === nome.trim()) - Number(a === nome.trim()))[0]
+  const em = msDaNota(notas?.datas?.[melhor], agora)
+  return { texto: textoNota(notas?.exercicios?.[melhor]), em, outras: chaves.filter((k) => k !== nome.trim()) }
 }

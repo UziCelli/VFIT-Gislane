@@ -7,12 +7,17 @@ exercícios atuais. Não altera o catálogo nem o app: só produz a tabela para 
 Celli conferir. Regras por palavra do nome; quando a palavra não decide, a
 coluna `duvida` explica e `status` fica `a_confirmar` (nada é chutado).
 
-Uso: python3 tools/catalogo-inventario.py
+Uso: python3 tools/catalogo-inventario.py              (só a tabela)
+     python3 tools/catalogo-inventario.py --atributos  (também cria src/data/atributos.json)
+
+`--atributos` serve só para a primeira geração (etapa 2, #257). Depois disso, src/data/atributos.json
+é a fonte da verdade e é editado direto (ou pelo cadastro manual); não regere por cima.
 """
 
 import csv
 import json
 import re
+import sys
 import unicodedata
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -20,6 +25,7 @@ from pathlib import Path
 RAIZ = Path(__file__).resolve().parent.parent
 DADOS = RAIZ / 'src' / 'data'
 SAIDA = RAIZ / 'docs' / 'catalogo' / 'inventario-atual.csv'
+ATRIBUTOS = DADOS / 'atributos.json'
 
 COLUNAS = [
     'id', 'nome_atual', 'nome_proposto', 'aliases', 'status', 'grupo', 'grupos_secundarios', 'movimento_base',
@@ -265,9 +271,40 @@ def main() -> None:
         w.writeheader()
         w.writerows(linhas)
 
+    if '--atributos' in sys.argv:
+        gerar_atributos(linhas)
+
     print(f'{len(linhas)} exercícios → {SAIDA.relative_to(RAIZ)}')
     print('status:', dict(Counter(l['status'] for l in linhas)))
     print('equipamento:', dict(Counter(l['equipamento'] for l in linhas).most_common()))
+
+
+def gerar_atributos(linhas: list[dict]) -> None:
+    """Atributos por id. O nome exibido sai de `base` + rótulo do equipamento (quando `sufixo`)."""
+    saida = {}
+    for l in linhas:
+        equip = None if l['equipamento'] == 'a_confirmar' else l['equipamento']
+        rotulo = ROTULO.get(equip or '', '')
+        proposto = l['nome_proposto']
+        sufixo = bool(rotulo) and proposto.endswith(' ' + rotulo)
+        base = proposto[: -len(rotulo) - 1] if sufixo else proposto
+        item = {
+            'base': base,
+            'sufixo': sufixo,
+            'equipamento': equip,
+            'mecanismo': l['mecanismo_carga'] or None,
+            'lateralidade': l['lateralidade'],
+            'modo': l['modo'].split(';'),
+            'unidade': l['unidade'],
+            'carga': l['convencao_carga'],
+            'movimento': l['movimento_base'] or None,
+            'apelidos': [a for a in l['aliases'].split('; ') if a],
+        }
+        if l['status'] == 'a_confirmar':
+            item['aConfirmar'] = l['duvida'] or 'Equipamento a confirmar.'
+        saida[l['id']] = item
+    ATRIBUTOS.write_text(json.dumps(saida, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    print(f'{len(saida)} atributos → {ATRIBUTOS.relative_to(RAIZ)}')
 
 
 if __name__ == '__main__':

@@ -1,0 +1,5306 @@
+{
+ "agachamento-livre-barra": {
+  "base": "Agachamento Livre",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-livre-halter": {
+  "base": "Agachamento Livre",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-frontal-barra": {
+  "base": "Agachamento Frontal",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-frontal-halter": {
+  "base": "Agachamento Frontal",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "agachamento",
+  "apelidos": [
+   "Agachamento Frontal Halter"
+  ]
+ },
+ "agachamento-sumo-barra": {
+  "base": "Agachamento Sumô",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-sumo-cinto": {
+  "base": "Agachamento Sumô Cinto",
+  "sufixo": false,
+  "equipamento": "outro",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": [],
+  "aConfirmar": "Cinto de carga (fica em \"outro\")."
+ },
+ "agachamento-livre-banco": {
+  "base": "Agachamento Livre Banco",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-halter-banco": {
+  "base": "Agachamento Banco",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": [
+   "Agachamento Halter Banco"
+  ],
+  "aConfirmar": "Confirmar: 1 halter (goblet/segurado no peito)?"
+ },
+ "agachamento-com-peso-do-corpo": {
+  "base": "Agachamento com Peso do Corpo",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-no-smith": {
+  "base": "Agachamento",
+  "sufixo": true,
+  "equipamento": "smith",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": [
+   "Agachamento no Smith"
+  ]
+ },
+ "agachamento-hack-35o": {
+  "base": "Agachamento Hack 35º",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-hack-45o": {
+  "base": "Agachamento Hack 45º",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-mini-hack-45o": {
+  "base": "Agachamento Mini-Hack 45º",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-v-squat": {
+  "base": "Agachamento V Squat",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-maquina": {
+  "base": "Agachamento",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "agachamento",
+  "apelidos": [
+   "Agachamento Máquina"
+  ]
+ },
+ "leg-press-45": {
+  "base": "Leg Press 45",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "leg_press",
+  "apelidos": []
+ },
+ "leg-press-horizontal": {
+  "base": "Leg Press Horizontal",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "leg_press",
+  "apelidos": []
+ },
+ "leg-press-pendulo": {
+  "base": "Leg Press Pêndulo",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "leg_press",
+  "apelidos": []
+ },
+ "terra-romeno-barra": {
+  "base": "Terra Romeno",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "terra",
+  "apelidos": []
+ },
+ "terra-romeno-halter": {
+  "base": "Terra Romeno",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "terra",
+  "apelidos": [
+   "Terra Romeno Halter"
+  ]
+ },
+ "terra-barra-hexagonal": {
+  "base": "Terra",
+  "sufixo": true,
+  "equipamento": "barra_hexagonal",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "terra",
+  "apelidos": []
+ },
+ "terra-barra-reta": {
+  "base": "Terra Barra Reta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "terra",
+  "apelidos": []
+ },
+ "terra-sumo-com-barra": {
+  "base": "Terra Sumô com",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "terra",
+  "apelidos": []
+ },
+ "terra-sumo-com-halter": {
+  "base": "Terra Sumô",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "terra",
+  "apelidos": [
+   "Terra Sumô com Halter"
+  ]
+ },
+ "cadeira-extensora-tradicional": {
+  "base": "Cadeira Extensora Tradicional",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_extensora",
+  "apelidos": []
+ },
+ "cadeira-extensora-amplitude-parcial": {
+  "base": "Cadeira Extensora (amplitude parcial)",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_extensora",
+  "apelidos": []
+ },
+ "cadeira-extensora-unilateral": {
+  "base": "Cadeira Extensora Unilateral",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_extensora",
+  "apelidos": []
+ },
+ "cadeira-extensora-articulada-peso-acima": {
+  "base": "Cadeira Extensora (Peso Acima)",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "cadeira_extensora",
+  "apelidos": [
+   "Cadeira Extensora Articulada (Peso Acima)"
+  ]
+ },
+ "cadeira-extensora-articulada-peso-abaixo": {
+  "base": "Cadeira Extensora (Peso Abaixo)",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "cadeira_extensora",
+  "apelidos": [
+   "Cadeira Extensora Articulada (Peso Abaixo)"
+  ]
+ },
+ "passada": {
+  "base": "Passada",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "alternado",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "passada",
+  "apelidos": []
+ },
+ "step-up-no-step": {
+  "base": "Step Up no Step",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "step_up",
+  "apelidos": []
+ },
+ "step-up-na-caixa": {
+  "base": "Step Up na Caixa",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "step_up",
+  "apelidos": []
+ },
+ "afundo-barra": {
+  "base": "Afundo",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "afundo",
+  "apelidos": []
+ },
+ "afundo-halter": {
+  "base": "Afundo",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "afundo",
+  "apelidos": []
+ },
+ "avanco-barra": {
+  "base": "Avanço",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "avanco",
+  "apelidos": []
+ },
+ "avanco-halter": {
+  "base": "Avanço",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "avanco",
+  "apelidos": []
+ },
+ "retrocesso-barra": {
+  "base": "Recuo",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "retrocesso",
+  "apelidos": [
+   "Retrocesso Barra"
+  ]
+ },
+ "retrocesso-halter": {
+  "base": "Recuo",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "retrocesso",
+  "apelidos": [
+   "Retrocesso Halter"
+  ]
+ },
+ "elevacao-pelvica-maquina-tradicional": {
+  "base": "Elevação Pélvica Tradicional",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_pelvica",
+  "apelidos": [
+   "Elevação Pélvica Máquina Tradicional"
+  ]
+ },
+ "elevacao-pelvica-maquina-articulada": {
+  "base": "Elevação Pélvica",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_pelvica",
+  "apelidos": [
+   "Elevação Pélvica Máquina Articulada"
+  ]
+ },
+ "elevacao-pelvica-maquina-guiada": {
+  "base": "Elevação Pélvica Guiada",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_pelvica",
+  "apelidos": [
+   "Elevação Pélvica Máquina Guiada"
+  ],
+  "aConfirmar": "Máquina \"guiada\": seletora (pinos) ou com anilhas? Confirmar."
+ },
+ "elevacao-pelvica-halter-unilateral": {
+  "base": "Elevação Pélvica Unilateral",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_pelvica",
+  "apelidos": [
+   "Elevação Pélvica Halter Unilateral"
+  ]
+ },
+ "elevacao-pelvica-halter": {
+  "base": "Elevação Pélvica",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_pelvica",
+  "apelidos": []
+ },
+ "elevacao-pelvica-barra": {
+  "base": "Elevação Pélvica",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_pelvica",
+  "apelidos": []
+ },
+ "gluteo-coice-maquina": {
+  "base": "Glúteo Coice",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "gluteo",
+  "apelidos": [
+   "Glúteo Coice Máquina"
+  ]
+ },
+ "gluteo-coice-na-polia": {
+  "base": "Glúteo Coice",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "gluteo",
+  "apelidos": [
+   "Glúteo Coice na Polia"
+  ]
+ },
+ "gluteo-4-apoios-com-caneleira": {
+  "base": "Glúteo 4 apoios com",
+  "sufixo": true,
+  "equipamento": "caneleira",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "gluteo",
+  "apelidos": []
+ },
+ "gluteo-4-apoios-na-polia-com-banco": {
+  "base": "Glúteo 4 apoios (com banco)",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "gluteo",
+  "apelidos": [
+   "Glúteo 4 apoios na Polia (com banco)"
+  ]
+ },
+ "bulgaro-com-halter": {
+  "base": "Búlgaro",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "bulgaro",
+  "apelidos": [
+   "Búlgaro com Halter"
+  ]
+ },
+ "agachamento-isometrico-na-parede-cadeirinha": {
+  "base": "Agachamento Isométrico na Parede (cadeirinha)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "agachamento-isometrico-livre": {
+  "base": "Agachamento Isométrico Livre",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "agachamento",
+  "apelidos": []
+ },
+ "afundo-isometrico": {
+  "base": "Afundo Isométrico",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "afundo",
+  "apelidos": []
+ },
+ "bulgaro-isometrico": {
+  "base": "Búlgaro Isométrico",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "bulgaro",
+  "apelidos": []
+ },
+ "elevacao-pelvica-isometrica": {
+  "base": "Elevação Pélvica Isométrica",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "elevacao_pelvica",
+  "apelidos": []
+ },
+ "elevacao-pelvica-unilateral-isometrica": {
+  "base": "Elevação Pélvica Unilateral Isométrica",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "elevacao_pelvica",
+  "apelidos": []
+ },
+ "cadeira-extensora-isometrica": {
+  "base": "Cadeira Extensora Isométrica",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "cadeira_extensora",
+  "apelidos": []
+ },
+ "stiff-barra": {
+  "base": "Stiff",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "stiff",
+  "apelidos": []
+ },
+ "stiff-halter": {
+  "base": "Stiff",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "stiff",
+  "apelidos": [
+   "Stiff Halter"
+  ]
+ },
+ "stiff-unilateral-barra": {
+  "base": "Stiff Unilateral",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "stiff",
+  "apelidos": []
+ },
+ "stiff-unilateral-halter": {
+  "base": "Stiff Unilateral",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "stiff",
+  "apelidos": []
+ },
+ "stiff-banco-romano": {
+  "base": "Stiff Banco Romano",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "stiff",
+  "apelidos": []
+ },
+ "stiff-smith": {
+  "base": "Stiff",
+  "sufixo": true,
+  "equipamento": "smith",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "stiff",
+  "apelidos": []
+ },
+ "stiff-no-smith-com-halter": {
+  "base": "Stiff no Smith com Halter",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "stiff",
+  "apelidos": [],
+  "aConfirmar": "Smith com halter: qual equipamento define a carga anotada?"
+ },
+ "mesa-flexora": {
+  "base": "Mesa Flexora",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "mesa_flexora",
+  "apelidos": []
+ },
+ "flexora-vertical": {
+  "base": "Flexora Vertical",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexora",
+  "apelidos": []
+ },
+ "cadeira-flexora": {
+  "base": "Cadeira Flexora",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_flexora",
+  "apelidos": []
+ },
+ "cadeira-flexora-corpo-a-frente": {
+  "base": "Cadeira Flexora (Corpo à Frente)",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_flexora",
+  "apelidos": []
+ },
+ "flexao-nordica-maquina": {
+  "base": "Flexão Nórdica",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico",
+   "excentrico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_nordica",
+  "apelidos": [
+   "Flexão Nórdica Máquina"
+  ]
+ },
+ "flexao-nordica-no-espaldar": {
+  "base": "Flexão Nórdica no Espaldar",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico",
+   "excentrico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "flexao_nordica",
+  "apelidos": []
+ },
+ "flexao-nordica-no-espaldar-com-elastico": {
+  "base": "Flexão Nórdica no Espaldar (com Elástico)",
+  "sufixo": false,
+  "equipamento": "elastico",
+  "mecanismo": "elastico",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico",
+   "excentrico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_nordica",
+  "apelidos": []
+ },
+ "flexao-de-joelhos-deitado-a-com-halter": {
+  "base": "Flexão de Joelhos deitado(a)",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_de_joelhos",
+  "apelidos": [
+   "Flexão de Joelhos deitado(a) com Halter"
+  ]
+ },
+ "flexao-de-joelhos-em-pe-com-caneleira": {
+  "base": "Flexão de Joelhos em pé com",
+  "sufixo": true,
+  "equipamento": "caneleira",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_de_joelhos",
+  "apelidos": []
+ },
+ "flexao-de-joelhos-deitado-a-com-elastico": {
+  "base": "Flexão de Joelhos deitado(a) com",
+  "sufixo": true,
+  "equipamento": "elastico",
+  "mecanismo": "elastico",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_de_joelhos",
+  "apelidos": []
+ },
+ "flexao-de-joelhos-em-pe-com-elastico": {
+  "base": "Flexão de Joelhos em pé com",
+  "sufixo": true,
+  "equipamento": "elastico",
+  "mecanismo": "elastico",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_de_joelhos",
+  "apelidos": []
+ },
+ "mesa-flexora-isometrica": {
+  "base": "Mesa Flexora Isométrica",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "mesa_flexora",
+  "apelidos": []
+ },
+ "ponte-de-posteriores-isometrica-calcanhar-no-banco": {
+  "base": "Ponte de Posteriores Isométrica (calcanhar no banco)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": null,
+  "apelidos": []
+ },
+ "cadeira-abdutora": {
+  "base": "Cadeira Abdutora",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_abdutora",
+  "apelidos": []
+ },
+ "cadeira-abdutora-em-pe": {
+  "base": "Cadeira Abdutora (em pé)",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_abdutora",
+  "apelidos": []
+ },
+ "cadeira-adutora": {
+  "base": "Cadeira Adutora",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "cadeira_adutora",
+  "apelidos": []
+ },
+ "abducao-cabo": {
+  "base": "Abdução",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abducao",
+  "apelidos": [
+   "Abdução Cabo"
+  ]
+ },
+ "aducao-cabo": {
+  "base": "Adução",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "aducao",
+  "apelidos": [
+   "Adução Cabo"
+  ]
+ },
+ "monster-walk-elastico-meio-da-coxa": {
+  "base": "Monster Walk Elástico Meio da Coxa",
+  "sufixo": false,
+  "equipamento": "elastico",
+  "mecanismo": "elastico",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "monster_walk",
+  "apelidos": []
+ },
+ "monster-walk-elastico-meio-tornozelo": {
+  "base": "Monster Walk Elástico Meio Tornozelo",
+  "sufixo": false,
+  "equipamento": "elastico",
+  "mecanismo": "elastico",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "monster_walk",
+  "apelidos": []
+ },
+ "monster-walk-elastico-no-pe": {
+  "base": "Monster Walk Elástico no Pé",
+  "sufixo": false,
+  "equipamento": "elastico",
+  "mecanismo": "elastico",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "monster_walk",
+  "apelidos": []
+ },
+ "prancha-copenhagen-isometrica": {
+  "base": "Prancha Copenhagen Isométrica",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "prancha",
+  "apelidos": []
+ },
+ "aducao-isometrica-com-bola": {
+  "base": "Adução Isométrica com Bola",
+  "sufixo": false,
+  "equipamento": "outro",
+  "mecanismo": "nenhum",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "aducao",
+  "apelidos": [],
+  "aConfirmar": "Bola de adução (fica em \"outro\")."
+ },
+ "supino-reto-barra": {
+  "base": "Supino Reto",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": []
+ },
+ "supino-reto-halter": {
+  "base": "Supino Reto",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Reto Halter"
+  ]
+ },
+ "supino-inclinado-barra": {
+  "base": "Supino Inclinado",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": []
+ },
+ "supino-inclinado-halter": {
+  "base": "Supino Inclinado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Inclinado Halter"
+  ]
+ },
+ "supino-declinado-barra": {
+  "base": "Supino Declinado",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": []
+ },
+ "supino-declinado-halter": {
+  "base": "Supino Declinado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Declinado Halter"
+  ]
+ },
+ "supino-reto-maquina": {
+  "base": "Supino Reto",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Reto Máquina"
+  ]
+ },
+ "supino-inclinado-maquina": {
+  "base": "Supino Inclinado",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Inclinado Máquina"
+  ]
+ },
+ "supino-declinado-maquina": {
+  "base": "Supino Declinado",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Declinado Máquina"
+  ]
+ },
+ "supino-reto-smith-dual": {
+  "base": "Supino Reto",
+  "sufixo": true,
+  "equipamento": "smith_dual",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": []
+ },
+ "supino-inclinado-smith-dual": {
+  "base": "Supino Inclinado",
+  "sufixo": true,
+  "equipamento": "smith_dual",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": []
+ },
+ "supino-declinado-smith-dual": {
+  "base": "Supino Declinado",
+  "sufixo": true,
+  "equipamento": "smith_dual",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": []
+ },
+ "pull-over-halter": {
+  "base": "Pull Over",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "pull_over",
+  "apelidos": []
+ },
+ "pull-over-barra": {
+  "base": "Pull Over",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "pull_over",
+  "apelidos": []
+ },
+ "pull-over-cabo": {
+  "base": "Pulldown",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "pulldown",
+  "apelidos": [
+   "Pull Over Cabo"
+  ]
+ },
+ "peck-deck": {
+  "base": "Peck Deck",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "peck_deck",
+  "apelidos": []
+ },
+ "peck-deck-articulado": {
+  "base": "Peck Deck",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "peck_deck",
+  "apelidos": []
+ },
+ "crossover-no-cabo": {
+  "base": "Crossover",
+  "sufixo": true,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": [
+   "Crossover no Cabo"
+  ]
+ },
+ "crucifixo-reto-halter": {
+  "base": "Crucifixo Reto",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "crucifixo",
+  "apelidos": [
+   "Crucifixo Reto Halter"
+  ]
+ },
+ "crucifixo-inclinado-halter": {
+  "base": "Crucifixo Inclinado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "crucifixo",
+  "apelidos": [
+   "Crucifixo Inclinado Halter"
+  ]
+ },
+ "crucifixo-declinado-halter": {
+  "base": "Crucifixo Declinado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "crucifixo",
+  "apelidos": [
+   "Crucifixo Declinado Halter"
+  ]
+ },
+ "crucifixo-crossover": {
+  "base": "Crucifixo Crossover",
+  "sufixo": true,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": [
+   "Crucifixo CrossOver"
+  ]
+ },
+ "crucifixo-inclinado-crossover": {
+  "base": "Crucifixo Inclinado Crossover",
+  "sufixo": true,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": [
+   "Crucifixo Inclinado CrossOver"
+  ]
+ },
+ "flexao-de-bracos": {
+  "base": "Flexão de Braços",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "flexao_de_bracos",
+  "apelidos": []
+ },
+ "flexao-de-bracos-isometrica-meio-do-movimento": {
+  "base": "Flexão de Braços Isométrica (meio do movimento)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "flexao_de_bracos",
+  "apelidos": []
+ },
+ "puxada-frente-aberta": {
+  "base": "Puxada Frente Aberta",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "puxada",
+  "apelidos": []
+ },
+ "puxada-fechado-triangulo": {
+  "base": "Puxada Fechado Triângulo",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "puxada",
+  "apelidos": []
+ },
+ "puxada-frente-neutra": {
+  "base": "Puxada Frente Neutra",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "puxada",
+  "apelidos": []
+ },
+ "puxada-frente-supinada": {
+  "base": "Puxada Frente Supinada",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "puxada",
+  "apelidos": []
+ },
+ "puxada-articulada-supinada": {
+  "base": "Puxada Supinada",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "puxada",
+  "apelidos": [
+   "Puxada Articulada Supinada"
+  ]
+ },
+ "puxada-aberta-maquina": {
+  "base": "Puxada Aberta",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "puxada",
+  "apelidos": [
+   "Puxada Aberta Máquina"
+  ]
+ },
+ "puxada-articulada-peso-acima": {
+  "base": "Puxada (Peso Acima)",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "puxada",
+  "apelidos": [
+   "Puxada Articulada (Peso Acima)"
+  ]
+ },
+ "puxada-articulada-peso-abaixo": {
+  "base": "Puxada (Peso Abaixo)",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "puxada",
+  "apelidos": [
+   "Puxada Articulada (Peso Abaixo)"
+  ]
+ },
+ "puxada-articulada-cross": {
+  "base": "Puxada Cross",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "puxada",
+  "apelidos": [
+   "Puxada Articulada Cross"
+  ]
+ },
+ "remada-linear-45o-guiada": {
+  "base": "Remada Linear 45º Guiada",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [],
+  "aConfirmar": "Máquina \"guiada\": seletora (pinos) ou com anilhas? Confirmar."
+ },
+ "remada-alta-articulada-pronada": {
+  "base": "Remada Alta Pronada",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "remada_alta",
+  "apelidos": [
+   "Remada Alta Articulada Pronada"
+  ]
+ },
+ "remada-sentada-aberta": {
+  "base": "Remada Sentada Aberta",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-baixa-barra-aberta": {
+  "base": "Remada Baixa Barra Aberta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-baixa-com-triangulo": {
+  "base": "Remada Baixa com Triângulo",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-baixa-barra-neutra": {
+  "base": "Remada Baixa Barra Neutra",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-articulada-tradicional-aberta": {
+  "base": "Remada Tradicional Aberta",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Articulada Tradicional Aberta"
+  ]
+ },
+ "remada-articulada-tradicional-fechada": {
+  "base": "Remada Tradicional Fechada",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Articulada Tradicional Fechada"
+  ]
+ },
+ "remada-baixa-articulada-fechada": {
+  "base": "Remada Baixa Fechada",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Baixa Articulada Fechada"
+  ]
+ },
+ "remada-baixa-articulada-aberta": {
+  "base": "Remada Baixa Aberta",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Baixa Articulada Aberta"
+  ]
+ },
+ "remada-articulada-supinada": {
+  "base": "Remada Supinada",
+  "sufixo": true,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Articulada Supinada"
+  ]
+ },
+ "remada-tradicional-maquina-pegada-pronada-alta": {
+  "base": "Remada Tradicional (Pegada Pronada Alta)",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Tradicional Máquina (Pegada Pronada Alta)"
+  ]
+ },
+ "remada-tradicional-maquina-pegada-neutra": {
+  "base": "Remada Tradicional (Pegada Neutra)",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Tradicional Máquina (Pegada Neutra)"
+  ]
+ },
+ "remada-tradicional-maquina-pegada-supinada": {
+  "base": "Remada Tradicional (Pegada Supinada)",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Tradicional Máquina (Pegada Supinada)"
+  ]
+ },
+ "remada-unilateral-serrote": {
+  "base": "Remada Unilateral (serrote)",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [],
+  "aConfirmar": "Remada sem equipamento no nome: halter, polia ou máquina?"
+ },
+ "remada-cavalinho": {
+  "base": "Remada Cavalinho",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [
+   "T-Bar Row"
+  ],
+  "aConfirmar": "Remada sem equipamento no nome: barra livre, máquina seletora ou articulada?"
+ },
+ "remada-curvada-com-barra": {
+  "base": "Remada Curvada com",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-curvada-fechada": {
+  "base": "Remada Curvada Fechada",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-curvada-no-smith": {
+  "base": "Remada Curvada",
+  "sufixo": true,
+  "equipamento": "smith",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [
+   "Remada Curvada no Smith"
+  ]
+ },
+ "remada-curvada-pronada": {
+  "base": "Remada Curvada Pronada",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "remada-curvada-supinada": {
+  "base": "Remada Curvada Supinada",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "remada",
+  "apelidos": []
+ },
+ "barra-fixa-aberta": {
+  "base": "Barra Fixa Aberta",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "barra_fixa",
+  "apelidos": []
+ },
+ "barra-fixa-supinada": {
+  "base": "Barra Fixa Supinada",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "barra_fixa",
+  "apelidos": []
+ },
+ "barra-fixa-fechada": {
+  "base": "Barra Fixa Fechada",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "barra_fixa",
+  "apelidos": []
+ },
+ "suspensao-na-barra-isometrica-dead-hang": {
+  "base": "Suspensão na Barra Isométrica (Dead Hang)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "suspensao",
+  "apelidos": []
+ },
+ "suspensao-ativa-na-barra-isometrica-escapulas": {
+  "base": "Suspensão Ativa na Barra Isométrica (escápulas)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "suspensao",
+  "apelidos": []
+ },
+ "barra-fixa-isometrica-queixo-acima-da-barra": {
+  "base": "Barra Fixa Isométrica (queixo acima da barra)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "barra_fixa",
+  "apelidos": []
+ },
+ "remada-isometrica": {
+  "base": "Remada Isométrica",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "remada",
+  "apelidos": [],
+  "aConfirmar": "Remada sem equipamento no nome: halter, polia ou máquina?"
+ },
+ "panturrilha-em-pe-maquina": {
+  "base": "Panturrilha em Pé",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "panturrilha",
+  "apelidos": [
+   "Panturrilha em Pé Máquina"
+  ]
+ },
+ "panturrilha-em-pe-no-smith": {
+  "base": "Panturrilha em Pé",
+  "sufixo": true,
+  "equipamento": "smith",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "panturrilha",
+  "apelidos": [
+   "Panturrilha em Pé no Smith"
+  ]
+ },
+ "panturrilha-em-pe-unilateral": {
+  "base": "Panturrilha em Pé Unilateral",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "panturrilha",
+  "apelidos": [],
+  "aConfirmar": "Sem equipamento no nome: qual é?"
+ },
+ "panturrilha-leg-press-45": {
+  "base": "Panturrilha Leg Press 45",
+  "sufixo": false,
+  "equipamento": "maquina_articulada",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "leg_press",
+  "apelidos": []
+ },
+ "panturrilha-leg-press-horizontal": {
+  "base": "Panturrilha Leg Press Horizontal",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "leg_press",
+  "apelidos": []
+ },
+ "panturrilha-sentado-maquina": {
+  "base": "Panturrilha Sentado",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "panturrilha",
+  "apelidos": [
+   "Panturrilha Sentado Máquina"
+  ]
+ },
+ "panturrilha-sentado-unilateral": {
+  "base": "Panturrilha Sentado Unilateral",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "panturrilha",
+  "apelidos": [],
+  "aConfirmar": "Sem equipamento no nome: qual é?"
+ },
+ "panturrilha-em-pe-isometrica": {
+  "base": "Panturrilha em Pé Isométrica",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "panturrilha",
+  "apelidos": []
+ },
+ "abdominal-no-solo-peso-acima": {
+  "base": "Abdominal no Solo Peso Acima",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-no-solo-peso-atras-braco-estendido": {
+  "base": "Abdominal no Solo Peso Atrás (Braço Estendido)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-declinado-peso-acima": {
+  "base": "Abdominal Declinado Peso Acima",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-declinado-peso-atras": {
+  "base": "Abdominal Declinado Peso Atrás",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-no-cabo-em-pe": {
+  "base": "Abdominal (em Pé)",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": [
+   "Abdominal no Cabo (em Pé)"
+  ]
+ },
+ "abdominal-no-cabo-ajoelhado": {
+  "base": "Abdominal (Ajoelhado)",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": [
+   "Abdominal no Cabo (Ajoelhado)"
+  ]
+ },
+ "abdominal-paralela": {
+  "base": "Abdominal Paralela",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-paralela-completo": {
+  "base": "Abdominal Paralela completo",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-paralela-caneleira": {
+  "base": "Abdominal Paralela",
+  "sufixo": true,
+  "equipamento": "caneleira",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-paralela-completo-caneleira": {
+  "base": "Abdominal Paralela completo",
+  "sufixo": true,
+  "equipamento": "caneleira",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-maquina-multiarticular": {
+  "base": "Abdominal Multiarticular",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": [
+   "Abdominal Máquina Multiarticular"
+  ]
+ },
+ "abdominal-maquina-crunch": {
+  "base": "Abdominal Crunch",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": [
+   "Abdominal Máquina Crunch"
+  ]
+ },
+ "abdominal-maquina-com-alcas": {
+  "base": "Abdominal com Alças",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": [
+   "Abdominal Máquina com Alças"
+  ]
+ },
+ "abdominal-infra-no-solo": {
+  "base": "Abdominal Infra no Solo",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-infra-no-solo-completo": {
+  "base": "Abdominal Infra no Solo Completo",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-tesoura": {
+  "base": "Abdominal Tesoura",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-recolhimento": {
+  "base": "Abdominal Recolhimento",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-recolhimento-lateral": {
+  "base": "Abdominal Recolhimento Lateral",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-obliquo-polia-baixa": {
+  "base": "Abdominal Oblíquo (Polia Baixa)",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-obliquo-halter": {
+  "base": "Abdominal Oblíquo",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "abdominal-obliquo-anilha": {
+  "base": "Abdominal Oblíquo",
+  "sufixo": true,
+  "equipamento": "anilha",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "lombar-banco-romano": {
+  "base": "Lombar Banco Romano",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "lombar",
+  "apelidos": []
+ },
+ "lombar-maquina": {
+  "base": "Lombar",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "lombar",
+  "apelidos": [
+   "Lombar Máquina"
+  ]
+ },
+ "superman": {
+  "base": "Superman",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "superman",
+  "apelidos": []
+ },
+ "perdigueiro-alternado": {
+  "base": "Perdigueiro Alternado",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "alternado",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "perdigueiro",
+  "apelidos": []
+ },
+ "perdigueiro-unilateral": {
+  "base": "Perdigueiro Unilateral",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "perdigueiro",
+  "apelidos": []
+ },
+ "prancha-frontal-isometrica-cotovelos": {
+  "base": "Prancha Frontal Isométrica (cotovelos)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "prancha",
+  "apelidos": []
+ },
+ "prancha-frontal-isometrica-maos": {
+  "base": "Prancha Frontal Isométrica (mãos)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "prancha",
+  "apelidos": []
+ },
+ "prancha-lateral-isometrica": {
+  "base": "Prancha Lateral Isométrica",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "prancha",
+  "apelidos": []
+ },
+ "prancha-invertida-isometrica": {
+  "base": "Prancha Invertida Isométrica",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "prancha",
+  "apelidos": []
+ },
+ "canoa-isometrica-hollow-hold": {
+  "base": "Canoa Isométrica (Hollow Hold)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "canoa",
+  "apelidos": []
+ },
+ "superman-isometrico": {
+  "base": "Superman Isométrico",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "superman",
+  "apelidos": []
+ },
+ "perdigueiro-isometrico": {
+  "base": "Perdigueiro Isométrico",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "perdigueiro",
+  "apelidos": []
+ },
+ "pallof-press-isometrico-na-polia": {
+  "base": "Pallof Press Isométrico",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "pallof",
+  "apelidos": [
+   "Pallof Press Isométrico na Polia"
+  ]
+ },
+ "abdominal-em-l-isometrico-l-sit": {
+  "base": "Abdominal em L Isométrico (L-sit)",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "abdominal",
+  "apelidos": []
+ },
+ "dead-bug-isometrico": {
+  "base": "Dead Bug Isométrico",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "corporal",
+  "movimento": "dead_bug",
+  "apelidos": []
+ },
+ "elevacao-lateral-halter": {
+  "base": "Elevação Lateral",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_lateral",
+  "apelidos": [
+   "Elevação Lateral Halter"
+  ]
+ },
+ "elevacao-lateral-halter-sentado-a": {
+  "base": "Elevação Lateral (sentado(a))",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_lateral",
+  "apelidos": [
+   "Elevação Lateral Halter (sentado(a))"
+  ]
+ },
+ "elevacao-diagonal-halter": {
+  "base": "Elevação Diagonal",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_diagonal",
+  "apelidos": [
+   "Elevação Diagonal Halter"
+  ]
+ },
+ "elevacao-diagonal-halter-sentado-a": {
+  "base": "Elevação Diagonal (sentado(a))",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_diagonal",
+  "apelidos": [
+   "Elevação Diagonal Halter (sentado(a))"
+  ]
+ },
+ "elevacao-frontal-halter": {
+  "base": "Elevação Frontal",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Halter"
+  ]
+ },
+ "elevacao-frontal-halter-sentado-a": {
+  "base": "Elevação Frontal (sentado(a))",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Halter (sentado(a))"
+  ]
+ },
+ "elevacao-frontal-halter-alternado": {
+  "base": "Elevação Frontal Alternado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "alternado",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Halter Alternado"
+  ]
+ },
+ "elevacao-frontal-halter-com-giro": {
+  "base": "Elevação Frontal com Giro",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Halter com Giro"
+  ]
+ },
+ "elevacao-frontal-halter-alternado-com-giro": {
+  "base": "Elevação Frontal Alternado com Giro",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "alternado",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Halter Alternado com Giro"
+  ]
+ },
+ "elevacao-frontal-halter-alternado-com-giro-sentado-a": {
+  "base": "Elevação Frontal Alternado com Giro (sentado(a))",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "alternado",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Halter Alternado com Giro (sentado(a))"
+  ]
+ },
+ "elevacao-frontal-barra": {
+  "base": "Elevação Frontal",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_frontal",
+  "apelidos": []
+ },
+ "elevacao-lateral-no-cabo": {
+  "base": "Elevação Lateral",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_lateral",
+  "apelidos": [
+   "Elevação Lateral no Cabo"
+  ]
+ },
+ "elevacao-lateral-inclinado": {
+  "base": "Elevação Lateral Inclinado",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_lateral",
+  "apelidos": [],
+  "aConfirmar": "Sem equipamento no nome: qual é?"
+ },
+ "elevacao-lateral-maquina-sentado-a": {
+  "base": "Elevação Lateral Sentado(a)",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_lateral",
+  "apelidos": [
+   "Elevação Lateral Máquina Sentado(a)"
+  ]
+ },
+ "elevacao-lateral-maquina-em-pe": {
+  "base": "Elevação Lateral em pé",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_lateral",
+  "apelidos": [
+   "Elevação Lateral Máquina em pé"
+  ]
+ },
+ "elevacao-frontal-maquina-em-pe": {
+  "base": "Elevação Frontal em pé",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal Máquina em pé"
+  ]
+ },
+ "elevacao-frontal-no-cabo": {
+  "base": "Elevação Frontal",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "elevacao_frontal",
+  "apelidos": [
+   "Elevação Frontal no Cabo"
+  ]
+ },
+ "manguito-externo-na-polia": {
+  "base": "Manguito Externo",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "manguito",
+  "apelidos": [
+   "Manguito Externo na Polia"
+  ]
+ },
+ "manguito-interno-na-polia": {
+  "base": "Manguito Interno",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "manguito",
+  "apelidos": [
+   "Manguito Interno na Polia"
+  ]
+ },
+ "desenvolvimento-barra": {
+  "base": "Desenvolvimento",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "desenvolvimento",
+  "apelidos": []
+ },
+ "desenvolvimento-com-halter-sentado": {
+  "base": "Desenvolvimento Sentado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "desenvolvimento",
+  "apelidos": [
+   "Desenvolvimento com Halter Sentado"
+  ]
+ },
+ "desenvolvimento-halter": {
+  "base": "Desenvolvimento",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "desenvolvimento",
+  "apelidos": [
+   "Desenvolvimento Halter"
+  ]
+ },
+ "desenvolvimento-maquina": {
+  "base": "Desenvolvimento",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "desenvolvimento",
+  "apelidos": [
+   "Desenvolvimento Máquina"
+  ]
+ },
+ "remada-alta-barra": {
+  "base": "Remada Alta",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada_alta",
+  "apelidos": []
+ },
+ "remada-alta-smith": {
+  "base": "Remada Alta",
+  "sufixo": true,
+  "equipamento": "smith",
+  "mecanismo": "anilhas",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada_alta",
+  "apelidos": []
+ },
+ "remada-alta-barra-w": {
+  "base": "Remada Alta",
+  "sufixo": true,
+  "equipamento": "barra_w",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada_alta",
+  "apelidos": []
+ },
+ "remada-alta-na-polia-com-barra": {
+  "base": "Remada Alta com Barra",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada_alta",
+  "apelidos": [
+   "Remada Alta na Polia com Barra"
+  ]
+ },
+ "remada-alta-na-polia-com-corda": {
+  "base": "Remada Alta com Corda",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "remada_alta",
+  "apelidos": [
+   "Remada Alta na Polia com Corda"
+  ]
+ },
+ "encolhimento-barra": {
+  "base": "Encolhimento",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "encolhimento",
+  "apelidos": []
+ },
+ "encolhimento-cabo": {
+  "base": "Encolhimento",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "encolhimento",
+  "apelidos": [
+   "Encolhimento Cabo"
+  ]
+ },
+ "encolhimento-halter": {
+  "base": "Encolhimento",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "encolhimento",
+  "apelidos": [
+   "Encolhimento Halter"
+  ]
+ },
+ "crucifixo-inverso-com-halter-em-pe": {
+  "base": "Crucifixo Inverso (em pé)",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "crucifixo_inverso",
+  "apelidos": [
+   "Crucifixo Inverso com Halter (em pé)"
+  ]
+ },
+ "crucifixo-inverso-com-halter-sentado-a": {
+  "base": "Crucifixo Inverso (sentado(a))",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "crucifixo_inverso",
+  "apelidos": [
+   "Crucifixo Inverso com Halter (sentado(a))"
+  ]
+ },
+ "crucifixo-inverso-com-halter-no-banco-inclinado-deitado-a": {
+  "base": "Crucifixo Inverso no Banco Inclinado (deitado(a))",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "crucifixo_inverso",
+  "apelidos": [
+   "Crucifixo Inverso com Halter no Banco Inclinado (deitado(a))"
+  ]
+ },
+ "crucifixo-inverso-na-polia-alta-unilateral": {
+  "base": "Crucifixo Inverso Polia Alta Unilateral",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crucifixo_inverso",
+  "apelidos": [
+   "Crucifixo Inverso na Polia Alta Unilateral"
+  ]
+ },
+ "crucifixo-inverso-na-polia-media-unilateral": {
+  "base": "Crucifixo Inverso Polia Média Unilateral",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crucifixo_inverso",
+  "apelidos": [
+   "Crucifixo Inverso na Polia Média Unilateral"
+  ]
+ },
+ "crucifixo-inverso-na-polia-baixa-unilateral": {
+  "base": "Crucifixo Inverso Polia Baixa Unilateral",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crucifixo_inverso",
+  "apelidos": [
+   "Crucifixo Inverso na Polia Baixa Unilateral"
+  ]
+ },
+ "crucifixo-inverso-no-crossover-alto": {
+  "base": "Crucifixo Inverso Crossover Alto",
+  "sufixo": true,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": [
+   "Crucifixo Inverso no CrossOver Alto"
+  ]
+ },
+ "crucifixo-inverso-no-crossover-medio": {
+  "base": "Crucifixo Inverso Crossover Médio",
+  "sufixo": true,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": [
+   "Crucifixo Inverso no CrossOver Médio"
+  ]
+ },
+ "crucifixo-inverso-no-crossover-baixo": {
+  "base": "Crucifixo Inverso Crossover Baixo",
+  "sufixo": true,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": [
+   "Crucifixo Inverso no CrossOver Baixo"
+  ]
+ },
+ "crucifixo-inverso-peck-deck": {
+  "base": "Crucifixo Inverso Peck Deck",
+  "sufixo": false,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "peck_deck",
+  "apelidos": []
+ },
+ "elevacao-lateral-isometrica": {
+  "base": "Elevação Lateral Isométrica",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "elevacao_lateral",
+  "apelidos": [],
+  "aConfirmar": "Sem equipamento no nome: qual é?"
+ },
+ "rosca-punho-barra-reta": {
+  "base": "Rosca Punho Barra Reta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": []
+ },
+ "rosca-punho-barra-w": {
+  "base": "Rosca Punho",
+  "sufixo": true,
+  "equipamento": "barra_w",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": []
+ },
+ "rosca-punho-halter": {
+  "base": "Rosca Punho",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "rosca_punho",
+  "apelidos": [
+   "Rosca Punho Halter"
+  ]
+ },
+ "rosca-punho-anilha": {
+  "base": "Rosca Punho",
+  "sufixo": true,
+  "equipamento": "anilha",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": []
+ },
+ "rosca-punho-cabo-barra-reta-polia-baixa": {
+  "base": "Rosca Punho Barra Reta (Polia Baixa)",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": [
+   "Rosca Punho Cabo Barra Reta (Polia Baixa)"
+  ]
+ },
+ "rosca-punho-cabo-unilateral-polia-baixa": {
+  "base": "Rosca Punho Unilateral (Polia Baixa)",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": [
+   "Rosca Punho Cabo Unilateral (Polia Baixa)"
+  ]
+ },
+ "rosca-punho-inversa-barra-reta": {
+  "base": "Rosca Punho Inversa Barra Reta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": []
+ },
+ "rosca-punho-inversa-barra-w": {
+  "base": "Rosca Punho Inversa",
+  "sufixo": true,
+  "equipamento": "barra_w",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": []
+ },
+ "rosca-punho-inversa-halter": {
+  "base": "Rosca Punho Inversa",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "rosca_punho",
+  "apelidos": [
+   "Rosca Punho Inversa Halter"
+  ]
+ },
+ "rosca-punho-inversa-anilha": {
+  "base": "Rosca Punho Inversa",
+  "sufixo": true,
+  "equipamento": "anilha",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": []
+ },
+ "rosca-inversa-barra-reta": {
+  "base": "Rosca Inversa Barra Reta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-inversa-barra-w": {
+  "base": "Rosca Inversa",
+  "sufixo": true,
+  "equipamento": "barra_w",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-zottman": {
+  "base": "Rosca Zottman",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Zottman"
+  ]
+ },
+ "supinacao-com-halter": {
+  "base": "Supinação",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supinacao",
+  "apelidos": [
+   "Supinação com Halter"
+  ]
+ },
+ "pronacao-com-halter": {
+  "base": "Pronação",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "pronacao",
+  "apelidos": [
+   "Pronação com Halter"
+  ]
+ },
+ "supinacao-e-pronacao-com-halter": {
+  "base": "Supinação e Pronação",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supinacao",
+  "apelidos": [
+   "Supinação e Pronação com Halter"
+  ]
+ },
+ "flexao-palmar-maquina": {
+  "base": "Flexão Palmar",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "flexao_palmar",
+  "apelidos": [
+   "Flexão Palmar Máquina"
+  ]
+ },
+ "rosca-punho-maquina": {
+  "base": "Rosca Punho",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": [
+   "Rosca Punho Máquina"
+  ]
+ },
+ "rosca-punho-inversa-maquina": {
+  "base": "Rosca Punho Inversa",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca_punho",
+  "apelidos": [
+   "Rosca Punho Inversa Máquina"
+  ]
+ },
+ "supinacao-maquina": {
+  "base": "Supinação",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supinacao",
+  "apelidos": [
+   "Supinação Máquina"
+  ]
+ },
+ "pronacao-maquina": {
+  "base": "Pronação",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "pronacao",
+  "apelidos": [
+   "Pronação Máquina"
+  ]
+ },
+ "pegada-isometrica-com-halteres-farmer-hold": {
+  "base": "Pegada Isométrica (Farmer Hold)",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "por_lado",
+  "movimento": "pegada",
+  "apelidos": [
+   "Pegada Isométrica com Halteres (Farmer Hold)"
+  ]
+ },
+ "rosca-direta-barra": {
+  "base": "Rosca Direta",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-direta-halter": {
+  "base": "Rosca Direta",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Direta Halter"
+  ]
+ },
+ "rosca-direta-cabo": {
+  "base": "Rosca Direta",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Direta Cabo"
+  ]
+ },
+ "rosca-scott-barra-reta": {
+  "base": "Rosca Scott Barra Reta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-scott-barra-w": {
+  "base": "Rosca Scott",
+  "sufixo": true,
+  "equipamento": "barra_w",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-scott-halter": {
+  "base": "Rosca Scott",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-scott-maquina": {
+  "base": "Rosca Scott",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Scott Máquina"
+  ]
+ },
+ "rosca-superman-cabo-barra-reta": {
+  "base": "Rosca Superman Barra Reta",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "superman",
+  "apelidos": [
+   "Rosca Superman Cabo Barra Reta"
+  ]
+ },
+ "rosca-superman-cabo-unilateral": {
+  "base": "Rosca Superman Unilateral",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "superman",
+  "apelidos": [
+   "Rosca Superman Cabo Unilateral"
+  ]
+ },
+ "rosca-concentrada-barra-cabo-agachado": {
+  "base": "Rosca Concentrada Barra (Agachado)",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Concentrada Barra Cabo (Agachado)"
+  ]
+ },
+ "rosca-concentrada-halter": {
+  "base": "Rosca Concentrada",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": []
+ },
+ "rosca-inclinada-halter-deitado": {
+  "base": "Rosca Inclinada Deitado",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Inclinada Halter Deitado"
+  ]
+ },
+ "rosca-inclinada-cabo-unilateral": {
+  "base": "Rosca Inclinada Unilateral",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Inclinada Cabo Unilateral"
+  ]
+ },
+ "rosca-inclinada-cabo": {
+  "base": "Rosca Inclinada",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Inclinada Cabo"
+  ]
+ },
+ "rosca-com-giro-halter-simultanea": {
+  "base": "Rosca com Giro Simultânea",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca com Giro Halter Simultânea"
+  ]
+ },
+ "rosca-com-giro-halter-alternada": {
+  "base": "Rosca Com Giro Alternada",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "alternado",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Com Giro Halter Alternada"
+  ]
+ },
+ "rosca-martelo-halter": {
+  "base": "Rosca Martelo",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Martelo Halter"
+  ]
+ },
+ "rosca-martelo-cabo": {
+  "base": "Rosca Martelo",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [
+   "Rosca Martelo Cabo"
+  ]
+ },
+ "rosca-isometrica-a-90o": {
+  "base": "Rosca Isométrica a 90º",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "isometrico"
+  ],
+  "unidade": "tempo",
+  "carga": "total",
+  "movimento": "rosca",
+  "apelidos": [],
+  "aConfirmar": "Sem equipamento no nome: qual é?"
+ },
+ "triceps-pulley-barra-reta": {
+  "base": "Tríceps Pulley Barra Reta",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-pulley-barra-v": {
+  "base": "Tríceps Pulley Barra V",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-pulley-corda": {
+  "base": "Tríceps Pulley Corda",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-pulley-invertida": {
+  "base": "Tríceps Pulley Invertida",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-pulley-invertida-unilateral": {
+  "base": "Tríceps Pulley Invertida Unilateral",
+  "sufixo": false,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-testa-barra-reta": {
+  "base": "Tríceps Testa Barra Reta",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-testa-barra-w": {
+  "base": "Tríceps Testa",
+  "sufixo": true,
+  "equipamento": "barra_w",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-testa-cabo": {
+  "base": "Tríceps Testa",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": [
+   "Tríceps Testa Cabo"
+  ]
+ },
+ "triceps-testa-halter": {
+  "base": "Tríceps Testa",
+  "sufixo": true,
+  "equipamento": "halteres",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "por_lado",
+  "movimento": "triceps",
+  "apelidos": [
+   "Tríceps Testa Halter"
+  ]
+ },
+ "triceps-frances-em-pe-halter": {
+  "base": "Tríceps Francês em Pé",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-frances-sentado-halter": {
+  "base": "Tríceps Francês Sentado",
+  "sufixo": true,
+  "equipamento": "halter",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-frances-em-pe-com-barra": {
+  "base": "Tríceps Francês em Pé com",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-frances-cabo-unilateral": {
+  "base": "Tríceps Francês Unilateral",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": [
+   "Tríceps Francês Cabo Unilateral"
+  ]
+ },
+ "triceps-frances-cabo": {
+  "base": "Tríceps Francês",
+  "sufixo": true,
+  "equipamento": "polia",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": [
+   "Tríceps Francês Cabo"
+  ]
+ },
+ "triceps-maquina": {
+  "base": "Tríceps",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": [
+   "Tríceps Máquina"
+  ]
+ },
+ "triceps-banco": {
+  "base": "Tríceps Banco",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-barra-paralela": {
+  "base": "Tríceps Barra Paralela",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "triceps",
+  "apelidos": []
+ },
+ "triceps-coice-apoiado": {
+  "base": "Tríceps Coice Apoiado",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": [],
+  "aConfirmar": "Tríceps coice sem equipamento no nome: halter ou polia?"
+ },
+ "triceps-paralela-maquina": {
+  "base": "Tríceps Paralela",
+  "sufixo": true,
+  "equipamento": "maquina_seletora",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "triceps",
+  "apelidos": [
+   "Tríceps Paralela Máquina"
+  ]
+ },
+ "supino-fechado": {
+  "base": "Supino Fechado",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "supino",
+  "apelidos": [
+   "Supino Fechado"
+  ]
+ },
+ "flexao-de-bracos-militar": {
+  "base": "Flexão de Braços Militar",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "flexao_de_bracos",
+  "apelidos": []
+ },
+ "snatch": {
+  "base": "Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "clean-and-jerk": {
+  "base": "Clean and Jerk",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "power-snatch": {
+  "base": "Power Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "hang-snatch": {
+  "base": "Hang Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "snatch-balance": {
+  "base": "Snatch Balance",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "heaving-snatch-balance": {
+  "base": "Heaving Snatch Balance",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "drop-snatch": {
+  "base": "Drop Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "overhead-squat": {
+  "base": "Overhead Squat",
+  "sufixo": true,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "overhead_squat",
+  "apelidos": [
+   "Overhead Squat"
+  ]
+ },
+ "snatch-pull": {
+  "base": "Snatch Pull",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "snatch-deadlift": {
+  "base": "Snatch Deadlift",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "muscle-snatch": {
+  "base": "Muscle Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "block-snatch": {
+  "base": "Block Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "deficit-snatch": {
+  "base": "Deficit Snatch",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "snatch",
+  "apelidos": []
+ },
+ "power-clean": {
+  "base": "Power Clean",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "hang-clean": {
+  "base": "Hang Clean",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "clean-pull": {
+  "base": "Clean Pull",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "clean-deadlift": {
+  "base": "Clean Deadlift",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "muscle-clean": {
+  "base": "Muscle Clean",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "block-clean": {
+  "base": "Block Clean",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "deficit-clean": {
+  "base": "Deficit Clean",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "jerk-from-rack": {
+  "base": "Jerk (from rack)",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "jerk",
+  "apelidos": []
+ },
+ "power-jerk": {
+  "base": "Power Jerk",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "jerk",
+  "apelidos": []
+ },
+ "split-jerk": {
+  "base": "Split Jerk",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "jerk",
+  "apelidos": []
+ },
+ "push-jerk": {
+  "base": "Push Jerk",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "jerk",
+  "apelidos": []
+ },
+ "jerk-balance": {
+  "base": "Jerk Balance",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "jerk",
+  "apelidos": []
+ },
+ "jerk-recovery": {
+  "base": "Jerk Recovery",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "jerk",
+  "apelidos": []
+ },
+ "clean-and-jerk-complexes": {
+  "base": "Clean and Jerk Complexes",
+  "sufixo": false,
+  "equipamento": "barra",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "clean",
+  "apelidos": []
+ },
+ "box-jumps": {
+  "base": "Box Jumps",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "drop-jump": {
+  "base": "Drop Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "lateral-jumps": {
+  "base": "Lateral Jumps",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "lunge-jumps": {
+  "base": "Lunge Jumps",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "hurdle-jumps": {
+  "base": "Hurdle Jumps",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "bounding": {
+  "base": "Bounding",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "bound",
+  "apelidos": []
+ },
+ "box-jump": {
+  "base": "Box Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "kneetuck-jump": {
+  "base": "Kneetuck Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "scissors-jump": {
+  "base": "Scissors Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "single-leg-vertical-jump": {
+  "base": "Single Leg Vertical Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "stride-jump": {
+  "base": "Stride Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "vertical-cmj-jump": {
+  "base": "Vertical CMJ Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "vertical-sj-jump": {
+  "base": "Vertical SJ Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "horizontal-cmj-jump": {
+  "base": "Horizontal CMJ Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "horizontal-sj-jump": {
+  "base": "Horizontal SJ Jump",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "jump-squat": {
+  "base": "Jump Squat",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "clap-push-ups": {
+  "base": "Clap Push-Ups",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "push-up",
+  "apelidos": []
+ },
+ "medicine-ball-throws": {
+  "base": "Medicine Ball Throws",
+  "sufixo": false,
+  "equipamento": "medicine_ball",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "medicine_ball",
+  "apelidos": []
+ },
+ "plyometric-push-ups": {
+  "base": "Plyometric Push-Ups",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "push-up",
+  "apelidos": []
+ },
+ "medicine-ball-slams": {
+  "base": "Medicine Ball Slams",
+  "sufixo": false,
+  "equipamento": "medicine_ball",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "medicine_ball",
+  "apelidos": []
+ },
+ "medicine-ball-sit-up-throw": {
+  "base": "Medicine Ball Sit-Up Throw",
+  "sufixo": false,
+  "equipamento": "medicine_ball",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "medicine_ball",
+  "apelidos": []
+ },
+ "medicine-ball-russian-twists": {
+  "base": "Medicine Ball Russian Twists",
+  "sufixo": false,
+  "equipamento": "medicine_ball",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "medicine_ball",
+  "apelidos": []
+ },
+ "medicine-ball-plank-passes": {
+  "base": "Medicine Ball Plank Passes",
+  "sufixo": false,
+  "equipamento": "medicine_ball",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "medicine_ball",
+  "apelidos": []
+ },
+ "chest-pass-pushup": {
+  "base": "Chest Pass Pushup",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "pushup",
+  "apelidos": []
+ },
+ "cross-over-plyometric-pushup": {
+  "base": "Cross Over Plyometric Pushup",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "pushup",
+  "apelidos": []
+ },
+ "drop-pushup": {
+  "base": "Drop Pushup",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "pushup",
+  "apelidos": []
+ },
+ "medicineball-side-throw": {
+  "base": "MedicineBall Side Throw",
+  "sufixo": false,
+  "equipamento": "medicine_ball",
+  "mecanismo": "livre",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": null,
+  "apelidos": []
+ },
+ "crossover-bound": {
+  "base": "Crossover Bound",
+  "sufixo": false,
+  "equipamento": "duas_polias",
+  "mecanismo": "pinos",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "total",
+  "movimento": "crossover",
+  "apelidos": []
+ },
+ "diagonal-bound": {
+  "base": "Diagonal Bound",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "bound",
+  "apelidos": []
+ },
+ "power-skip": {
+  "base": "Power Skip",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "skip",
+  "apelidos": []
+ },
+ "hurdlehop": {
+  "base": "Hurdlehop",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "hurdlehop",
+  "apelidos": []
+ },
+ "hurdlehop-and-bounce": {
+  "base": "Hurdlehop and Bounce",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "bilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "hurdlehop",
+  "apelidos": []
+ },
+ "lateral-hurdlehop-and-bounce": {
+  "base": "Lateral Hurdlehop and Bounce",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "hurdlehop",
+  "apelidos": []
+ },
+ "lateral-jump-and-stick": {
+  "base": "Lateral jump and Stick",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "jump",
+  "apelidos": []
+ },
+ "single-leg-barrierhop": {
+  "base": "Single Leg Barrierhop",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": null,
+  "apelidos": []
+ },
+ "single-leg-hurdlehop-and-bounce": {
+  "base": "Single Leg Hurdlehop and Bounce",
+  "sufixo": false,
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
+  "lateralidade": "unilateral",
+  "modo": [
+   "dinamico"
+  ],
+  "unidade": "reps",
+  "carga": "corporal",
+  "movimento": "hurdlehop",
+  "apelidos": []
+ }
+}

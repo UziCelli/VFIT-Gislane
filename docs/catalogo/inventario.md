@@ -59,3 +59,10 @@ Já entraram em [exercicios-novos.csv](exercicios-novos.csv): Agachamento Livre 
 
 - **Etapa 2 (#257):** transformar estas colunas em campos do app. O nome passa a ser gerado pelos campos. Ids e apelidos são preservados.
 - **Etapas 3 e 4 (#258, #259):** pílulas com ícones e cadastro manual no painel.
+
+## Etapa 2a: atributos no app (sem mudança visível)
+
+- `src/data/atributos.json` guarda os atributos de cada id: base do nome, equipamento, mecanismo, lateralidade, modo, unidade, convenção de carga e apelidos. Foi gerado uma vez com `python3 tools/catalogo-inventario.py --atributos`. A partir de agora, **ele é a fonte da verdade**.
+- `src/lib/catalogo.ts` gera o nome (base + rótulo do equipamento) e resolve qualquer nome conhecido (atual, novo ou apelido) para o mesmo id.
+- Os testes (`src/lib/catalogo.test.ts`) garantem três coisas: todo nome antigo acha o mesmo exercício, a carga por lado e a isometria continuam iguais às listas atuais, e nenhum nome aponta para dois exercícios.
+- **Próximo (2b):** as telas e os cálculos passam a usar o resolvedor e o nome gerado. Só depois disso `doisLados.json` e `isometricos.json` saem.

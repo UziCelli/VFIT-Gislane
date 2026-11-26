@@ -124,7 +124,10 @@ export const AVISOS_COACH = [
   ['comentou', 'Aluno escreveu uma anotação'],
   ['pagou', 'Aluno tocou em "Já paguei"'],
 ] as const
-export type TipoAviso = (typeof AVISOS_ALUNO)[number][0] | (typeof AVISOS_COACH)[number][0]
+// Vídeos privados (#253): só aparecem em Conta quando a função estiver ligada (VIDEOS_PRIVADOS em lib/midias.ts).
+export const AVISOS_VIDEO_ALUNO = [['orientacao', 'Orientação em vídeo do coach']] as const
+export const AVISOS_VIDEO_COACH = [['video', 'Aluno enviou vídeo da execução']] as const
+export type TipoAviso = (typeof AVISOS_ALUNO)[number][0] | (typeof AVISOS_COACH)[number][0] | (typeof AVISOS_VIDEO_ALUNO)[number][0] | (typeof AVISOS_VIDEO_COACH)[number][0]
 
 // Por aparelho: lista dos tipos desligados. A chave antiga ('forca-avisos-coach' = '0') desligava treino e mensalidade juntos.
 const CHAVE_DESLIGADOS = 'forca-avisos-desligados'

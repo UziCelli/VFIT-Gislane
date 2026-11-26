@@ -48,6 +48,11 @@ import { AdicionarExercicio, EditarExercicio, FaixaAjustado } from '../coach/pre
 import AvisoEstimativaRm from './AvisoEstimativaRm'
 import { textosVoz, useTextosVoz, VozTreino, type Voz } from './voz'
 import PerguntaRir from './PerguntaRir'
+import { Demonstracao, useDemos } from '../videos/Demonstracao'
+import { idDoCatalogo, type FonteDemo } from '../../lib/videos'
+import { chaveExercicio, resumoPorExercicio, VIDEOS_PRIVADOS, type DocMidia, type Resumo } from '../../lib/midias'
+import VideosDoCartao from '../videos/VideosDoCartao'
+import { envioPendentes } from '../../lib/envioVideo'
 import { FaixaPolimento, SeloPolimento } from './Polimento'
 import { escopoPolimento, mudancasPolimento, prescricaoNormal, resumoPolimento, semanaDePolimento } from '../../lib/polimentoAluno'
 
@@ -460,6 +465,7 @@ function FestaRecorde({ festa, quieto, fechar }: { festa: Festa; quieto: boolean
 }
 
 const SEM: (number | null)[] = []
+const SEM_VIDEOS: Resumo = {}
 const SEM_FISIO: PropsCartao['fisio'] = []
 
 // Igualdade de dados simples (listas, objetos literais, números, textos). Função, ref, Map e classes: só a mesma referência.
@@ -534,6 +540,8 @@ type PropsCartao = {
   rir: number | null // da última série
   dropsAbertos: Record<string, boolean>
   pesoKg?: number
+  demo?: FonteDemo // demonstração "No ar" deste exercício (#253)
+  videos?: Resumo | null // vídeos privados deste exercício (null = desligado)
   vivo: RefObject<Vivo>
 }
 
@@ -541,7 +549,7 @@ type PropsCartao = {
 // outros nove. Tudo que aparece na tela vem por prop (comparada por valor); o que só vale no toque vem de `vivo`.
 const CartaoExercicio = memo(function CartaoExercicio({
   e, grupo, colunasCargas, colunasReps, colunasLados, anterior, corpo, auto, pol, discretoPol, edAberto, trocandoPc, travado, volta, coach,
-  meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, notaOutras, fisio, rir, dropsAbertos, pesoKg, vivo,
+  meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, notaOutras, fisio, rir, dropsAbertos, pesoKg, demo, videos, vivo,
 }: PropsCartao) {
   const t = useTextosVoz()
   const slot = e.slot.slotId
@@ -588,6 +596,7 @@ const CartaoExercicio = memo(function CartaoExercicio({
         <div>
           <div className="break-words text-base font-semibold leading-snug tracking-tight" data-treino-nome>{e.slot.nome}</div>
           <PilulasExercicio nome={e.slot.nome} className="mt-1.5" />
+          {demo && <Demonstracao nome={e.slot.nome.trim()} fonte={demo} />}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {e.rotulo && (
@@ -624,6 +633,7 @@ const CartaoExercicio = memo(function CartaoExercicio({
         </div>
       </div>
       {pol && <SeloPolimento mudancas={pol} discreto={discretoPol} />}
+      {videos !== null && videos !== undefined && <VideosDoCartao alunoId={uid} nome={e.slot.nome.trim()} exercicioId={chaveExercicio(e.slot.nome)} sessao={{ mesoId, semana, treino }} coach={coach} resumo={videos.orientacao || videos.execucao ? videos : undefined} />}
       <Nota key={notaTexto} uid={uid} nome={e.slot.nome.trim()} texto={notaTexto} em={notaEm} outras={notaOutras} />
       {iso && <p className="mb-2 text-xs text-slate-400">Tempo em segundos. Cronometre cada série e anote os segundos feitos. Carga opcional.</p>}
       {dois && (
@@ -785,6 +795,10 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     query(collection(db, 'registros'), where('alunoId', '==', uid), where('mesoId', '==', mesoId)),
   )
   const { dados: notas } = useDoc<NotasDoc>(doc(db, 'notas', uid))
+  const demos = useDemos() // demonstrações dos exercícios (uma leitura por abertura do app)
+  // Vídeos privados deste aluno (#253): uma consulta só para o treino inteiro; cada cartão recebe o resumo do seu exercício.
+  const midias = useLista<DocMidia>(useMemo(() => (VIDEOS_PRIVADOS ? query(collection(db, 'midias'), where('alunoId', '==', uid)) : null), [uid]))
+  const videosPorEx = useMemo(() => (VIDEOS_PRIVADOS ? resumoPorExercicio(midias.dados) : null), [midias.dados])
   // Presencial: sempre à lista do aluno (a pilha mistura alunos do grupo). Aluno: à tela de onde veio (Início ou Treino).
   const sair = () => (coach ? ir(base) : voltar('/treino'))
   const [pcLocal, setPcLocal] = useState<Record<string, number>>({}) // vale até o Firestore confirmar
@@ -795,6 +809,11 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const t = textosVoz(voz)
   // Carga sugerida pelas repetições (RM): escolha de quem está usando (aluno, ou o coach no presencial). Sem escolha = pergunta 1x.
   const eu = useUsuarioAtual()
+  // Envio de vídeo largado no meio por quem está usando (aluno ou coach): volta como "parado" para retomar.
+  const euUid = eu.user?.uid
+  useEffect(() => {
+    if (VIDEOS_PRIVADOS && euUid) void envioPendentes(euUid)
+  }, [euUid])
   const estimarRm = eu.perfil?.estimativaRm === true
   const perguntarRm = !!eu.user && !!eu.perfil && eu.perfil.estimativaRm === undefined && !navigator.webdriver // e2e não abre pop-up
   const an = useAnamnese(uid)
@@ -1147,6 +1166,8 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
               rir={rirFeito[chave]?.[slot]?.[e.n - 1] ?? null}
               dropsAbertos={dropsAbertos}
               pesoKg={perfil?.pesoKg}
+              demo={demos?.get(idDoCatalogo(nome) ?? '')}
+              videos={videosPorEx ? (videosPorEx.get(chaveExercicio(nome)) ?? SEM_VIDEOS) : null}
               vivo={vivo}
             />
           )

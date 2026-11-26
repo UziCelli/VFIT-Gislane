@@ -13,7 +13,8 @@ import { IcCheck } from '../../icones'
 import ChavesAvisos from './ChavesAvisos'
 import ChaveEstimativaRm from './ChaveEstimativaRm'
 import { permissao } from '../aluno/AvisoNotificacoes'
-import { AVISOS_COACH, inscreverAvisos } from '../../lib/push'
+import { AVISOS_COACH, AVISOS_VIDEO_COACH, inscreverAvisos } from '../../lib/push'
+import { VIDEOS_PRIVADOS } from '../../lib/midias'
 
 const SEM_INTERNET = 'Sem internet. Verifique sua conexão e tente de novo.'
 const erros: Record<string, string> = {
@@ -48,7 +49,7 @@ function NotificacoesCoach() {
           Ativar notificações neste aparelho
         </Botao>
       )}
-      {p === 'granted' && <ChavesAvisos tipos={AVISOS_COACH} coach />}
+      {p === 'granted' && <ChavesAvisos tipos={VIDEOS_PRIVADOS ? [...AVISOS_COACH, ...AVISOS_VIDEO_COACH] : AVISOS_COACH} coach />}
       {p == null && <p className="text-sm text-slate-400">Este aparelho não permite notificações. No iPhone, adicione o app à Tela de Início.</p>}
       {p === 'denied' && <p className="text-sm text-slate-400">Bloqueado no aparelho — libere nas configurações.</p>}
     </Cartao>

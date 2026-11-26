@@ -9,7 +9,8 @@ import { apagarFoto, recuperarSenha, sair, salvarFoto, salvarNome, salvarPeso, s
 import { db } from '../../lib/firebase'
 import { reduzirFoto } from '../../lib/foto'
 import { useDoc } from '../../lib/hooks'
-import { AVISOS_ALUNO, avisosLigados, cancelarPush, CHAVE_AVISOS, inscreverAvisos } from '../../lib/push'
+import { AVISOS_ALUNO, AVISOS_VIDEO_ALUNO, avisosLigados, cancelarPush, CHAVE_AVISOS, inscreverAvisos } from '../../lib/push'
+import { VIDEOS_PRIVADOS } from '../../lib/midias'
 import { Aviso, Botao, Campo, Msg, Painel } from '../../ui'
 import { IconeQuadrado, Quadro } from '../../vidro'
 import ChavesAvisos, { Chave } from '../conta/ChavesAvisos'
@@ -93,7 +94,7 @@ function AvisoDescanso() {
         {p === 'default' && <Botao tipo="primario" onClick={pedir}>Ativar</Botao>}
         {p === 'granted' && <Chave ligada={ligado} rotulo="Aviso do fim do descanso" onChange={trocar} />}
       </div>
-      {p === 'granted' && <ChavesAvisos tipos={AVISOS_ALUNO} />}
+      {p === 'granted' && <ChavesAvisos tipos={VIDEOS_PRIVADOS ? [...AVISOS_ALUNO, ...AVISOS_VIDEO_ALUNO] : AVISOS_ALUNO} />}
       {p == null && <p className="text-sm text-slate-400">Este aparelho não permite notificações.</p>}
       {p === 'denied' && <p className="text-sm text-slate-400">Bloqueado no celular — libere nas configurações do aparelho.</p>}
     </Quadro>

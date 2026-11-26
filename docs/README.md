@@ -16,7 +16,7 @@ Não ler tudo: escolha apenas o assunto da tarefa. Guias ativos são curtos; rel
 | Segurança: evidência e ações externas | [security/REMEDIATION_PLAN.md](security/REMEDIATION_PLAN.md) e relatórios relacionados |
 | Fórmulas do treino | [logica-planilha.md](logica-planilha.md) |
 | Conector MCP | [conector-revisao-codex.md](conector-revisao-codex.md) |
-| Operação Firebase / APK / push | [firebase-setup.md](firebase-setup.md), [apk.md](apk.md), [push.md](push.md) |
+| Operação Firebase / APK / push | [firebase-setup.md](firebase-setup.md), [apk.md](apk.md), [push.md](push.md), [vídeos](plano-videos.md) |
 | Histórico de entregas | [estado-sessao-historico.md](estado-sessao-historico.md) |
 | Antigo roteiro de segurança | [seguranca-historico.md](seguranca-historico.md), histórico, não checklist atual |
 

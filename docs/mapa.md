@@ -26,6 +26,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 | Offline/sync Firebase | `src/lib/firebase.ts` + `firestore.rules` |
 | Roteamento (hash, /aluno/123, etc.) | `src/rota.ts` + `src/App.tsx` |
 | Conector MCP VFIT (leitura e proposta de prescrição com aprovação do coach) | `conector/` (Worker; leitura em `src/ferramentas.ts`, validação e persistência de proposta em `src/prescricao.ts`, ciclo de proposta em `src/proposta.ts`) + `src/features/conta/ConectarClaude.tsx` (OAuth/consentimento) + `src/features/conta/ConfirmarTreinoMcp.tsx` (revisão e aprovação no app); veja `docs/conector-prescricao.md` |
+| Vídeos no treino: demonstração, envio do aluno, orientação do coach, marcações (#253) | `docs/plano-videos.md` + `src/features/videos/` + `src/lib/midias.ts` + `src/lib/envioVideo.ts` + `push/src/midia.ts` + `firestore.rules` (`videos`, `midias`) |
 | Notificação "Descanso acabou" (push, app fechado) | `src/lib/push.ts` + `public/sw-push.js` + `push/` (Worker Cloudflare) — veja `docs/push.md` |
 | Painel de evolução, conquistas, ranking | `src/lib/evolucao.ts` + `src/features/evolucao/` + `src/features/coach/RankingAlunos.tsx` |
 | Relatório do fim do ciclo (tela, PDF, story) | `src/lib/relatorio.ts` + `src/features/relatorio/` |
@@ -76,6 +77,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 - `src/index.ts` — rotas `/vapid`, `/agendar`, `/cancelar`, CORS e a classe `Descanso` (alarme)
 - `src/jwt.ts` — confere o ID token do Firebase; `src/validar.ts` — inscrição e `fimEm`
 - `src/webpush.ts` — chaves VAPID, criptografia aes128gcm e envio; `src/b64.ts` — base64url
+- `src/midia.ts` + classe `Midia` em `src/index.ts` — vídeos privados (`/midia/*`, desligados por `VIDEOS`; `docs/plano-videos.md`)
 - `src/*.test.ts` — testes (rodam com o `npm test` da raiz); tsconfig próprio (`npm run typecheck` confere)
 
 ### `conector/` — Worker Cloudflare do conector do Claude (MCP)
@@ -293,6 +295,8 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 | `/aluno/:uid/avaliacao/:id` | AvaliacaoCoach (`nova` = criar) | Coach |
 | `/ranking` | RankingAlunos | Coach |
 | `/feedbacks` | Feedbacks (`coach/feedbacks/Feedbacks.tsx`) | Coach |
+| `/videos` | Videos (`videos/Videos.tsx`, 4ª aba das Guias) | Coach |
+| `/execucoes` · `/execucao/:id` | FilaExecucoes · RevisarExecucao (`videos/Execucoes.tsx`; só com vídeos privados ligados) | Coach |
 | `/conta` | MinhaConta (coach) · ContaAluno (aluno) | Ambos |
 | `/evolucao` | EvolucaoAluno (`PainelEvolucao.tsx`) | Aluno |
 | `/feedback` | EnviarFeedback (`feedback/EnviarFeedback.tsx`) | Aluno |
@@ -347,6 +351,12 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 
 ### `arquivados/{chave}`
 - `em` (hora do servidor). Alerta arquivado pelo coach; a chave muda quando a situação muda (`chaveAlerta` em `src/lib/alertas.ts`). Só o coach.
+
+### `videos/{exercicioId}`
+- `status` (`gravado` | `no-ar`), `link?` (https, ≤ 300; obrigatório em `no-ar` e do YouTube), `nota?` (≤ 140), `por` (nome do coach), `em`. Sem documento = "A gravar" (voltar apaga). O vídeo fica no YouTube "não listado" (Storage exige plano pago). Só o coach com 2º fator grava; o aluno liberado lê só o que está `no-ar` (consulta filtrada) e vê a nota junto. Regras puras em `src/lib/videos.ts`. Cada marca tem o próprio Firebase: a lista não é compartilhada entre os apps.
+
+### `midias/{id}` (#253)
+- `alunoId`, `autor`, `tipo` (`execucao` | `orientacao`), `exercicioId` (catálogo ou `x-<nome>`), `exercicio`, `sessao` `{ mesoId, semana, treino }`, `status` (`enviando` → `pronto`, com `prontoEm`, feito pelo Worker), `bytes` (≤ 50 MB), `mime`, `duracaoS` (aluno ≤ 60, coach ≤ 90), `em`; execução: `respondida`, `respondidaEm?`, `marcas?` (≤ 300: `{ t, k: 'caneta'|'ponto', p: [x,y,...] }` de 0 a 1); orientação: `respondeA?`, `vistoEm?`. Lê: aluno dono liberado e coach. Arquivo no Worker `push/` (`docs/plano-videos.md`).
 
 ### `relatorios/{mesoId}`
 - `alunoId`, `mesoId`, `comentario` (≤ 3000), `liberado`, `liberadoEm`, `atualizadoEm`. Os números não são gravados (`relatorioCiclo`). Aluno lê só o próprio liberado, pela consulta.

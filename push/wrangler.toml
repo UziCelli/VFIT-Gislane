@@ -6,7 +6,21 @@ compatibility_date = "2026-06-01"
 name = "DESCANSO"
 class_name = "Descanso"
 
+# Vídeos privados do treino (#253): um por instância, partes de 1 MiB. Plano grátis: 5 GB no total da conta;
+# passou do limite = erro, sem cobrança. Teto próprio de 4 GB em src/midia.ts (TETO_TOTAL).
+[[durable_objects.bindings]]
+name = "MIDIA"
+class_name = "Midia"
+
+# "1" liga as rotas /midia/*. Fica "0" até o Victor autorizar (custo e privacidade revisados).
+[vars]
+VIDEOS = "0"
+
 # Plano grátis só aceita Durable Objects com SQLite.
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Descanso"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Midia"]

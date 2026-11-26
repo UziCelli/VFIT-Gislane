@@ -82,8 +82,8 @@ export function passoAgenda(chaves: string[], agora: number): { disparar?: strin
 export const inicioDoDiaBrasilia = (agora: number): number => Math.floor((agora - 3 * 3600_000) / 86400_000) * 86400_000 + 3 * 3600_000
 
 // Tipos de aviso que a pessoa liga/desliga em Conta (o descanso tem chave própria no aparelho).
-// Aluno recebe: treino, mensalidade, lembrete, recado. Coach recebe: concluiu, comentou, pagou.
-export const TIPOS = ['treino', 'mensalidade', 'lembrete', 'recado', 'concluiu', 'comentou', 'pagou'] as const
+// Aluno recebe: treino, mensalidade, lembrete, recado, orientacao. Coach recebe: concluiu, comentou, pagou, video.
+export const TIPOS = ['treino', 'mensalidade', 'lembrete', 'recado', 'concluiu', 'comentou', 'pagou', 'video', 'orientacao'] as const
 export type Tipo = (typeof TIPOS)[number]
 export type TipoCoach = 'concluiu' | 'comentou' | 'pagou'
 
@@ -106,11 +106,14 @@ export const alvosDe = (lista: Fixa[], tipo: Tipo): Fixa[] => lista.filter((f) =
 export const endpointOk = (e: unknown): e is string => typeof e === 'string' && e.length >= 1 && e.length <= 1000
 
 // Corpo de /esquecer (Limpeza LGPD): projeto da lista e de 1 a 20 uids.
-export function validarEsquecer(c: unknown): { projeto: Projeto; uids: string[] } | null {
-  const o = c as { projeto?: unknown; uids?: unknown } | null
+// `midias` (opcional): ids dos documentos midias/{id} da pessoa, até 500 por chamada (20 letras/números cada).
+export function validarEsquecer(c: unknown): { projeto: Projeto; uids: string[]; midias: string[] } | null {
+  const o = c as { projeto?: unknown; uids?: unknown; midias?: unknown } | null
   const projeto = PROJETOS.find((p) => p === o?.projeto)
   if (!projeto || !Array.isArray(o?.uids) || o.uids.length < 1 || o.uids.length > 20 || !o.uids.every(uidOk)) return null
-  return { projeto, uids: o.uids as string[] }
+  const midias = o.midias ?? []
+  if (!Array.isArray(midias) || midias.length > 500 || !midias.every((m) => typeof m === 'string' && /^[A-Za-z0-9]{20}$/.test(m))) return null
+  return { projeto, uids: o.uids as string[], midias: midias as string[] }
 }
 
 export const tipoCoachOk = (t: unknown): t is TipoCoach => t === 'concluiu' || t === 'comentou' || t === 'pagou'

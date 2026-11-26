@@ -51,6 +51,7 @@ import { idCardio, type TipoCardio } from './cardio'
 import type { NovoFeedback } from './feedback'
 import { caminhosParaCancelar, docParaMeso, mesoParaDoc, registroId, type MesoDoc, type RegistroGravado } from './conversores'
 import { auth, authCadastro, db, apagarCacheAoSair, concluirSaida, reabrirAposFalha } from './firebase'
+import { descartarEnviosAoSair, enviosNoAparelho } from './envioVideo'
 import { sincronizarAntesDeSair } from './saidaSegura'
 import type { Importado } from './planilha'
 import { inicioJanela } from './resumo'
@@ -148,7 +149,7 @@ export async function darAcessoAoApp(idPresencial: string, a: { email: string; p
     await updateDoc(antigo, { migradoPara: uid })
   }
   await setDoc(doc(db, 'usuarios', uid), { ...perfilApp(p.nome, a.email, a.pagoAte), criadoEm: p.criadoEm ?? serverTimestamp() })
-  for (const col of ['mesos', 'registros', 'relatorios', 'avaliacoes', 'anamneses', 'fisioOrientacoes', 'fisioDores', 'fisioCheckins']) {
+  for (const col of ['mesos', 'registros', 'relatorios', 'avaliacoes', 'anamneses', 'fisioOrientacoes', 'fisioDores', 'fisioCheckins', 'midias']) {
     // Do servidor (nunca do cache): offline dá erro antes de apagar o perfil antigo.
     const docs = (await getDocsFromServer(query(collection(db, col), where('alunoId', '==', idPresencial)))).docs
     // As regras do relatório, da avaliação e da anamnese exigem atualizadoEm da hora do servidor; registros não (atualizadoEm deles é a janela de 14 dias).
@@ -280,6 +281,11 @@ export async function duplicarMeso(mesoId: string, novoAlunoId: string, novoNome
 // Alertas arquivados (arquivados/{chave} = { em }; chave = chaveAlerta em alertas.ts). Sem await (offline).
 export const arquivarAlerta = (chave: string) => setDoc(doc(db, 'arquivados', chave), { em: serverTimestamp() })
 export const desarquivarAlerta = (chave: string) => deleteDoc(doc(db, 'arquivados', chave))
+
+// Vídeo de demonstração do exercício (videos/{exercicioId}); dados de dadosVideo em videos.ts, null = "A gravar".
+// Substitui o doc inteiro (link ou nota apagados somem). Sem await (offline).
+export const gravarVideo = (exercicioId: string, dados: Record<string, string> | null) =>
+  dados ? setDoc(doc(db, 'videos', exercicioId), { ...dados, em: serverTimestamp() }) : deleteDoc(doc(db, 'videos', exercicioId))
 
 // Cardio do dia (cardios/{uid}_{dia}). Substitui o doc inteiro; sem await (offline) e sem campos undefined.
 export const registrarCardio = (uid: string, dia: string, c: { tipo?: TipoCardio; min?: number }) =>
@@ -619,6 +625,10 @@ export function pedirAcesso(nome: string) {
 let saindo: Promise<void> | null = null
 export function sair() {
   saindo ??= (async () => {
+    // Vídeo ainda sendo enviado (#253): a pessoa decide; sair apaga o vídeo deste aparelho.
+    const videos = await enviosNoAparelho().catch(() => 0)
+    if (videos && !confirm('Há vídeo ainda sendo enviado. Sair apaga esse vídeo deste aparelho. Sair mesmo assim?')) throw new Error('saída cancelada')
+    await descartarEnviosAoSair().catch(() => {})
     try {
       await sincronizarAntesDeSair(() => waitForPendingWrites(db))
     } catch (erro) {

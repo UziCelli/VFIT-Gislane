@@ -1,5 +1,6 @@
 // Limita bytes antes de manter o pedido completo em memória; Content-Length não é confiável.
-export async function lerCorpoJson(req: Request, maxBytes: number): Promise<{ corpo: unknown; status?: never } | { status: 400 | 413 }> {
+// Lê em pedaços e para assim que passar de maxBytes.
+export async function lerCorpoBinario(req: Request, maxBytes: number): Promise<{ dados: ArrayBuffer; status?: never } | { status: 400 | 413 }> {
   const reader = req.body?.getReader()
   const chunks: Uint8Array[] = []
   let tamanho = 0
@@ -19,10 +20,20 @@ export async function lerCorpoJson(req: Request, maxBytes: number): Promise<{ co
     const bytes = new Uint8Array(tamanho)
     let inicio = 0
     for (const chunk of chunks) { bytes.set(chunk, inicio); inicio += chunk.byteLength }
-    return { corpo: JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(bytes)) }
+    return { dados: bytes.buffer }
   } catch {
     return { status: 400 }
   } finally {
     reader?.releaseLock()
+  }
+}
+
+export async function lerCorpoJson(req: Request, maxBytes: number): Promise<{ corpo: unknown; status?: never } | { status: 400 | 413 }> {
+  const b = await lerCorpoBinario(req, maxBytes)
+  if (b.status) return b
+  try {
+    return { corpo: JSON.parse(new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(b.dados)) }
+  } catch {
+    return { status: 400 }
   }
 }

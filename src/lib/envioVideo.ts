@@ -203,3 +203,21 @@ export async function linkVideo(id: string): Promise<string> {
   if (!r.ok) throw new Error(r.status === 403 ? 'Sem permissão para ver.' : 'Não deu para abrir o vídeo.')
   return ((await r.json()) as { url: string }).url
 }
+
+// Saída segura da conta: vídeo privado não fica no aparelho de quem saiu (aparelho compartilhado).
+// Quantos envios ainda não terminaram neste aparelho (para a pessoa decidir antes de sair).
+export async function enviosNoAparelho(): Promise<number> {
+  if (typeof indexedDB === 'undefined') return 0
+  return new Set([...(await todos()).map((g) => g.id), ...controles.keys()]).size
+}
+
+// Cancela tudo (ainda com o login válido: apaga arquivo no Worker e registro) e apaga o banco local inteiro.
+export async function descartarEnviosAoSair() {
+  if (typeof indexedDB === 'undefined') return
+  const ids = new Set([...(await todos()).map((g) => g.id), ...controles.keys()])
+  await Promise.all([...ids].map((id) => Promise.race([cancelarEnvio(id), new Promise((r) => setTimeout(r, 3000))])))
+  await new Promise<void>((ok) => {
+    const r = indexedDB.deleteDatabase(BANCO)
+    r.onsuccess = r.onerror = r.onblocked = () => ok()
+  })
+}

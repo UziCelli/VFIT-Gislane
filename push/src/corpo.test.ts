@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { lerCorpoJson } from './corpo'
+import { lerCorpoBinario, lerCorpoJson } from './corpo'
 
 const pedido = (body: BodyInit) => new Request('https://example.test/', { method: 'POST', body, duplex: 'half' } as RequestInit)
 describe('corpo da API limitado em bytes', () => {
@@ -23,6 +23,18 @@ describe('corpo da API limitado em bytes', () => {
       cancel() { cancelado = true },
     })
     expect(await lerCorpoJson(pedido(body), 7)).toEqual({ status: 413 })
+    expect(cancelado).toBe(true)
+  })
+  it('binário: devolve os bytes no limite e corta acima dele sem ler o resto', async () => {
+    const r = await lerCorpoBinario(pedido(new Uint8Array([1, 2, 3])), 3)
+    expect(r.status).toBeUndefined()
+    expect(new Uint8Array((r as { dados: ArrayBuffer }).dados)).toEqual(new Uint8Array([1, 2, 3]))
+    let cancelado = false
+    const body = new ReadableStream({
+      start(c) { c.enqueue(new Uint8Array(4)); c.enqueue(new Uint8Array(4)) },
+      cancel() { cancelado = true },
+    })
+    expect(await lerCorpoBinario(pedido(body), 5)).toEqual({ status: 413 })
     expect(cancelado).toBe(true)
   })
 })

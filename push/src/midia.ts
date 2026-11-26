@@ -154,3 +154,9 @@ export const faltando = (m: Pick<Meta, 'partes' | 'recebidas'>) => {
   const tem = new Set(m.recebidas)
   return Array.from({ length: m.partes }, (_, n) => n).filter((n) => !tem.has(n))
 }
+
+// "iniciar" de novo no mesmo id: o mesmo arquivo do mesmo autor retoma (completo = faltam [], o app só repete a
+// confirmação, sem reenviar); qualquer diferença é outro arquivo e é recusada.
+export function retomar(atual: Meta, m: Pick<Meta, 'autor' | 'bytes' | 'mime'>): { faltam: number[] } | 'conflito' {
+  return atual.autor !== m.autor || atual.bytes !== m.bytes || atual.mime !== m.mime ? 'conflito' : { faltam: faltando(atual) }
+}

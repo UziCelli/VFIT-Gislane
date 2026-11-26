@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assinar, conferir, faixa, faltando, idOk, LINK_MS, lerCampos, lerMidia, limitarFaixa, marcarPronto, MAX_BYTES, MAX_RESPOSTA, PARTE, partesDe, tamanhoParte, validarInicio } from './midia'
+import { assinar, conferir, faixa, faltando, idOk, LINK_MS, lerCampos, lerMidia, limitarFaixa, marcarPronto, MAX_BYTES, MAX_RESPOSTA, PARTE, partesDe, retomar, tamanhoParte, validarInicio, type Meta } from './midia'
 
 const ID = 'AbCdEfGhIjKlMnOpQrSt'
 const chave = () => crypto.subtle.importKey('raw', new Uint8Array(32).fill(7), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
@@ -102,5 +102,23 @@ describe('Firestore com o token de quem chama', () => {
     expect(w.updateTransforms).toEqual([{ fieldPath: 'prontoEm', setToServerValue: 'REQUEST_TIME' }])
     expect(w.currentDocument).toEqual({ exists: true })
     expect(await marcarPronto('forca--app', ID, 'tok', (async () => new Response('', { status: 403 })) as unknown as typeof fetch)).toBe(false)
+  })
+})
+
+describe('retomar envio', () => {
+  const meta = (x: Partial<Meta>): Meta => ({
+    projeto: 'forca--app', id: ID, autor: 'ana', alunoId: 'ana', tipo: 'execucao', bytes: 3 * PARTE, mime: 'video/mp4',
+    partes: 3, recebidas: [0], criadoEm: 0, completo: false, avisado: false, ...x,
+  })
+  it('mesmo arquivo do mesmo autor devolve só as partes que faltam', () => {
+    expect(retomar(meta({}), { autor: 'ana', bytes: 3 * PARTE, mime: 'video/mp4' })).toEqual({ faltam: [1, 2] })
+  })
+  it('já completo: nada a reenviar, o app só repete a confirmação', () => {
+    expect(retomar(meta({ recebidas: [0, 1, 2], completo: true }), { autor: 'ana', bytes: 3 * PARTE, mime: 'video/mp4' })).toEqual({ faltam: [] })
+  })
+  it('outro autor, tamanho ou formato é outro arquivo', () => {
+    expect(retomar(meta({}), { autor: 'bia', bytes: 3 * PARTE, mime: 'video/mp4' })).toBe('conflito')
+    expect(retomar(meta({}), { autor: 'ana', bytes: 2 * PARTE, mime: 'video/mp4' })).toBe('conflito')
+    expect(retomar(meta({}), { autor: 'ana', bytes: 3 * PARTE, mime: 'video/webm' })).toBe('conflito')
   })
 })

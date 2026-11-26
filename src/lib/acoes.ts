@@ -51,6 +51,7 @@ import { idCardio, type TipoCardio } from './cardio'
 import type { NovoFeedback } from './feedback'
 import { caminhosParaCancelar, docParaMeso, mesoParaDoc, registroId, type MesoDoc, type RegistroGravado } from './conversores'
 import { auth, authCadastro, db, apagarCacheAoSair, concluirSaida, reabrirAposFalha } from './firebase'
+import { descartarEnviosAoSair, enviosNoAparelho } from './envioVideo'
 import { sincronizarAntesDeSair } from './saidaSegura'
 import type { Importado } from './planilha'
 import { inicioJanela } from './resumo'
@@ -621,6 +622,10 @@ export function pedirAcesso(nome: string) {
 let saindo: Promise<void> | null = null
 export function sair() {
   saindo ??= (async () => {
+    // Vídeo ainda sendo enviado (#253): a pessoa decide; sair apaga o vídeo deste aparelho.
+    const videos = await enviosNoAparelho().catch(() => 0)
+    if (videos && !confirm('Há vídeo ainda sendo enviado. Sair apaga esse vídeo deste aparelho. Sair mesmo assim?')) throw new Error('saída cancelada')
+    await descartarEnviosAoSair().catch(() => {})
     try {
       await sincronizarAntesDeSair(() => waitForPendingWrites(db))
     } catch (erro) {

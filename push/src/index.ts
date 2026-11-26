@@ -1,4 +1,4 @@
-import { lerCorpoJson } from './corpo'
+import { lerCorpoBinario, lerCorpoJson } from './corpo'
 import { atenderIA, MAX_CORPO_IA, ROTAS_IA, type AcaoIA, type ResultadoIA } from './ia'
 import { DurableObject } from 'cloudflare:workers'
 import { acessoComCache, appCheckOk, ehCoach, lerPermissao, podeAvisarTreino, quemAvisaCoach, registrarAgendamento, type CacheAcesso } from './acesso'
@@ -6,7 +6,7 @@ import { cors } from './cors'
 import { chaveDaConta, chaveDoGoogle, verificarAviso, verificarIdToken, type Projeto } from './jwt'
 import { alvosDe, comAparelho, endpointOk, semAparelho, type Fixa, inicioDoDiaBrasilia, nomeAgenda, nomeCoaches, nomeDO, passoAgenda, prefixoAgenda, tipoCoachOk, uidOk, validarAvisos, validarDesligados, validarEsquecer, validarFimEm, validarInscricao, validarRecado, type Aviso, type Inscricao, type Tipo, type TipoCoach } from './validar'
 import { enviarPush, gerarParVapid, type ParVapid } from './webpush'
-import { assinar, conferir, faixa, faltando, idOk, LINK_MS, limitarFaixa, lerMidia, marcarPronto, nomeMidia, ORFAO_MS, PARTE, partesDe, RETENCAO_DIAS, tamanhoParte, TETO_TOTAL, validarInicio, type Meta } from './midia'
+import { assinar, conferir, faixa, faltando, idOk, LINK_MS, limitarFaixa, lerMidia, marcarPronto, nomeMidia, ORFAO_MS, PARTE, partesDe, RETENCAO_DIAS, retomar, tamanhoParte, TETO_TOTAL, validarInicio, type Meta } from './midia'
 
 // VIDEOS = "1" liga as rotas /midia/* (vídeos privados, #253). Desligado por padrão em wrangler.toml.
 type Env = { DESCANSO: DurableObjectNamespace<Descanso>; MIDIA: DurableObjectNamespace<Midia>; VIDEOS?: string }
@@ -272,7 +272,7 @@ export class Midia extends DurableObject<Env> {
   // Começa ou retoma. Devolve as partes que faltam; 'conflito' = outro arquivo com o mesmo id; 'cheio' = sem espaço.
   async iniciar(m: Pick<Meta, 'projeto' | 'id' | 'autor' | 'alunoId' | 'tipo' | 'bytes' | 'mime'>): Promise<{ faltam: number[] } | 'conflito' | 'cheio'> {
     const atual = await this.meta()
-    if (atual) return atual.autor !== m.autor || atual.bytes !== m.bytes || atual.mime !== m.mime || atual.completo ? 'conflito' : { faltam: faltando(atual) }
+    if (atual) return retomar(atual, m)
     if (!(await this.cota().reservar(m.bytes))) return 'cheio'
     const meta: Meta = { ...m, partes: partesDe(m.bytes), recebidas: [], criadoEm: Date.now(), completo: false, avisado: false }
     await this.ctx.storage.put('meta', meta)
@@ -519,6 +519,12 @@ type Inst = {
 }
 
 // Rotas dos vídeos privados (#253). Contrato: docs/plano-videos.md.
+// A confirmação anterior pode ter gravado 'pronto' e a resposta se perdido: lê de novo para saber.
+async function jaPronto(projeto: Projeto, id: string, token: string, appCheck?: string): Promise<boolean> {
+  const d = await lerMidia(projeto, id, token, fetch, appCheck)
+  return !!d && d.status === 'pronto'
+}
+
 async function atenderMidia(req: Request, env: Env, pathname: string, token: string | undefined, agora: number, appCheck: string | undefined, json: Json, lerJson: LerJson, { aluno, coaches, midia }: Inst): Promise<Response> {
   const chave = () => env.MIDIA.get(env.MIDIA.idFromName('__chave')).hmac()
   const url = new URL(req.url)
@@ -563,9 +569,9 @@ async function atenderMidia(req: Request, env: Env, pathname: string, token: str
     if (!idOk(mid) || !Number.isInteger(n)) return json({ erro: 'pedido inválido' }, 400)
     if (!(await meu.passar('midia-parte', 120, 60_000))) return json({ erro: 'muitos pedidos' }, 429, { 'Retry-After': '60' })
     if (Number(req.headers.get('Content-Length') ?? 0) > PARTE) return json({ erro: 'parte grande demais' }, 413)
-    const dados = await req.arrayBuffer()
-    if (dados.byteLength > PARTE) return json({ erro: 'parte grande demais' }, 413)
-    const s = await midia(projeto, mid).parte(uid, n, dados)
+    const b = await lerCorpoBinario(req, PARTE)
+    if (b.status) return json({ erro: b.status === 413 ? 'parte grande demais' : 'pedido inválido' }, b.status)
+    const s = await midia(projeto, mid).parte(uid, n, b.dados)
     return s === 200 ? json({ ok: true }) : json({ erro: 'parte recusada' }, s)
   }
 
@@ -581,7 +587,8 @@ async function atenderMidia(req: Request, env: Env, pathname: string, token: str
     // O documento midias/{id} já foi criado pelo app (as regras conferiram quem pode); aqui só confere que é dele.
     const d = await lerMidia(projeto, v.id, token, fetch, appCheck)
     if (d === null) return json({ erro: 'não foi possível verificar o vídeo' }, 503)
-    if (!d || d.autor !== uid || d.status !== 'enviando' || d.bytes !== v.bytes) return json({ erro: 'sem permissão' }, 403)
+    // 'pronto' também passa: a confirmação pode ter caído depois de o Firestore gravar, e o app repete sem reenviar.
+    if (!d || d.autor !== uid || (d.status !== 'enviando' && d.status !== 'pronto') || d.bytes !== v.bytes) return json({ erro: 'sem permissão' }, 403)
     const r = await midia(projeto, v.id).iniciar({ projeto, id: v.id, autor: uid, alunoId: d.alunoId, tipo: d.tipo, bytes: v.bytes, mime: v.mime })
     if (r === 'conflito') return json({ erro: 'vídeo já enviado' }, 409)
     if (r === 'cheio') return json({ erro: 'espaço de vídeos cheio' }, 507)
@@ -598,7 +605,10 @@ async function atenderMidia(req: Request, env: Env, pathname: string, token: str
     const r = await inst.concluir(uid)
     if (r === 'faltam') return json({ erro: 'faltam partes' }, 409)
     if (r !== 'ok') return json({ erro: 'sem permissão' }, r)
-    if (!(await marcarPronto(projeto, mid, token, fetch, appCheck))) return json({ erro: 'não foi possível confirmar o vídeo' }, 503)
+    // Repetir é seguro: se já está 'pronto' (a resposta anterior se perdeu), as regras recusam a escrita e a leitura confirma.
+    if (!(await marcarPronto(projeto, mid, token, fetch, appCheck)) && !(await jaPronto(projeto, mid, token, appCheck))) {
+      return json({ erro: 'não foi possível confirmar o vídeo' }, 503)
+    }
     const m = (await inst.meta())!
     if (await inst.primeiroAviso()) {
       if (m.tipo === 'execucao') {

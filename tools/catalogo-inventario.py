@@ -22,7 +22,7 @@ DADOS = RAIZ / 'src' / 'data'
 SAIDA = RAIZ / 'docs' / 'catalogo' / 'inventario-atual.csv'
 
 COLUNAS = [
-    'id', 'nome_atual', 'nome_proposto', 'status', 'grupo', 'grupos_secundarios', 'movimento_base',
+    'id', 'nome_atual', 'nome_proposto', 'aliases', 'status', 'grupo', 'grupos_secundarios', 'movimento_base',
     'equipamento', 'mecanismo_carga', 'lateralidade', 'modo', 'unidade', 'pegada_variacao',
     'convencao_carga', 'duvida',
 ]
@@ -30,7 +30,7 @@ COLUNAS = [
 # Rótulo do equipamento no fim do nome proposto (mesmo estilo da lista de exercícios novos).
 ROTULO = {
     'halter': 'Halter', 'halteres': 'Halteres', 'barra': 'Barra', 'barra_w': 'Barra W',
-    'barra_hexagonal': 'Barra Hexagonal', 'smith': 'Smith', 'polia': 'Polia', 'duas_polias': 'Duas Polias',
+    'barra_hexagonal': 'Barra Hexagonal', 'smith': 'Smith', 'smith_dual': 'Smith Dual', 'caneleira': 'Caneleira', 'polia': 'Polia', 'duas_polias': 'Duas Polias',
     'maquina_seletora': 'Máquina Seletora', 'maquina_articulada': 'Articulado', 'elastico': 'Elástico',
     'anilha': 'Anilha', 'medicine_ball': 'Medicine Ball', 'kettlebell': 'Kettlebell',
 }
@@ -67,6 +67,8 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
     """Devolve (equipamento, mecanismo, dúvida). `n` sem acento e minúsculo."""
     if tem(n, 'smith') and tem(n, 'halter'):
         return 'a_confirmar', '', 'Smith com halter: qual equipamento define a carga anotada?'
+    if tem(n, 'smith dual'):
+        return 'smith_dual', 'anilhas', ''
     if tem(n, 'smith'):
         return 'smith', 'anilhas', ''
     if tem(n, 'barra hexagonal'):
@@ -82,7 +84,7 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
     if tem(n, 'elastico'):
         return 'elastico', 'elastico', ''
     if tem(n, 'caneleira'):
-        return 'outro', 'livre', 'Equipamento caneleira (fica em "outro", como na lista de novos).'
+        return 'caneleira', 'livre', ''
     if tem(n, 'halteres'):
         return 'halteres', 'livre', ''
     if tem(n, 'halter'):
@@ -158,7 +160,7 @@ def compacto(s: str) -> str:
 
 
 def nome_proposto(nome: str, equip: str, n: str) -> str:
-    if equip in ('peso_do_corpo', 'a_confirmar', 'outro') or tem(n, 'smith dual') or tem(n, 'snatch', 'clean', 'jerk', 'jump', 'bound'):
+    if equip in ('peso_do_corpo', 'a_confirmar', 'outro', 'caneleira', 'smith_dual') or tem(n, 'snatch', 'clean', 'jerk', 'jump', 'bound'):
         return nome
     # Máquina que já se chama pelo nome (Leg Press 45, Hack, Cadeira Extensora...): o tipo vira pílula, não sufixo.
     if equip.startswith('maquina') and not tem(n, 'maquina', 'articulada', 'articulado'):
@@ -187,6 +189,11 @@ def nome_proposto(nome: str, equip: str, n: str) -> str:
     return f'{base} {rotulo}'.strip()
 
 
+# Decisões do Celli (26/11/2026): Retrocesso passa a Recuo; Remada Cavalinho também atende por T-Bar Row.
+TROCAS = [(r'\bRetrocesso\b', 'Recuo')]
+APELIDOS_EXTRA = {'remada-cavalinho': ['T-Bar Row']}
+
+
 def main() -> None:
     grupos = json.loads((DADOS / 'exercicios.json').read_text(encoding='utf-8'))
     dois = set(json.loads((DADOS / 'doisLados.json').read_text(encoding='utf-8')))
@@ -211,9 +218,12 @@ def main() -> None:
             secundarios = ', '.join(anat.get(ex_id, {}).get('secundarios', []))
             var = re.findall(r'\(([^)]*)\)', nome)
             proposto = nome_proposto(nome, equip, n)
+            for padrao, novo in TROCAS:
+                proposto = re.sub(padrao, novo, proposto)
+            aliases = ([nome] if proposto != nome else []) + APELIDOS_EXTRA.get(ex_id, [])
             status = 'a_confirmar' if duvida or equip == 'a_confirmar' else ('igual' if proposto == nome else 'renomear')
             linhas.append({
-                'id': ex_id, 'nome_atual': nome, 'nome_proposto': proposto, 'status': status, 'grupo': g['grupo'],
+                'id': ex_id, 'nome_atual': nome, 'nome_proposto': proposto, 'aliases': '; '.join(aliases), 'status': status, 'grupo': g['grupo'],
                 'grupos_secundarios': secundarios, 'movimento_base': movimento(n), 'equipamento': equip,
                 'mecanismo_carga': mec, 'lateralidade': lat, 'modo': modo,
                 'unidade': 'tempo' if isometrico else 'reps', 'pegada_variacao': '; '.join(var),

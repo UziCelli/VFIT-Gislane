@@ -66,7 +66,7 @@ def tem(n: str, *palavras: str) -> bool:
 # Respostas do Celli (26/11/2026) para "Halter" sem pista: o item atual fica com 1 halter ou 2,
 # e a outra forma vira variante nova (VARIANTES_NOVAS), sem mudar o id de quem já tem histórico.
 HALTER_DECIDIDO = {
-    'agachamento-livre-halter': 'halter', 'pull-over-halter': 'halter', 'rosca-scott-halter': 'halteres',
+    'agachamento-livre-halter': 'halter', 'pull-over-halter': 'halter', 'rosca-scott-halter': 'halter',
     'triceps-frances-em-pe-halter': 'halter', 'triceps-frances-sentado-halter': 'halter',
 }
 # Sem resposta direta: 1 halter é o uso comum (segurado entre as pernas, nos pés ou numa mão). Premissa.

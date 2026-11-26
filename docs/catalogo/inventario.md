@@ -7,7 +7,7 @@ Etapa 1 da sub-issue #256. **Nada no app mudou.** São só tabelas para o Celli 
 | Arquivo | O que tem |
 |---|---|
 | [inventario-atual.csv](inventario-atual.csv) | Os **359** exercícios de hoje, com nome proposto e atributos. Gerado por `python3 tools/catalogo-inventario.py`. |
-| [exercicios-novos.csv](exercicios-novos.csv) | **641** exercícios novos (já com as decisões do Celli), com as mesmas colunas (sem `nome_atual`/`status`/`duvida`; a coluna `observacao` traz as dúvidas). |
+| [exercicios-novos.csv](exercicios-novos.csv) | **645** exercícios novos (já com as decisões do Celli), com as mesmas colunas (sem `nome_atual`/`status`/`duvida`; a coluna `observacao` traz as dúvidas). |
 
 O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-base, equipamento, mecanismo de carga (pinos, anilhas, livre, corporal, elástico), lateralidade, modo, unidade (reps ou tempo), pegada/variação e convenção de carga (total, por lado, corporal).
 
@@ -20,6 +20,7 @@ O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-
 Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos novos. Exemplos:
 
 - Supino Reto Halter → Supino Reto Halteres
+- Rosca Scott Halter → continua Rosca Scott Halter (1 halter)
 - Supino Reto Máquina → Supino Reto Máquina Seletora
 - Rosca Direta Cabo → Rosca Direta Polia
 - Crossover no Cabo → Crossover Duas Polias
@@ -35,16 +36,12 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 
 ## Variantes novas que saem das respostas
 
-Elas não alteram o id atual, que mantém o histórico.
-
-- Agachamento Livre **Halteres** (o atual fica como Halter)
-- Tríceps Francês em Pé **Halteres** e Tríceps Francês Sentado **Halteres** (os atuais ficam como Halter)
-- Rosca Scott **Unilateral Halter** (o atual fica como Halteres)
+Já entraram em [exercicios-novos.csv](exercicios-novos.csv): Agachamento Livre Halteres, Rosca Scott Halteres e Tríceps Francês em Pé/Sentado Halteres. Os ids atuais não mudam e mantêm o histórico.
 
 ## Já decidido pelo Celli (26/11/2026)
 
 - **"Halter" com carga por lado = Halteres** (29 exercícios, como o Supino Reto).
-- **Pull Over Halter** usa 1 halter. **Rosca Scott Halter** usa 2. Agachamento Livre e Tríceps Francês usam 1 hoje, e a versão com 2 vira variante nova.
+- **Pull Over, Agachamento Livre, Tríceps Francês e Rosca Scott "Halter"** usam 1 halter. A versão com 2 halteres vira exercício novo.
 - Terra Sumô, Elevação Pélvica, Flexão de Joelhos deitado, Abdominal Oblíquo, Supinação e Pronação: **1 halter**. Isto é uma premissa, porque é o uso comum.
 - **Puxadas e remadas baixas sem equipamento no nome = máquina seletora.** "Máquina" sem detalhe também é seletora.
 - **Box Jump e Box Jumps** são exercícios diferentes e continuam separados.

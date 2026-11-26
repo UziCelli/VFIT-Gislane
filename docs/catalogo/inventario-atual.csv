@@ -260,7 +260,7 @@ rosca-direta-halter,Rosca Direta Halter,Rosca Direta Halteres,Rosca Direta Halte
 rosca-direta-cabo,Rosca Direta Cabo,Rosca Direta Polia,Rosca Direta Cabo,renomear,Bíceps,antebraco,rosca,polia,pinos,bilateral,dinamico,reps,,total,
 rosca-scott-barra-reta,Rosca Scott Barra Reta,Rosca Scott Barra Reta,,igual,Bíceps,antebraco,rosca,barra,livre,bilateral,dinamico,reps,,total,
 rosca-scott-barra-w,Rosca Scott Barra W,Rosca Scott Barra W,,igual,Bíceps,antebraco,rosca,barra_w,livre,bilateral,dinamico,reps,,total,
-rosca-scott-halter,Rosca Scott Halter,Rosca Scott Halteres,Rosca Scott Halter,renomear,Bíceps,antebraco,rosca,halteres,livre,bilateral,dinamico,reps,,total,
+rosca-scott-halter,Rosca Scott Halter,Rosca Scott Halter,,igual,Bíceps,antebraco,rosca,halter,livre,bilateral,dinamico,reps,,total,
 rosca-scott-maquina,Rosca Scott Máquina,Rosca Scott Máquina Seletora,Rosca Scott Máquina,renomear,Bíceps,antebraco,rosca,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 rosca-superman-cabo-barra-reta,Rosca Superman Cabo Barra Reta,Rosca Superman Barra Reta Polia,Rosca Superman Cabo Barra Reta,renomear,Bíceps,antebraco,superman,polia,pinos,bilateral,dinamico,reps,,total,
 rosca-superman-cabo-unilateral,Rosca Superman Cabo Unilateral,Rosca Superman Unilateral Polia,Rosca Superman Cabo Unilateral,renomear,Bíceps,antebraco,superman,polia,pinos,unilateral,dinamico,reps,,total,

@@ -1,4 +1,5 @@
 id,nome_sugerido,grupo,grupos_secundarios,movimento_base,equipamento,mecanismo_carga,lateralidade,modo,unidade,pegada_variacao,convencao_carga,observacao
+agachamento-livre-halteres,Agachamento Livre Halteres,Quadríceps e Glúteos,,agachamento,halteres,livre,bilateral,dinamico,reps,"um halter em cada mão, ao lado do corpo",por_lado,
 agachamento-goblet-halter,Agachamento Goblet Halter,Quadríceps e Glúteos,Abdome e Lombar,agachamento,halter,livre,bilateral,dinamico,reps,goblet (halter junto ao peito),total,
 agachamento-goblet-kettlebell,Agachamento Goblet Kettlebell,Quadríceps e Glúteos,Abdome e Lombar,agachamento,kettlebell,livre,bilateral,dinamico,reps,goblet,total,
 agachamento-goblet-halter-pausa,Agachamento Goblet Halter Pausa,Quadríceps e Glúteos,,agachamento,halter,livre,bilateral,dinamico,reps,pausa no fundo,total,
@@ -487,6 +488,7 @@ rosca-inversa-halteres,Rosca Inversa Halteres,Antebraço,Bíceps,rosca inversa,h
 rosca-inversa-polia,Rosca Inversa Polia,Antebraço,Bíceps,rosca inversa,polia,pinos,bilateral,dinamico,reps,"barra reta, pegada pronada",total,
 rosca-inversa-scott-barra-w,Rosca Inversa Scott Barra W,Antebraço,Bíceps,rosca inversa,barra_w,livre,bilateral,dinamico,reps,no banco scott,total,
 pronacao-e-supinacao-elastico,Pronação e Supinação Elástico,Antebraço,,pronação e supinação,elastico,elastico,unilateral,dinamico,reps,,total,
+rosca-scott-halteres,Rosca Scott Halteres,Bíceps,,rosca scott,halteres,livre,bilateral,dinamico,reps,"dois halteres, bilateral",por_lado,
 rosca-direta-barra-w,Rosca Direta Barra W,Bíceps,Antebraço,rosca direta,barra_w,livre,bilateral,dinamico,reps,,total,
 rosca-direta-barra-pegada-aberta,Rosca Direta Barra Pegada Aberta,Bíceps,,rosca direta,barra,livre,bilateral,dinamico,reps,pegada aberta,total,
 rosca-direta-barra-pegada-fechada,Rosca Direta Barra Pegada Fechada,Bíceps,,rosca direta,barra,livre,bilateral,dinamico,reps,pegada fechada,total,
@@ -514,6 +516,8 @@ rosca-taca-halter,Rosca Taça Halter,Bíceps,,rosca direta,halter,livre,bilatera
 rosca-deitado-polia,Rosca Deitado Polia,Bíceps,,rosca direta,polia,pinos,bilateral,dinamico,reps,"deitado(a) no banco ou solo, polia baixa",total,
 rosca-direta-kettlebell,Rosca Direta Kettlebell,Bíceps,Antebraço,rosca direta,kettlebell,livre,bilateral,dinamico,reps,,total,
 rosca-martelo-isometrica-halteres,Rosca Martelo Isométrica Halteres,Bíceps,Antebraço,rosca martelo,halteres,livre,bilateral,isometrico,tempo,cotovelos a 90º,por_lado,
+triceps-frances-em-pe-halteres,Tríceps Francês em Pé Halteres,Tríceps,,tríceps francês,halteres,livre,bilateral,dinamico,reps,um halter em cada mão,por_lado,
+triceps-frances-sentado-halteres,Tríceps Francês Sentado Halteres,Tríceps,,tríceps francês,halteres,livre,bilateral,dinamico,reps,um halter em cada mão,por_lado,
 triceps-pulley-barra-w,Tríceps Pulley Barra W,Tríceps,,extensão de cotovelo,polia,pinos,bilateral,dinamico,reps,barra W,total,
 triceps-pulley-unilateral,Tríceps Pulley Unilateral,Tríceps,,extensão de cotovelo,polia,pinos,unilateral,dinamico,reps,pegada pronada ou sem pegador,total,
 triceps-pulley-elastico,Tríceps Pulley Elástico,Tríceps,,extensão de cotovelo,elastico,elastico,bilateral,dinamico,reps,elástico preso no alto,total,

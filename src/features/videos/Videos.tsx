@@ -12,12 +12,15 @@ import { Barra, Botao, Campo, Cartao, classesOpcao, Msg } from '../../ui'
 // O vídeo fica no YouTube como "não listado" (sem custo); aqui só o status, o link e uma nota. Regras em lib/videos.ts.
 const PASSO = 60 // linhas por vez: a lista "A gravar" começa com o catálogo inteiro
 
-function Editor({ l, nome, fechar, aviso }: { l: LinhaVideo; nome: string; fechar: () => void; aviso: (t: string) => void }) {
+// `confirmado`: a lista veio do servidor. Só do cache (sem internet), um exercício que parece "A gravar" pode já ter
+// link e nota no servidor, e salvar (setDoc do doc inteiro) os apagaria ao reconectar: aí não salva.
+function Editor({ l, nome, confirmado, fechar, aviso }: { l: LinhaVideo; nome: string; confirmado: boolean; fechar: () => void; aviso: (t: string) => void }) {
   const [status, setStatus] = useState<StatusVideo>(l.status === 'gravar' ? 'gravado' : l.status)
   const [link, setLink] = useState(l.link ?? '')
   const [nota, setNota] = useState(l.nota ?? '')
   const [erro, setErro] = useState('')
   const salvar = () => {
+    if (!confirmado) return setErro('Sem internet. Conecte-se para salvar.')
     const r = dadosVideo(status, link, nota, nome)
     if (r?.erro) return setErro(r.erro)
     // Sem await: offline, o cache local já mostra; a promessa só resolve quando o servidor confirma.
@@ -79,7 +82,8 @@ export default function Videos({ nome }: { nome: string }) {
       <h1 className="mb-3 text-lg font-bold">Vídeos</h1>
       {r.erro ? (
         <p className="text-sm text-red-300">Não deu para carregar os vídeos.</p>
-      ) : r.carregando ? (
+      ) : r.carregando || (r.cache && r.dados.length === 0) ? (
+        // Cache vazio não quer dizer "nada gravado": sem confirmação do servidor, não mostra tudo como "A gravar".
         <p className="text-sm text-slate-400">{semInternet ? TEXTO_SEM_INTERNET : 'Carregando…'}</p>
       ) : (
         <>
@@ -124,7 +128,7 @@ export default function Videos({ nome }: { nome: string }) {
                         </a>
                       )}
                     </div>
-                    {aberto === l.id && <Editor l={l} nome={nome} fechar={() => setAberto(null)} aviso={setMsg} />}
+                    {aberto === l.id && <Editor l={l} nome={nome} confirmado={!r.cache} fechar={() => setAberto(null)} aviso={setMsg} />}
                   </Cartao>
                 </li>
               ))}

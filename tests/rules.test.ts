@@ -1118,6 +1118,52 @@ describe('arquivados', () => {
   });
 });
 
+// Vídeos de demonstração do catálogo: videos/{exercicioId}. Só o coach com 2º fator; aluno não vê.
+describe('videos', () => {
+  const vid = (uid: string | undefined, id = 'supino-reto-barra') => doc(db(uid), 'videos', id);
+  const semCoach = (token: object) => doc(contexto('coach', token).firestore() as unknown as Firestore, 'videos', 'supino-reto-barra');
+  const ok = (extra: object = {}) => ({ status: 'gravado', por: 'Gislane', em: serverTimestamp(), ...extra });
+  const existente = () =>
+    env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore() as unknown as Firestore, 'videos', 'supino-reto-barra'), { status: 'gravado', por: 'Gislane', em: Timestamp.now() }),
+    );
+
+  it('coach com 2º fator marca gravado, põe no ar com link, lê, lista e volta para "A gravar"', async () => {
+    await assertSucceeds(setDoc(vid('coach'), ok({ nota: 'regravar com luz melhor' })));
+    await assertSucceeds(setDoc(vid('coach'), ok({ status: 'no-ar', link: 'https://youtu.be/abc' })));
+    await assertSucceeds(getDoc(vid('coach')));
+    await assertSucceeds(getDocs(collection(db('coach'), 'videos')));
+    await assertSucceeds(deleteDoc(vid('coach')));
+  });
+
+  it('coach: nega "No ar" sem link, link sem https ou com espaço, status, id e campos inválidos', async () => {
+    await assertFails(setDoc(vid('coach'), ok({ status: 'no-ar' })));
+    await assertFails(setDoc(vid('coach'), ok({ link: 'http://youtu.be/abc' })));
+    await assertFails(setDoc(vid('coach'), ok({ link: 'https://you tu.be' })));
+    await assertFails(setDoc(vid('coach'), ok({ link: 'https://' + 'a'.repeat(300) })));
+    await assertFails(setDoc(vid('coach'), ok({ nota: 'x'.repeat(141) })));
+    await assertFails(setDoc(vid('coach'), ok({ status: 'gravar' })));
+    await assertFails(setDoc(vid('coach'), ok({ alunoId: 'ana' })));
+    await assertFails(setDoc(vid('coach'), ok({ por: '' })));
+    await assertFails(setDoc(vid('coach'), ok({ em: passado })));
+    await assertFails(setDoc(vid('coach', 'Supino_Reto'), ok()));
+    await assertFails(setDoc(vid('coach'), { status: 'gravado', em: serverTimestamp() }));
+  });
+
+  it('coach sem 2º fator, aluno e anônimo: tudo negado', async () => {
+    await existente();
+    await assertFails(setDoc(semCoach(SEM_FATOR), ok()));
+    await assertFails(getDoc(semCoach(SEM_FATOR)));
+    await assertFails(deleteDoc(semCoach(SEM_FATOR)));
+    for (const uid of ['ana', undefined]) {
+      await assertFails(setDoc(vid(uid), ok()));
+      await assertFails(getDoc(vid(uid)));
+      await assertFails(getDocs(collection(db(uid), 'videos')));
+      await assertFails(deleteDoc(vid(uid)));
+    }
+  });
+});
+
 // Relatório do fim do ciclo: relatorios/{mesoId}. O coach escreve; o aluno só lê depois de liberado.
 describe('relatorios', () => {
   const rel = (uid: string | undefined, id = 'm_ana') => doc(db(uid), 'relatorios', id);

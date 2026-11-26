@@ -189,7 +189,7 @@ function Vigia({ papel }: { papel: 'coach' | 'aluno' }) {
 const ativaAba = (rota: string) =>
   rota.startsWith('/confirmar-treino-mcp') ? 'propostas'
   : rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
-  : rota === '/fisio' || rota === '/referencias' ? 'metodos'
+  : rota === '/fisio' || rota === '/referencias' || rota === '/videos' ? 'metodos'
   : rota === '/alunos' || rota.startsWith('/alunos/') || rota.startsWith('/aluno/') || rota.startsWith('/meso/') ? 'alunos'
   : 'inicio' // '/' e rotas desconhecidas (a tela padrão é o Início)
 
@@ -269,7 +269,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
     void inscreverAvisos(true) // avisos dos alunos (concluiu, anotou, "Já paguei"); só faz algo com a permissão já dada
   }, [uid])
   const presencial = rota.startsWith('/aluno/') && rota.includes('/presencial')
-  const guia = ROTAS_GUIA[rota] // as 3 guias são uma tela só: o seletor fica, o conteúdo desliza
+  const guia = ROTAS_GUIA[rota] // as 4 guias são uma tela só: o seletor fica, o conteúdo desliza
   let p: Record<string, string> | null
   let tela = <Inicio nome={nome} />
   if (presencial) tela = <Grupo rota={rota} />
@@ -287,7 +287,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/meso/:id', rota))) tela = <EditorMeso id={p.id} />
   else if ((p = casar('/meso/:id/relatorio', rota))) tela = <RelatorioCoach key={p.id} mesoId={p.id} />
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />
-  else if (guia) tela = <GuiasCoach guia={guia} />
+  else if (guia) tela = <GuiasCoach guia={guia} nome={nome} />
   else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} pendentes={propostasMcp} verificando={verificandoMcp} />
   else if (rota.startsWith('/conectar-claude')) tela = <ConectarClaude pedido={new URLSearchParams(rota.split('?')[1]).get('pedido')} />
   else if (rota === '/conta') tela = <MinhaConta uid={uid} email={email} abrirTutorial={() => setTutorial(true)} />

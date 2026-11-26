@@ -298,6 +298,24 @@ service cloud.firestore {
         && request.resource.data.em == request.time;
     }
 
+    // Vídeos de demonstração do catálogo: videos/{exercicioId} = { status, link?, nota?, por, em }. Sem documento =
+    // "A gravar" (voltar para "A gravar" apaga). O vídeo fica fora do app (YouTube não listado): aqui só o link.
+    // Só o coach com 2º fator lê e grava; o aluno ainda não vê. Limites iguais a src/lib/videos.ts.
+    match /videos/{exercicioId} {
+      allow read, delete: if isCoach();
+      allow create, update: if isCoach()
+        && exercicioId.matches('[a-z0-9-]{1,80}')
+        && request.resource.data.keys().hasOnly(['status', 'link', 'nota', 'por', 'em'])
+        && request.resource.data.keys().hasAll(['status', 'por', 'em'])
+        && request.resource.data.status in ['gravado', 'no-ar']
+        && (request.resource.data.status == 'gravado' || 'link' in request.resource.data)
+        && (!('link' in request.resource.data) || (request.resource.data.link is string
+          && request.resource.data.link.size() <= 300 && request.resource.data.link.matches('https://[^\\s]+')))
+        && (!('nota' in request.resource.data) || (request.resource.data.nota is string && request.resource.data.nota.size() <= 140))
+        && nomeValido(request.resource.data.por)
+        && request.resource.data.em == request.time;
+    }
+
     // Relatório do fim do ciclo: relatorios/{mesoId}. Os números são calculados na hora (src/lib/relatorio.ts);
     // aqui fica só o comentário do coach e se já foi liberado. liberadoEm != null exatamente quando liberado.
     // O aluno só lê o próprio, liberado, estando ativo e em dia (consulta: alunoId == uid e liberado == true).

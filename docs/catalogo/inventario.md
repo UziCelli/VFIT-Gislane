@@ -14,8 +14,8 @@ O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-
 ## Totais dos 359 atuais
 
 - **213 iguais**: o nome já segue o padrão.
-- **130 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
-- **16 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
+- **133 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
+- **13 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
 
 Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos novos. Exemplos:
 
@@ -26,13 +26,12 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 - Crossover no Cabo → Crossover Duas Polias
 - Máquinas com nome próprio (Leg Press 45, Hack, Cadeira Extensora, Puxada Frente) **não** ganham sufixo. O tipo aparece só na pílula.
 
-## Ainda a confirmar (16)
+## Ainda a confirmar (13)
 
 1. **Sem equipamento no nome (10).** Remada Unilateral (serrote), Remada Cavalinho, Remada Isométrica, Panturrilha em Pé Unilateral, Panturrilha Sentado Unilateral, Elevação Lateral Inclinado, Elevação Lateral Isométrica, Rosca Isométrica a 90º, Tríceps Coice Apoiado e Stiff no Smith com Halter.
 2. **"Guiada" (2).** Elevação Pélvica Máquina Guiada e Remada Linear 45º Guiada: é de pinos ou de anilhas?
 3. **Agachamento Halter Banco:** é com 1 halter?
-4. **Remada Curvada Fechada, Pronada e Supinada (3):** sem equipamento no nome. É com barra ou com halteres? (antes estavam como peso do corpo por engano)
-5. **Cinto de carga e bola de adução** ficam em "outro" por enquanto. Viram equipamentos próprios?
+4. **Cinto de carga e bola de adução** ficam em "outro" por enquanto. Viram equipamentos próprios?
 
 ## Variantes novas que saem das respostas
 
@@ -46,6 +45,7 @@ Já entraram em [exercicios-novos.csv](exercicios-novos.csv): Agachamento Livre 
 - **Puxadas e remadas baixas sem equipamento no nome = máquina seletora.** "Máquina" sem detalhe também é seletora.
 - **Rótulo: Articulada** (máquina articulada), como na lista dos novos.
 - **Box Jump e Box Jumps** são exercícios diferentes e continuam separados.
+- **Remada Curvada Fechada, Pronada e Supinada = Barra** ("geralmente barra, mas existem os dois"). O nome ganha "Barra" e o antigo vira apelido. As versões com halteres são exercícios à parte.
 
 - **Retrocesso vira Recuo.** O nome antigo fica como apelido.
 - **Smith e Smith Dual** são equipamentos diferentes, porque o Dual tem os lados separados.

@@ -80,6 +80,9 @@ HALTER_PREMISSA_1 = {
     'terra-sumo-com-halter', 'elevacao-pelvica-halter', 'flexao-de-joelhos-deitado-a-com-halter',
     'abdominal-obliquo-halter', 'supinacao-com-halter', 'pronacao-com-halter', 'supinacao-e-pronacao-com-halter',
 }
+# Celli (26/11/2026): Remada Curvada sem equipamento no nome é "geralmente barra, mas existem os dois".
+# O item atual fica com barra; as versões com halteres são exercícios à parte (lista dos novos).
+BARRA_DECIDIDO = {'remada-curvada-fechada', 'remada-curvada-pronada', 'remada-curvada-supinada'}
 DUPLICATAS_DESCARTADAS = {frozenset({'box-jumps', 'box-jump'})}  # Celli: exercícios diferentes
 
 
@@ -89,6 +92,8 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
         return 'peso_do_corpo', 'corporal', ''
     if ex_id in HALTER_DECIDIDO:
         return HALTER_DECIDIDO[ex_id], 'livre', ''
+    if ex_id in BARRA_DECIDIDO:
+        return 'barra', 'livre', ''
     if ex_id in HALTER_PREMISSA_1:
         return 'halter', 'livre', ''
     if tem(n, 'smith') and tem(n, 'halter'):

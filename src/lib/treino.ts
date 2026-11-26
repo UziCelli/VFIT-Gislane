@@ -72,7 +72,9 @@ export function cargaAnterior(
     if (!reg) return null // sem registro: nem monta a sessão daquele dia
     const exs = prescreverSessao(f.meso, w, t)?.exercicios ?? []
     const mesmo = (e: (typeof exs)[number]) =>
-      doAnterior ? chaveExercicio(e.slot.nome) === nomeAlvo && doisLados(e.slot) === dois && isometrico(e.slot) === iso : e.slot.nome === alvo.nome
+      doAnterior
+        ? chaveExercicio(e.slot.nome) === nomeAlvo && doisLados(e.slot) === dois && isometrico(e.slot) === iso
+        : e.slot.nome === alvo.nome || (chaveExercicio(e.slot.nome) === nomeAlvo && doisLados(e.slot) === dois && isometrico(e.slot) === iso)
     // 2 lados: só vale célula no formato novo (a antiga não diz se o número era por lado ou total).
     const comCarga = (e: (typeof exs)[number]) => {
       const cs = reg[e.slot.slotId]

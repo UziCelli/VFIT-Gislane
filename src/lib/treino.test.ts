@@ -309,6 +309,10 @@ describe('cargaAnterior: meso anterior (pelo nome do exercício)', () => {
     const volta = cargaAnterior(mk('Rosca Direta Cabo'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('rosca direta polia') })
     expect(volta).toMatchObject({ series: [44, 46] })
   })
+  it('no mesmo meso, o slot com o nome novo acha a carga do slot com o nome antigo', () => {
+    const m: Meso = { ...mk('Rosca Direta Cabo'), frequencia: 2, divisao: [[slot('a', 'Rosca Direta Cabo')], [slot('b', 'Rosca Direta Polia')]] }
+    expect(cargaAnterior(m, { '1-1': { a: [30, 32] } }, 1, 2, 1)).toMatchObject({ series: [30, 32] })
+  })
   it('nome parecido NÃO casa (outro equipamento é outro exercício)', () => {
     expect(cargaAnterior(mk('Supino Reto Halter'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })).toBeNull()
     expect(cargaAnterior(mk('Supino Reto'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })).toBeNull()

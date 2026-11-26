@@ -119,6 +119,15 @@ describe('evolucaoExercicio', () => {
   })
 })
 
+describe('evolucaoExercicio: nome antigo e novo do catálogo', () => {
+  it('o mesmo exercício com o nome antigo entra quando se pede pelo nome novo', () => {
+    const m = { ...meso, trocas: { '1-1-3': slot('X', 'Rosca Direta Cabo') } }
+    expect(evolucaoExercicio(m, { '1-1': { X: [30] } }, 'Rosca Direta Polia')).toEqual([
+      { ocorrencia: 1, semana: 1, treino: 1, cargaMax: 30, cargaMedia: 30, volume: 30 * 15 },
+    ])
+  })
+})
+
 describe('reps feitas (§9) [DECIDIDO pelo Victor]', () => {
   it('repsEfetivas: feitas quando anotadas, senão prescritas', () => {
     expect(repsEfetivas([10, 9, 8], [12, null])).toEqual([12, 9, 8])

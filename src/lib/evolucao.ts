@@ -262,7 +262,7 @@ export function comparacaoToneladas(kg: number) {
 // Maior carga máx já feita no exercício (ignorando o registro `excluir`); null se nunca teve carga > 0.
 export function recordeAnterior(historico: Record<string, Ocorrencia[]>, nome: string, excluir?: { mesoId: string; semana: number; treino: number }) {
   const cs = cargasPositivas(
-    (historico[nome] ?? []).filter((o) => !(o.mesoId === excluir?.mesoId && o.semana === excluir.semana && o.treino === excluir.treino)),
+    (historico[nomeAtualizado(nome)] ?? []).filter((o) => !(o.mesoId === excluir?.mesoId && o.semana === excluir.semana && o.treino === excluir.treino)),
   )
   return cs.length ? Math.max(...cs) : null
 }

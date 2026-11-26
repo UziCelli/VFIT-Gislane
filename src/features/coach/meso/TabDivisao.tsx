@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } fr
 import type { Meso, Registros, Slot } from '../../../engine'
 import { Aviso, Botao, campoBase, Cartao, Msg } from '../../../ui'
 import CampoExercicio from './CampoExercicio'
+import { ladosDoCadastro } from '../../../lib/catalogoProprio'
 import { doisLados, doisLadosPadrao } from '../../../lib/lados'
 import { comProgressaoIsometrica, agruparTrocas, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, moverExercicio, removerExercicio, removerGrupo, semanasComHistorico, trocarExercicio, type GrupoTroca } from './util'
 
@@ -47,7 +48,7 @@ export default function TabDivisao({
     if (p === arr.length + 1) {
       if (!nome) return
       const divisao = [...meso.divisao]
-      divisao[t - 1] = [...arr, { slotId: crypto.randomUUID(), nome }]
+      divisao[t - 1] = [...arr, { slotId: crypto.randomUUID(), nome, ...ladosDoCadastro(nome) }]
       onAtualizar({ divisao, progressaoExercicio: comProgressaoIsometrica(meso, divisao) })
       return
     }
@@ -320,7 +321,7 @@ function TrocasEAdicoes({ meso, registros, onAtualizar }: { meso: Meso; registro
     const t = Math.min(treino, meso.frequencia)
     const a = Math.min(ate, meso.semanas)
     const d = Math.min(de, a)
-    const slot = { slotId: crypto.randomUUID(), nome: nome.trim() }
+    const slot = { slotId: crypto.randomUUID(), nome: nome.trim(), ...ladosDoCadastro(nome) }
     if (tipo === 'troca') {
       const escondeCarga = Array.from({ length: a - d + 1 }, (_, i) => d + i).some((w) => {
         const antiga = meso.trocas?.[`${w}-${t}-${pos}`]

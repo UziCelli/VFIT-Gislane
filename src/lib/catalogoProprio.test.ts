@@ -2,7 +2,8 @@ import { readFileSync } from 'node:fs'
 import { afterEach, describe, expect, it } from 'vitest'
 import { EQUIPAMENTOS } from '../data/catalogo'
 import { buscarExercicios } from './busca'
-import { cargaPadrao, deDoc, definirProprios, idDoProprio, proprioPorNome, validarProprio, type DadosProprio } from './catalogoProprio'
+import { doisLados } from './lados'
+import { cargaPadrao, deDoc, definirProprios, idDoProprio, ladosDoCadastro, proprioPorNome, validarProprio, type DadosProprio } from './catalogoProprio'
 import { pilulasDo } from './pilulas'
 
 const d = (extra: Partial<DadosProprio> = {}): DadosProprio => ({
@@ -73,6 +74,19 @@ describe('lista carregada: busca e pílulas', () => {
     const r = buscarExercicios('supino reto', 50)
     expect(r[0].proprio).toBeUndefined()
     expect(r.some((x) => x.proprio)).toBe(true)
+  })
+})
+
+describe('ladosDoCadastro', () => {
+  it('cadastrado "Por lado" entra no slot com 2 lados (o aluno não lê o cadastro); o resto não muda', () => {
+    const p = salvar(d({ base: 'Supino Inclinado Pegada Neutra', grupo: 'Peitorais', equipamento: 'halteres', lateralidade: 'bilateral', carga: 'por_lado' }))
+    expect(ladosDoCadastro(p.nome)).toEqual({}) // lista ainda não carregada
+    definirProprios([p, salvar(d())])
+    expect(ladosDoCadastro(p.nome)).toEqual({ doisLados: true })
+    expect(doisLados({ nome: p.nome, ...ladosDoCadastro(p.nome) })).toBe(true)
+    expect(ladosDoCadastro('Remada Pronada Unilateral Articulada')).toEqual({}) // cadastrado com carga total
+    expect(ladosDoCadastro('Supino Reto Halteres')).toEqual({}) // catálogo base: padrão do catálogo, como antes
+    expect(ladosDoCadastro('Texto livre')).toEqual({})
   })
 })
 

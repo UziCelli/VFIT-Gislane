@@ -17,6 +17,7 @@ import {
   type Registros,
   type Slot,
 } from '../../../engine'
+import { ladosDoCadastro } from '../../../lib/catalogoProprio'
 import { chaveExercicio } from '../../../data/catalogo'
 import { acharPosicao, MAX_POR_TREINO, type Acao } from '../../../lib/iaTreino'
 
@@ -184,7 +185,7 @@ export function trocarExercicio(meso: Meso, registros: Registros, t: number, p: 
   }
   const divisao = [...meso.divisao]
   const novoArr = [...arr]
-  novoArr[p - 1] = { slotId: crypto.randomUUID(), nome }
+  novoArr[p - 1] = { slotId: crypto.randomUUID(), nome, ...ladosDoCadastro(nome) }
   divisao[t - 1] = novoArr
   return { divisao, trocas, preservou, progressaoExercicio: comProgressaoIsometrica(meso, divisao) }
 }
@@ -433,7 +434,7 @@ function aplicarDivisao(m: Meso, registros: Registros, a: AcaoDivisao, aplicados
       bloqueios.push(`Treino ${t}: nada para adicionar (já tem esses exercícios ou chegou em ${MAX_POR_TREINO}).`)
       return m
     }
-    divisao[t - 1] = [...arr, ...novos.map((e) => ({ slotId: crypto.randomUUID(), nome: e.nome }))]
+    divisao[t - 1] = [...arr, ...novos.map((e) => ({ slotId: crypto.randomUUID(), nome: e.nome, ...ladosDoCadastro(e.nome) }))]
     aplicados.push(`Treino ${t}: +${novos.length}`)
     return { ...m, divisao }
   }
@@ -460,7 +461,7 @@ function aplicarDivisao(m: Meso, registros: Registros, a: AcaoDivisao, aplicados
   // Trocas e adições pontuais do treino mandam mais que a divisão: saem junto.
   const trocas = m.trocas && Object.fromEntries(Object.entries(m.trocas).filter(([k]) => k.split('-')[1] !== String(t)))
   const adicoes = m.adicoes && Object.fromEntries(Object.entries(m.adicoes).filter(([k]) => !k.endsWith(`-${t}`)))
-  divisao[t - 1] = a.exercicios.slice(0, MAX_POR_TREINO).map((e) => ({ slotId: crypto.randomUUID(), nome: e.nome }))
+  divisao[t - 1] = a.exercicios.slice(0, MAX_POR_TREINO).map((e) => ({ slotId: crypto.randomUUID(), nome: e.nome, ...ladosDoCadastro(e.nome) }))
   aplicados.push(`Treino ${t}: lista refeita`)
   return { ...m, divisao, progressaoExercicio, metodos: m.metodos.filter((x) => x.treino !== t), trocas, adicoes }
 }

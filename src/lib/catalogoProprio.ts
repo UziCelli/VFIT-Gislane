@@ -78,3 +78,8 @@ export function definirProprios(lista: readonly ExercicioProprio[]) {
 export const proprios = () => PROPRIOS
 export const versaoProprios = () => versao
 export const proprioPorNome = (nome: string) => POR_NOME.get(chave(nome)) ?? null
+
+// Slot novo na montagem: o cadastrado com "Por lado" já entra com 2 lados gravado no próprio slot (o aluno não lê
+// exerciciosProprios, só o treino). Catálogo base e texto livre: nada (o padrão vem do catálogo, como antes).
+export const ladosDoCadastro = (nome: string): { doisLados?: true } =>
+  !resolverExercicio(nome) && proprioPorNome(nome)?.carga === 'por_lado' ? { doisLados: true } : {}

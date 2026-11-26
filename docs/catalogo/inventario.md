@@ -7,7 +7,7 @@ Etapa 1 da sub-issue #256. **Nada no app mudou.** São só tabelas para o Celli 
 | Arquivo | O que tem |
 |---|---|
 | [inventario-atual.csv](inventario-atual.csv) | Os **359** exercícios de hoje, com nome proposto e atributos. Gerado por `python3 tools/catalogo-inventario.py`. |
-| [exercicios-novos.csv](exercicios-novos.csv) | **614** exercícios novos, com as mesmas colunas (sem `nome_atual`/`status`/`duvida`; a coluna `observacao` traz as dúvidas). |
+| [exercicios-novos.csv](exercicios-novos.csv) | **641** exercícios novos (já com as decisões do Celli), com as mesmas colunas (sem `nome_atual`/`status`/`duvida`; a coluna `observacao` traz as dúvidas). |
 
 O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-base, equipamento, mecanismo de carga (pinos, anilhas, livre, corporal, elástico), lateralidade, modo, unidade (reps ou tempo), pegada/variação e convenção de carga (total, por lado, corporal).
 
@@ -43,6 +43,7 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 - **Smith e Smith Dual** são equipamentos diferentes, porque o Dual tem os lados separados.
 - **Caneleira** vira equipamento próprio. **Miniband** entra como elástico.
 - **Kettlebell** (1) e **Kettlebells** (2) seguem a mesma lógica de Halter e Halteres.
+- **Pull Over Cabo vira Pulldown Polia.** O nome antigo fica como apelido.
 - **Remada Cavalinho** também atende por **T-Bar Row**.
 - Ficam separados: Pull Over e Pulldown, Stiff e Terra Romeno, Crossover e Crucifixo.
 - O grupo novo "Mobilidade e Core Funcional" vira **Alongamentos**, separado em estáticos e dinâmicos. Isso vale para a lista dos novos, que está sendo atualizada.

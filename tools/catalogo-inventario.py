@@ -189,8 +189,8 @@ def nome_proposto(nome: str, equip: str, n: str) -> str:
     return f'{base} {rotulo}'.strip()
 
 
-# Decisões do Celli (26/11/2026): Retrocesso passa a Recuo; Remada Cavalinho também atende por T-Bar Row.
-TROCAS = [(r'\bRetrocesso\b', 'Recuo')]
+# Decisões do Celli (26/11/2026): Retrocesso passa a Recuo; Pull Over Cabo passa a Pulldown; Remada Cavalinho também atende por T-Bar Row.
+TROCAS = [(r'\bRetrocesso\b', 'Recuo'), (r'^Pull Over Polia$', 'Pulldown Polia')]
 APELIDOS_EXTRA = {'remada-cavalinho': ['T-Bar Row']}
 
 

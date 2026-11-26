@@ -99,7 +99,7 @@ supino-inclinado-smith-dual,Supino Inclinado Smith Dual,Supino Inclinado Smith D
 supino-declinado-smith-dual,Supino Declinado Smith Dual,Supino Declinado Smith Dual,,igual,Peitorais,"triceps, deltoide-anterior",supino,smith_dual,anilhas,bilateral,dinamico,reps,,total,
 pull-over-halter,Pull Over Halter,Pull Over Halter,,a_confirmar,Peitorais,triceps,pull_over,halter,livre,bilateral,dinamico,reps,,total,"Nome diz ""Halter"": é 1 halter ou 2 (Halteres)? Confirmar."
 pull-over-barra,Pull Over Barra,Pull Over Barra,,igual,Peitorais,triceps,pull_over,barra,livre,bilateral,dinamico,reps,,total,
-pull-over-cabo,Pull Over Cabo,Pull Over Polia,Pull Over Cabo,renomear,Peitorais,triceps,pull_over,polia,pinos,bilateral,dinamico,reps,,total,
+pull-over-cabo,Pull Over Cabo,Pulldown Polia,Pull Over Cabo,renomear,Peitorais,triceps,pull_over,polia,pinos,bilateral,dinamico,reps,,total,
 peck-deck,Peck Deck,Peck Deck,,igual,Peitorais,deltoide-anterior,peck_deck,maquina_seletora,pinos,bilateral,dinamico,reps,,total,
 peck-deck-articulado,Peck Deck Articulado,Peck Deck Articulado,,igual,Peitorais,deltoide-anterior,peck_deck,maquina_articulada,anilhas,bilateral,dinamico,reps,,por_lado,
 crossover-no-cabo,Crossover no Cabo,Crossover Duas Polias,Crossover no Cabo,renomear,Peitorais,deltoide-anterior,crossover,duas_polias,pinos,bilateral,dinamico,reps,,total,

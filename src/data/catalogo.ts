@@ -2,10 +2,9 @@
 // Atributos por id em src/data/atributos.json: fora do exercicios.json porque tools/extrair_planilha.py
 // regrava aquele arquivo inteiro. O nome completo é GERADO dos atributos (base + rótulo do equipamento);
 // nomes antigos ficam como apelidos e continuam resolvendo para o mesmo id.
-// 1ª versão: só o modelo e a resolução. As telas ainda usam o nome do exercicios.json (troca na etapa seguinte).
-import atributos from '../data/atributos.json'
-import catalogo from '../data/exercicios.json'
-import { norm } from './busca'
+// Fica em src/data (como aparelhos.ts) para servir ao engine e ao lib sem inverter as camadas.
+import atributos from './atributos.json'
+import catalogo from './exercicios.json'
 
 export const EQUIPAMENTOS = {
   halter: 'Halter', halteres: 'Halteres', barra: 'Barra', barra_w: 'Barra W', barra_hexagonal: 'Barra Hexagonal',
@@ -59,7 +58,7 @@ export const EXERCICIOS: readonly Exercicio[] = catalogo.flatMap((g) =>
 )
 
 const POR_ID = new Map(EXERCICIOS.map((e) => [e.id, e]))
-const chave = (s: string) => norm(s.trim()).replace(/\s+/g, ' ')
+const chave = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 // Todo nome conhecido (atual, gerado e apelidos) aponta para um único id. O teste garante que não há colisão.
 const POR_NOME = new Map(EXERCICIOS.flatMap((e) => [e.nomeCatalogo, e.nome, ...e.apelidos].map((n) => [chave(n), e] as const)))
 
@@ -70,3 +69,14 @@ export const resolverExercicio = (nome: string): Exercicio | null => POR_NOME.ge
 
 // Todos os nomes que resolvem para cada exercício (para teste e para a busca por nome antigo).
 export const nomesConhecidos = (e: Exercicio) => [...new Set([e.nomeCatalogo, e.nome, ...e.apelidos])]
+
+// Nome para agrupar e mostrar histórico: o nome gerado do catálogo (treinos antigos com o nome antigo juntam
+// com os novos). Fora do catálogo: o próprio texto.
+export const nomeAtualizado = (nome: string) => resolverExercicio(nome)?.nome ?? nome.trim()
+
+// Identidade para comparar histórico (carga anterior, RM pessoal, repetidos): o mesmo exercício com o nome antigo
+// ou o novo dá a mesma chave. Fora do catálogo (texto livre): o próprio texto normalizado, como antes.
+export const chaveExercicio = (nome: string) => {
+  const e = resolverExercicio(nome)
+  return e ? `#${e.id}` : chave(nome)
+}

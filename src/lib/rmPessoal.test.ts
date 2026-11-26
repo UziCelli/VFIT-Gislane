@@ -22,6 +22,12 @@ describe('modelosPorExercicio', () => {
     const m2 = modelosPorExercicio(fonte(m, { '1-1': { a: [60, 60, 60] }, '2-1': { a: [62, 62, 62] }, '3-1': { a: [200, 200, 200] } }), { semana: 3, treino: 1 })
     expect(m2.get(chaveModelo('Supino', false, false))!.sessoes).toBe(2)
   })
+  it('nome antigo e novo do catálogo são o mesmo modelo', () => {
+    const m = meso([slot('a', 'Rosca Direta Cabo'), slot('b', 'Rosca Direta Polia')])
+    const mods = modelosPorExercicio(fonte(m, { '1-1': { a: [30, 30, 30], b: [30, 30, 30] }, '2-1': { a: [32, 32, 32] } }), { semana: 3, treino: 1 })
+    expect(mods.size).toBe(1)
+    expect(chaveModelo('Rosca Direta Cabo', false, false)).toBe(chaveModelo('rosca direta polia', false, false))
+  })
   it('2 lados entra pela média por lado (só célula nova), com chave própria', () => {
     const m = meso([slot('a', 'Rosca', { doisLados: true })])
     const f = { ...fonte(m, { '1-1': { a: [20, 20, 20] }, '2-1': { a: [22, 22, 22] } }), lados: { '1-1': { a: [10, 10, 10] } } }

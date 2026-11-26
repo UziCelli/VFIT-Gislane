@@ -1,14 +1,14 @@
 // Monta os pontos (carga x reps por série) de cada exercício a partir dos registros e ajusta o modelo pessoal (engine/rmPessoal.ts).
 // Fora do modelo: peso do corpo, isometria e drops (ver docs/estimativa-rm.md). 2 lados entra pela MÉDIA por lado
-// ((esq + dir) / 2), só célula no formato novo (a antiga não diz se era por lado ou total). Exercício casa pelo nome
-// normalizado + 2 lados + isometria, a mesma regra de `cargaAnterior` para o meso anterior (modelo de 2 lados é outro).
+// ((esq + dir) / 2), só célula no formato novo (a antiga não diz se era por lado ou total). Exercício casa pela identidade
+// do catálogo (nome antigo ou novo = mesmo id; texto livre = nome normalizado) + 2 lados + isometria, a mesma regra de `cargaAnterior` para o meso anterior (modelo de 2 lados é outro).
 import { ajustarRm, isometrico, prescreverSessao, repsEfetivas, type ModeloRm, type PontoRm } from '../engine'
-import { normalizar } from './iaTreino'
+import { chaveExercicio } from '../data/catalogo'
 import { doisLados, lerCelula } from './lados'
 import { corpoEhCarga } from './pesoCorporal'
 import type { Fonte } from './treino'
 
-export const chaveModelo = (nome: string, dois: boolean, iso: boolean) => `${normalizar(nome)}|${dois ? 2 : 1}|${iso ? 'i' : 'd'}`
+export const chaveModelo = (nome: string, dois: boolean, iso: boolean) => `${chaveExercicio(nome)}|${dois ? 2 : 1}|${iso ? 'i' : 'd'}`
 
 // `antes`: só entra o que foi feito antes deste (semana, treino) (o treino de hoje e os posteriores ficam de fora).
 // `deslocamento`: semanas somadas ao tempo (o meso anterior termina logo antes da semana 1 do atual).

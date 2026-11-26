@@ -1,4 +1,4 @@
-import catalogo from '../data/exercicios.json'
+import { resolverExercicio } from '../data/catalogo'
 import { prescreverSessao } from './sessao'
 import type { Meso } from './tipos'
 
@@ -14,7 +14,6 @@ export interface PropostaMetodo {
 }
 
 export const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
-const grupoDe = new Map(catalogo.flatMap((g) => g.exercicios.map((e) => [norm(e.nome), g.grupo] as const)))
 
 export function classificarEquipamento(nome: string): Equipamento {
   const n = norm(nome)
@@ -88,7 +87,7 @@ export function sugerirMetodos(
 
   const emMetodo = new Set(meso.metodos.filter((m) => m.ativo && m.semana === semana && m.treino === treino).map((m) => m.exercicio))
   const candidatos = sessao.exercicios.flatMap((e): Candidato[] => {
-    const grupo = grupoDe.get(norm(e.slot.nome))
+    const grupo = resolverExercicio(e.slot.nome)?.grupo
     const equip = classificarEquipamento(e.slot.nome)
     const entra = grupo && equip !== 'duasPolias' && e.n > 0 && !emMetodo.has(e.pos) && (incluirPrincipais || e.pos > 2)
     return entra ? [{ pos: e.pos, grupo, equip }] : []

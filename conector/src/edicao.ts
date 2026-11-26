@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import catalogo from '../../src/data/exercicios.json'
+import { EXERCICIOS, nomesConhecidos } from '../../src/data/catalogo'
 import { METODOS, emGrupo, isometrico, linhaIsometrica, linhaPrescrita, migrarProgressao, padraoMetodo, progressaoIsometrica, salvarLinha, totalCerto, type Meso } from '../../src/engine'
 import { moverExercicio, removerExercicio, redimensionar } from '../../src/features/coach/meso/util'
 import { idSchema as id, nomeSchema as nome, metodoSchema, repsSchema } from '../../src/lib/prescricaoSchema'
@@ -18,7 +18,8 @@ export const alteracaoSchema = z.discriminatedUnion('tipo', [
   z.object({ tipo: z.literal('configurar'), inicio: z.iso.date().optional(), semanas: z.number().int().min(1).max(12).optional(), frequencia: treino.optional(), dias: z.array(z.number().int().min(0).max(6)).max(7).optional(), pausaS: z.number().min(0).max(3600).optional(), pausaPrincipaisS: z.number().min(0).max(3600).optional(), tempoLimiteMin: z.number().int().min(1).max(600).optional(), progressaoPct: z.number().min(0).max(100).optional() }).strict(),
 ])
 export type Alteracao = z.infer<typeof alteracaoSchema>
-const nomes = new Set(catalogo.flatMap((g) => g.exercicios.map((e) => e.nome)))
+// Aceita o nome atual, o novo (gerado) e os apelidos: o app já grava o nome novo (épico #255).
+const nomes = new Set(EXERCICIOS.flatMap(nomesConhecidos))
 const erro = (mensagem: string): never => { throw new ErroConector(mensagem, 'VALIDACAO', 'validacao', false) }
 
 export function aplicarAlteracoes(base: Meso, alteracoes: Alteracao[]): Meso {

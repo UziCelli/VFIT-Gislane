@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import atributos from '../data/atributos.json'
-import idsDoisLados from '../data/doisLados.json'
-import catalogo from '../data/exercicios.json'
-import idsIsometricos from '../data/isometricos.json'
-import { norm } from './busca'
-import { EQUIPAMENTOS, EXERCICIOS, exercicioPorId, nomeGerado, nomesConhecidos, resolverExercicio } from './catalogo'
+import { norm } from '../lib/busca'
+import atributos from './atributos.json'
+import idsDoisLados from './doisLados.json'
+import catalogo from './exercicios.json'
+import idsIsometricos from './isometricos.json'
+import { isometrico } from '../engine/isometria'
+import { chaveExercicio, EQUIPAMENTOS, EXERCICIOS, exercicioPorId, nomeAtualizado, nomeGerado, nomesConhecidos, resolverExercicio } from './catalogo'
 
 const idsCatalogo = catalogo.flatMap((g) => g.exercicios.map((e) => e.id))
 
@@ -95,5 +96,22 @@ describe('resolverExercicio (compatibilidade)', () => {
     expect(resolverExercicio('  supino   reto halteres ')?.id).toBe('supino-reto-halter')
     expect(resolverExercicio('Exercício que não existe')).toBeNull()
     expect(resolverExercicio('Supino')).toBeNull()
+  })
+})
+
+describe('identidade para o histórico', () => {
+  it('nome antigo e novo dão a mesma chave; texto livre fica como texto normalizado', () => {
+    expect(chaveExercicio('Supino Reto Halter')).toBe(chaveExercicio('Supino Reto Halteres'))
+    expect(chaveExercicio('Supino Reto Halter')).not.toBe(chaveExercicio('Supino Reto Barra'))
+    expect(chaveExercicio('  Meu  Exercício ')).toBe('meu exercicio')
+  })
+  it('nomeAtualizado junta o histórico antigo sob o nome novo', () => {
+    expect(nomeAtualizado('Rosca Direta Cabo')).toBe('Rosca Direta Polia')
+    expect(nomeAtualizado(' Texto livre ')).toBe('Texto livre')
+  })
+  it('isometria do motor reconhece todos os nomes conhecidos dos isométricos, e só eles', () => {
+    for (const e of EXERCICIOS) {
+      for (const n of nomesConhecidos(e)) expect(isometrico({ nome: n }), n).toBe(e.modo.includes('isometrico'))
+    }
   })
 })

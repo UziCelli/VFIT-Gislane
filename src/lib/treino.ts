@@ -3,7 +3,7 @@ import { arredondarKg, arredondarNoAparelho, cargaEquivalente, cargaPessoal, cor
 import { cargaPolimento } from '../engine/degrauPolimento'
 import { corpoEhCarga } from './pesoCorporal'
 import { diaSP } from './acesso'
-import { normalizar } from './iaTreino'
+import { chaveExercicio } from '../data/catalogo'
 import { doisLados, lerCelula } from './lados'
 import { chaveModelo } from './rmPessoal'
 
@@ -26,8 +26,8 @@ export type Origem = { semana: number; treino: number; anterior?: true } // ante
 // Sem isso (o exercício é novo neste treino), qualquer outro treino: primeiro os anteriores da MESMA semana (do mais
 // perto para o 1º), depois os das semanas anteriores (do último treino para o 1º). Lida pelo slotId daquele registro.
 // Se o meso atual não tem nada, `opcoes.anterior` (meso anterior do aluno) entra pela mesma ordem, e só casa exercício de
-// nome normalizado IDÊNTICO (acento, caixa e espaços não contam) com o mesmo `doisLados` e a mesma isometria: nunca por
-// "contém" ("Supino Reto Barra" não é "Supino Reto Halter").
+// mesma identidade (chaveExercicio: nome antigo ou novo do catálogo = mesmo id; texto livre = nome normalizado IDÊNTICO)
+// com o mesmo `doisLados` e a mesma isometria: nunca por "contém" ("Supino Reto Barra" não é "Supino Reto Halter").
 // `origem` (semana e treino de onde saiu; `anterior` se do meso anterior) deixa a tela avisar de onde veio.
 // Com `repsFeitas`, a série vem corrigida de digitação óbvia (corrigirDigitacao) e ajustada às reps de hoje pela tabela de
 // RM (`estimada: true`); reps não anotadas valem as prescritas naquele dia. A carga estimada cai no degrau real do aparelho
@@ -54,7 +54,7 @@ export function cargaAnterior(
   if (!hoje || !alvo) return null
   const dois = doisLados(alvo)
   const iso = isometrico(alvo)
-  const nomeAlvo = normalizar(alvo.nome)
+  const nomeAlvo = chaveExercicio(alvo.nome)
   const ajusta = !!repsFeitas
   const modelo = ajusta ? opcoes?.modelos?.get(chaveModelo(alvo.nome, dois, iso)) : undefined
   const emNivel = opcoes?.aparelho?.unidade === 'nivel'
@@ -72,7 +72,7 @@ export function cargaAnterior(
     if (!reg) return null // sem registro: nem monta a sessão daquele dia
     const exs = prescreverSessao(f.meso, w, t)?.exercicios ?? []
     const mesmo = (e: (typeof exs)[number]) =>
-      doAnterior ? normalizar(e.slot.nome) === nomeAlvo && doisLados(e.slot) === dois && isometrico(e.slot) === iso : e.slot.nome === alvo.nome
+      doAnterior ? chaveExercicio(e.slot.nome) === nomeAlvo && doisLados(e.slot) === dois && isometrico(e.slot) === iso : e.slot.nome === alvo.nome
     // 2 lados: só vale célula no formato novo (a antiga não diz se o número era por lado ou total).
     const comCarga = (e: (typeof exs)[number]) => {
       const cs = reg[e.slot.slotId]

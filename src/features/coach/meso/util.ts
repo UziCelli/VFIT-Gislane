@@ -17,7 +17,8 @@ import {
   type Registros,
   type Slot,
 } from '../../../engine'
-import { acharPosicao, MAX_POR_TREINO, normalizar, type Acao } from '../../../lib/iaTreino'
+import { chaveExercicio } from '../../../data/catalogo'
+import { acharPosicao, MAX_POR_TREINO, type Acao } from '../../../lib/iaTreino'
 
 // Cresce/encolhe um array preservando os itens existentes.
 export function redimensionar<T>(arr: T[], n: number, fabrica: () => T): T[] {
@@ -427,7 +428,7 @@ function aplicarDivisao(m: Meso, registros: Registros, a: AcaoDivisao, aplicados
   const arr = m.divisao[t - 1] ?? []
   const divisao = [...m.divisao]
   if (a.tipo === 'adicionar') {
-    const novos = a.exercicios.filter((e) => !arr.some((s) => normalizar(s.nome) === normalizar(e.nome))).slice(0, MAX_POR_TREINO - arr.length)
+    const novos = a.exercicios.filter((e) => !arr.some((s) => chaveExercicio(s.nome) === chaveExercicio(e.nome))).slice(0, MAX_POR_TREINO - arr.length)
     if (!novos.length) {
       bloqueios.push(`Treino ${t}: nada para adicionar (já tem esses exercícios ou chegou em ${MAX_POR_TREINO}).`)
       return m
@@ -437,11 +438,11 @@ function aplicarDivisao(m: Meso, registros: Registros, a: AcaoDivisao, aplicados
     return { ...m, divisao }
   }
   if (a.tipo === 'substituir') {
-    if (normalizar(arr[a.pos - 1]?.nome ?? '') !== normalizar(a.de)) {
+    if (chaveExercicio(arr[a.pos - 1]?.nome ?? '') !== chaveExercicio(a.de)) {
       bloqueios.push(`Treino ${t}: "${a.de}" mudou de lugar. Peça de novo.`)
       return m
     }
-    if (arr.some((s) => normalizar(s.nome) === normalizar(a.por.nome))) {
+    if (arr.some((s) => chaveExercicio(s.nome) === chaveExercicio(a.por.nome))) {
       bloqueios.push(`Treino ${t}: "${a.por.nome}" já está no treino, então não troquei.`)
       return m
     }

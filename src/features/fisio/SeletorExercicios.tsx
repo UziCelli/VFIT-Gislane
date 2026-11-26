@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { buscarExercicios, norm } from '../../lib/busca'
+import { chaveExercicio } from '../../data/catalogo'
+import { buscarExercicios } from '../../lib/busca'
 import { MAX_EXERCICIOS } from '../../lib/fisio'
 import { campoBase } from '../../ui'
 
@@ -8,11 +9,11 @@ const chip = 'min-h-11 rounded-xl border border-slate-700 bg-slate-950 px-3 text
 // Escolhe exercícios do treino do aluno ou do catálogo. Nunca texto livre.
 export default function SeletorExercicios({ valor, doMeso, aoMudar, desabilitado = false }: { valor: string[]; doMeso: string[]; aoMudar: (v: string[]) => void; desabilitado?: boolean }) {
   const [texto, setTexto] = useState('')
-  const tem = (nome: string) => valor.some((v) => norm(v.trim()) === norm(nome.trim()))
+  const tem = (nome: string) => valor.some((v) => chaveExercicio(v) === chaveExercicio(nome))
   const cheio = valor.length >= MAX_EXERCICIOS
   const add = (nome: string) => { if (!cheio && !tem(nome)) aoMudar([...valor, nome]); setTexto('') }
   const sugestoes = texto.trim() ? buscarExercicios(texto).filter((e) => !tem(e.nome)) : []
-  const nenhum = valor.length > 0 && !valor.some((v) => doMeso.some((n) => norm(n.trim()) === norm(v.trim())))
+  const nenhum = valor.length > 0 && !valor.some((v) => doMeso.some((n) => chaveExercicio(n) === chaveExercicio(v)))
   return <div className="space-y-2 text-sm">
     <p className="font-semibold">Exercícios do treino <span className="font-normal text-slate-400">({valor.length}/{MAX_EXERCICIOS})</span></p>
     <div className="flex flex-wrap gap-2">

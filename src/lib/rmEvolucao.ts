@@ -1,6 +1,7 @@
 // Painel do coach: 1RM estimado por exercício, tendência e esforço médio (repetições que sobraram). Funções puras.
 // O 1RM é "por baixo": a série raramente vai à falha, então cada repetição guardada subestima uns 2,5%. Usa só séries comuns
 // até 15 reps (tabela de Nuzzo, engine/rm.ts); ficam de fora isometria, 2 lados, peso do corpo e drops.
+import { chaveExercicio } from '../data/catalogo'
 import { corrigirDigitacao, isometrico, prescreverSessao, repsEfetivas, rmEstimado, type Meso } from '../engine'
 import { docsParaRegistros, docsParaRegistrosReps, docsParaRegistrosRir, lerPc, type RegistroDoc } from './conversores'
 import { doisLados } from './lados'
@@ -25,7 +26,7 @@ export function pontosRm(mesos: { id: string; meso: Meso }[], registros: Reg[], 
     for (const d of [...docs].sort((a, b) => a.semana - b.semana || a.treino - b.treino)) {
       const chave = `${d.semana}-${d.treino}`
       for (const e of prescreverSessao(meso, d.semana, d.treino)?.exercicios ?? []) {
-        if (e.slot.nome !== nome) continue
+        if (chaveExercicio(e.slot.nome) !== chaveExercicio(nome)) continue
         // Série comum com carga total: fora do 1RM ficam 2 lados, isometria, peso do corpo (a % vale para o total, não para o extra).
         const serveParaRm = !(doisLados(e.slot) || isometrico(e.slot) || corpoEhCarga(nome) || (pcs[chave]?.[e.slot.slotId] ?? 0) > 0)
         let rm: number | null = null

@@ -1,7 +1,7 @@
 import type { Timestamp } from 'firebase/firestore'
 import { METODOS_FISIO, type MetodoFisio } from '../data/fisio'
 import type { Respostas } from './anamnese'
-import { norm } from './busca'
+import { chaveExercicio } from '../data/catalogo'
 
 export const COLECAO_FISIO = 'fisioOrientacoes'
 export const CONTEXTOS_LIBERACAO = 'Pós-cirúrgico, lesão aguda, osteoporose, fibromialgia ou dor irradiada'
@@ -68,10 +68,11 @@ export function lerOrientacao(id: string, valor: unknown): OrientacaoFisio | nul
 
 export const MAX_EXERCICIOS = 10 // o mesmo limite de firestore.rules (exerciciosFisio)
 
-// Orientações ativas (não recolhidas) que marcam este exercício. Nome comparado sem acento/caixa/espaço.
+// Orientações ativas (não recolhidas) que marcam este exercício. Mesmo exercício pelo catálogo (nome antigo ou novo);
+// texto fora do catálogo comparado sem acento/caixa/espaço.
 export const orientacoesDoExercicio = (orientacoes: OrientacaoFisio[], nome: string) => {
-  const n = norm(nome.trim())
-  return orientacoes.filter((o) => !o.recolhida && o.exercicios.some((e) => norm(e.trim()) === n))
+  const n = chaveExercicio(nome)
+  return orientacoes.filter((o) => !o.recolhida && o.exercicios.some((e) => chaveExercicio(e) === n))
 }
 
 // Ids iguais nos três lugares: articulação (anatomia/anamnese) = queixa do método.

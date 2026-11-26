@@ -1,5 +1,5 @@
 // Limpeza LGPD: para cada pedido em `exclusoes/{uid}` apaga o que o app não alcança
-// (registros, relatórios, mesos, cardios, feedbacks com nome, avaliações físicas, notas, foto, perfil, logs e o login do Auth). Roda no workflow "Limpeza LGPD".
+// (registros, relatórios, mesos, cardios, vídeos, feedbacks com nome, avaliações físicas, notas, foto, perfil, logs e o login do Auth). Roda no workflow "Limpeza LGPD".
 // O resumo só tem contagens: nunca nome, e-mail ou uid (o log do Actions não guarda dado pessoal).
 // Uso local: PROJETO=forca--app (ou gislane-personal-trainer) GOOGLE_APPLICATION_CREDENTIALS=sa.json node limpeza-lgpd.mjs
 import { appendFileSync, readFileSync } from 'node:fs'
@@ -66,6 +66,7 @@ for (const pedido of (await db.collection('exclusoes').get()).docs) {
     ...(await refsDe('fisioOrientacoes', 'alunoId', uid)),
     ...(await refsDe('fisioDores', 'alunoId', uid)),
     ...(await refsDe('fisioCheckins', 'alunoId', uid)),
+    ...(await refsDe('midias', 'alunoId', uid)), // vídeos privados (#253); os arquivos saem no /esquecer do Worker
     ...(await refsDe('usuarios', 'migradoPara', uid)),
     ...(await refsDe('logs', 'uid', uid)),
     db.doc(`notas/${uid}`),

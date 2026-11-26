@@ -56,11 +56,11 @@
           },
           {
             "key": "Permissions-Policy",
-            "value": "camera=(), microphone=(self), geolocation=(), payment=()"
+            "value": "camera=(self), microphone=(self), geolocation=(), payment=()"
           },
           {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://*.googleapis.com https://vfit-descanso.vfitcoach-site.workers.dev https://vfit-conector.vfitcoach-site.workers.dev https://gislane-conector.vfitcoach-site.workers.dev https://www.google.com/recaptcha/; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://www.youtube-nocookie.com/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+            "value": "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob: https://vfit-descanso.vfitcoach-site.workers.dev; font-src 'self'; connect-src 'self' https://*.googleapis.com https://vfit-descanso.vfitcoach-site.workers.dev https://vfit-conector.vfitcoach-site.workers.dev https://gislane-conector.vfitcoach-site.workers.dev https://www.google.com/recaptcha/; frame-src https://www.google.com/recaptcha/ https://recaptcha.google.com/recaptcha/ https://www.youtube-nocookie.com/; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
           }
         ]
       },

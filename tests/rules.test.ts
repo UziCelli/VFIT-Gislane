@@ -1184,6 +1184,86 @@ describe('videos', () => {
   });
 });
 
+// Vídeos privados do treino (#253): midias/{id}. Aluno envia a própria execução; coach envia orientação; ninguém de fora lê.
+describe('midias', () => {
+  const ID = 'AbCdEfGhIjKlMnOpQrSt';
+  const ID2 = 'ZbCdEfGhIjKlMnOpQrSt';
+  const mid = (uid: string | undefined, id = ID) => doc(db(uid), 'midias', id);
+  const base = (extra: object = {}) => ({
+    alunoId: 'ana', autor: 'ana', tipo: 'execucao', exercicioId: 'supino-reto-barra', exercicio: 'Supino Reto Barra',
+    sessao: { mesoId: 'm1', semana: 1, treino: 2 }, status: 'enviando', bytes: 1000, mime: 'video/mp4', duracaoS: 12,
+    respondida: false, em: serverTimestamp(), ...extra,
+  });
+  const orient = (extra: object = {}) => {
+    const { respondida: _, ...b } = base({ autor: 'coach', tipo: 'orientacao', duracaoS: 90, ...extra }) as Record<string, unknown>;
+    return b;
+  };
+  const semRegras = (dados: object, id = ID) =>
+    env.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore() as unknown as Firestore, 'midias', id), { ...dados, em: Timestamp.now() }));
+
+  it('aluno liberado envia a própria execução e passa para pronto; não envia por outro, nem orientação, nem longo demais', async () => {
+    await assertSucceeds(setDoc(mid('ana'), base()));
+    await assertSucceeds(updateDoc(mid('ana'), { status: 'pronto', prontoEm: serverTimestamp() }));
+    await assertFails(updateDoc(mid('ana'), { status: 'enviando' })); // já pronto: não volta
+    await assertFails(setDoc(mid('ana', ID2), base({ alunoId: 'bia' })));
+    await assertFails(setDoc(mid('ana', ID2), base({ autor: 'bia' })));
+    await assertFails(setDoc(mid('ana', ID2), base({ tipo: 'orientacao' })));
+    await assertFails(setDoc(mid('ana', ID2), base({ duracaoS: 62 })));
+    await assertFails(setDoc(mid('ana', ID2), base({ bytes: 52428801 })));
+    await assertFails(setDoc(mid('ana', ID2), base({ mime: 'text/html' })));
+    await assertFails(setDoc(mid('ana', ID2), base({ status: 'pronto' })));
+    await assertFails(setDoc(mid('ana', ID2), base({ respondida: true })));
+    await assertFails(setDoc(mid('ana', ID2), base({ link: 'https://x' })));
+    await assertFails(setDoc(mid('ana', 'curto'), base()));
+  });
+
+  it('aluno vencido, bloqueado, aguardando e anônimo não enviam nem leem', async () => {
+    await semRegras(base());
+    for (const uid of ['exp', 'blq', 'agu', undefined]) {
+      await assertFails(setDoc(mid(uid, ID2), base({ alunoId: uid ?? 'x', autor: uid ?? 'x' })));
+      await assertFails(getDoc(mid(uid)));
+    }
+  });
+
+  it('isolamento: outro aluno não lê, não lista, não marca pronto nem apaga', async () => {
+    await semRegras(base());
+    await assertFails(getDoc(mid('bia')));
+    await assertFails(getDocs(query(collection(db('bia'), 'midias'), where('alunoId', '==', 'ana'))));
+    await assertFails(updateDoc(mid('bia'), { status: 'pronto', prontoEm: serverTimestamp() }));
+    await assertFails(deleteDoc(mid('bia')));
+    await assertSucceeds(getDocs(query(collection(db('ana'), 'midias'), where('alunoId', '==', 'ana'))));
+    await assertFails(getDocs(collection(db('ana'), 'midias')));
+  });
+
+  it('coach com 2º fator: orienta aluno (com ou sem envio anterior), lê a fila, marca e apaga; sem 2º fator nada', async () => {
+    await semRegras(base({ status: 'pronto' }));
+    await assertSucceeds(setDoc(mid('coach', ID2), orient({ respondeA: ID })));
+    await assertSucceeds(setDoc(mid('coach', 'XbCdEfGhIjKlMnOpQrSt'), orient()));
+    await assertFails(setDoc(mid('coach', 'YbCdEfGhIjKlMnOpQrSt'), orient({ duracaoS: 92 })));
+    await assertFails(setDoc(mid('coach', 'YbCdEfGhIjKlMnOpQrSt'), orient({ alunoId: 'coach' }))); // alvo precisa ser aluno
+    await assertSucceeds(getDocs(query(collection(db('coach'), 'midias'), where('tipo', '==', 'execucao'), where('respondida', '==', false))));
+    await assertSucceeds(updateDoc(mid('coach'), { marcas: [{ t: 1.5, k: 'ponto', p: [0.5, 0.5] }], respondida: true, respondidaEm: serverTimestamp() }));
+    await assertFails(updateDoc(mid('coach'), { status: 'enviando' }));
+    await assertFails(updateDoc(mid('coach'), { marcas: Array.from({ length: 301 }, () => ({ t: 0 })) }));
+    const semFator = doc(contexto('coach', SEM_FATOR).firestore() as unknown as Firestore, 'midias', ID);
+    await assertFails(getDoc(semFator));
+    await assertFails(updateDoc(semFator, { respondida: true }));
+    await assertSucceeds(deleteDoc(mid('coach')));
+  });
+
+  it('aluno vê a orientação dele, marca visto e não mexe no resto; autor cancela só enquanto envia', async () => {
+    await semRegras(orient({ status: 'pronto' }), ID2);
+    await assertSucceeds(getDoc(mid('ana', ID2)));
+    await assertFails(getDoc(mid('bia', ID2)));
+    await assertSucceeds(updateDoc(mid('ana', ID2), { vistoEm: serverTimestamp() }));
+    await assertFails(updateDoc(mid('ana', ID2), { duracaoS: 10 }));
+    await assertFails(updateDoc(mid('bia', ID2), { vistoEm: serverTimestamp() }));
+    await assertFails(deleteDoc(mid('ana', ID2)));
+    await assertSucceeds(setDoc(mid('ana'), base()));
+    await assertSucceeds(deleteDoc(mid('ana')));
+  });
+});
+
 // Relatório do fim do ciclo: relatorios/{mesoId}. O coach escreve; o aluno só lê depois de liberado.
 describe('relatorios', () => {
   const rel = (uid: string | undefined, id = 'm_ana') => doc(db(uid), 'relatorios', id);

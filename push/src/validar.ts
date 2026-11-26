@@ -82,8 +82,8 @@ export function passoAgenda(chaves: string[], agora: number): { disparar?: strin
 export const inicioDoDiaBrasilia = (agora: number): number => Math.floor((agora - 3 * 3600_000) / 86400_000) * 86400_000 + 3 * 3600_000
 
 // Tipos de aviso que a pessoa liga/desliga em Conta (o descanso tem chave própria no aparelho).
-// Aluno recebe: treino, mensalidade, lembrete, recado. Coach recebe: concluiu, comentou, pagou.
-export const TIPOS = ['treino', 'mensalidade', 'lembrete', 'recado', 'concluiu', 'comentou', 'pagou'] as const
+// Aluno recebe: treino, mensalidade, lembrete, recado, orientacao. Coach recebe: concluiu, comentou, pagou, video.
+export const TIPOS = ['treino', 'mensalidade', 'lembrete', 'recado', 'concluiu', 'comentou', 'pagou', 'video', 'orientacao'] as const
 export type Tipo = (typeof TIPOS)[number]
 export type TipoCoach = 'concluiu' | 'comentou' | 'pagou'
 

@@ -63,8 +63,26 @@ def tem(n: str, *palavras: str) -> bool:
     return any(re.search(r'\b' + re.escape(p) + r'\b', n) for p in palavras)
 
 
+# Respostas do Celli (26/11/2026) para "Halter" sem pista: o item atual fica com 1 halter ou 2,
+# e a outra forma vira variante nova (VARIANTES_NOVAS), sem mudar o id de quem já tem histórico.
+HALTER_DECIDIDO = {
+    'agachamento-livre-halter': 'halter', 'pull-over-halter': 'halter', 'rosca-scott-halter': 'halteres',
+    'triceps-frances-em-pe-halter': 'halter', 'triceps-frances-sentado-halter': 'halter',
+}
+# Sem resposta direta: 1 halter é o uso comum (segurado entre as pernas, nos pés ou numa mão). Premissa.
+HALTER_PREMISSA_1 = {
+    'terra-sumo-com-halter', 'elevacao-pelvica-halter', 'flexao-de-joelhos-deitado-a-com-halter',
+    'abdominal-obliquo-halter', 'supinacao-com-halter', 'pronacao-com-halter', 'supinacao-e-pronacao-com-halter',
+}
+DUPLICATAS_DESCARTADAS = {frozenset({'box-jumps', 'box-jump'})}  # Celli: exercícios diferentes
+
+
 def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado: bool):
     """Devolve (equipamento, mecanismo, dúvida). `n` sem acento e minúsculo."""
+    if ex_id in HALTER_DECIDIDO:
+        return HALTER_DECIDIDO[ex_id], 'livre', ''
+    if ex_id in HALTER_PREMISSA_1:
+        return 'halter', 'livre', ''
     if tem(n, 'smith') and tem(n, 'halter'):
         return 'a_confirmar', '', 'Smith com halter: qual equipamento define a carga anotada?'
     if tem(n, 'smith dual'):
@@ -95,7 +113,7 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
         if tem(n, 'goblet') or ex_id == 'agachamento-halter-banco':
             return 'halter', 'livre', 'Confirmar: 1 halter (goblet/segurado no peito)?'
         if por_lado:
-            return 'halteres', 'livre', 'Nome diz "Halter", mas a carga é anotada por lado: provável Halteres (2). Confirmar.'
+            return 'halteres', 'livre', ''  # Celli: com carga por lado, são 2 halteres
         return 'halter', 'livre', 'Nome diz "Halter": é 1 halter ou 2 (Halteres)? Confirmar.'
     if tem(n, 'anilha'):
         return 'anilha', 'livre', ''
@@ -116,7 +134,7 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
     if tem(n, 'barra', 'snatch', 'clean', 'jerk', 'overhead squat', 'supino fechado'):
         return 'barra', 'livre', ''
     if tem(n, 'puxada', 'remada baixa', 'remada sentada'):
-        return 'polia', 'pinos', 'Sem equipamento no nome: lido como polia (puxador/remada baixa). Confirmar.'
+        return 'maquina_seletora', 'pinos', ''  # Celli: puxadas e remadas baixas são, em geral, seletoras
     if tem(n, 'remada tradicional', 'remada cavalinho'):
         return 'a_confirmar', '', 'Remada sem equipamento no nome: barra livre, máquina seletora ou articulada?'
     if tem(n, 'remada unilateral', 'remada isometrica'):
@@ -235,7 +253,7 @@ def main() -> None:
     for l in linhas:
         chave[re.sub(r's\b', '', re.sub(r'[^a-z0-9]', '', sem_acento(l['nome_atual'])))].append(l)
     for iguais in chave.values():
-        if len(iguais) > 1:
+        if len(iguais) > 1 and frozenset(l['id'] for l in iguais) not in DUPLICATAS_DESCARTADAS:
             for l in iguais:
                 outros = ', '.join(o['nome_atual'] for o in iguais if o is not l)
                 l['duvida'] = (l['duvida'] + ' ' if l['duvida'] else '') + f'Possível duplicata de: {outros}.'

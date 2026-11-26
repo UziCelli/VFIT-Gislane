@@ -27,6 +27,7 @@ import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from '../../lib/pr
 import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
 import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet, useUsuarioAtual } from '../../lib/hooks'
+import PilulasExercicio from '../catalogo/PilulasExercicio'
 import { historicoExercicios, recordeAnterior, resumoTreino, type RegistroEvolucao } from '../../lib/evolucao'
 import { ehRecorde } from '../../lib/recorde'
 import { cargaAnterior, semanaAtual, type Fonte } from '../../lib/treino'
@@ -584,7 +585,10 @@ const CartaoExercicio = memo(function CartaoExercicio({
         </div>
       )}
       <div className="mb-3 space-y-2.5">
-        <div className="break-words text-base font-semibold leading-snug tracking-tight" data-treino-nome>{e.slot.nome}</div>
+        <div>
+          <div className="break-words text-base font-semibold leading-snug tracking-tight" data-treino-nome>{e.slot.nome}</div>
+          <PilulasExercicio nome={e.slot.nome} className="mt-1.5" />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           {e.rotulo && (
             <div className="flex min-w-0 flex-wrap gap-2">

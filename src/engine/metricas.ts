@@ -1,3 +1,4 @@
+import { chaveExercicio } from '../data/catalogo'
 import { isometrico } from './isometria'
 import { prescreverSessao } from './sessao'
 import type { Cargas, Meso, Registros, Sessao } from './tipos'
@@ -47,7 +48,7 @@ export function metricasSemana(sessoes: { sessao: Sessao; cargas: Cargas; reps?:
   return { movimentos, tempoSobTensaoS, cargaMedia, volume, sessoesAtivas: ms.filter((m) => m.movimentos > 0 || m.tempoSobTensaoS > 0).length, status }
 }
 
-// §12 — cada ocorrência do exercício (pelo nome, já com trocas) em ordem de semana/treino/posição
+// §12 — cada ocorrência do exercício (pela identidade do catálogo: nome antigo ou novo; já com trocas) em ordem de semana/treino/posição
 export function evolucaoExercicio(meso: Meso, registros: Registros, nome: string, reps: Registros = {}) {
   const pontos: {
     ocorrencia: number
@@ -58,10 +59,11 @@ export function evolucaoExercicio(meso: Meso, registros: Registros, nome: string
     volume: number | null
     tempoSobTensaoS?: number
   }[] = []
+  const alvo = chaveExercicio(nome)
   for (let semana = 1; semana <= meso.semanas; semana++)
     for (let treino = 1; treino <= meso.frequencia; treino++)
       for (const e of prescreverSessao(meso, semana, treino)!.exercicios)
-        if (e.slot.nome === nome) {
+        if (chaveExercicio(e.slot.nome) === alvo) {
           const cargas = registros[`${semana}-${treino}`]?.[e.slot.slotId] ?? []
           const feitas = reps[`${semana}-${treino}`]?.[e.slot.slotId]
           const { cargaMax, cargaMedia, volume, tempoSobTensaoS } = metricasExercicio(repsEfetivas(e.reps, feitas), cargas, isometrico(e.slot))

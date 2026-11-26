@@ -1,6 +1,7 @@
 // Painel de evolução do aluno e ranking do coach. Funções puras: tudo sai de mesos e registros
 // (definições em docs/plano-evolucao.md). Cargas sempre via docsParaRegistros (peso do corpo).
 import type { Timestamp } from 'firebase/firestore'
+import { nomeAtualizado } from '../data/catalogo'
 import { comPrescricoesRegistradas } from './prescricaoRegistrada'
 import { isometrico, metricasExercicio, prescreverSessao, repsEfetivas, type Meso, type Registros } from '../engine'
 import { diaSP } from './acesso'
@@ -102,7 +103,7 @@ function ocorrencias(mesos: MesoEvolucao[], feitos: Feito[]): Record<string, Oco
     const k = `${semana}-${treino}`
     for (const e of prescreverSessao(l.meso, semana, treino)?.exercicios ?? []) {
       const { cargaMax, volume, movimentos, tempoSobTensaoS } = metricasExercicio(repsEfetivas(e.reps, l.reps[k]?.[e.slot.slotId]), l.cargas[k]?.[e.slot.slotId] ?? [], isometrico(e.slot))
-      ;(out[e.slot.nome] ??= []).push({ mesoId, semana, treino, dia, conta, cargaMax, volume, movimentos, ...(tempoSobTensaoS > 0 && { tempoSobTensaoS }) })
+      ;(out[nomeAtualizado(e.slot.nome)] ??= []).push({ mesoId, semana, treino, dia, conta, cargaMax, volume, movimentos, ...(tempoSobTensaoS > 0 && { tempoSobTensaoS }) })
     }
   }
   return out
@@ -261,7 +262,7 @@ export function comparacaoToneladas(kg: number) {
 // Maior carga máx já feita no exercício (ignorando o registro `excluir`); null se nunca teve carga > 0.
 export function recordeAnterior(historico: Record<string, Ocorrencia[]>, nome: string, excluir?: { mesoId: string; semana: number; treino: number }) {
   const cs = cargasPositivas(
-    (historico[nome] ?? []).filter((o) => !(o.mesoId === excluir?.mesoId && o.semana === excluir.semana && o.treino === excluir.treino)),
+    (historico[nomeAtualizado(nome)] ?? []).filter((o) => !(o.mesoId === excluir?.mesoId && o.semana === excluir.semana && o.treino === excluir.treino)),
   )
   return cs.length ? Math.max(...cs) : null
 }

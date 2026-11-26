@@ -43,6 +43,8 @@ import { AnimatePresence } from 'motion/react'
 import Instalar from './features/instalar/Instalar'
 import FisioCoach from './features/fisio/FisioCoach'
 import GuiasCoach, { ROTAS_GUIA } from './features/metodos/GuiasCoach'
+import Catalogo from './features/catalogo/Catalogo'
+import { useExerciciosProprios } from './features/catalogo/useProprios'
 import MinhaConta from './features/conta/MinhaConta'
 import ConectarClaude from './features/conta/ConectarClaude'
 import ConfirmarTreinoMcp from './features/conta/ConfirmarTreinoMcp'
@@ -191,7 +193,7 @@ function Vigia({ papel }: { papel: 'coach' | 'aluno' }) {
 const ativaAba = (rota: string) =>
   rota.startsWith('/confirmar-treino-mcp') ? 'propostas'
   : rota === '/alertas' || rota === '/ranking' || rota === '/feedbacks' || rota === '/metodos' || rota === '/conta' ? rota.slice(1)
-  : rota === '/fisio' || rota === '/referencias' || rota === '/videos' ? 'metodos'
+  : rota === '/fisio' || rota === '/referencias' || rota === '/videos' || rota === '/catalogo' ? 'metodos'
   : rota === '/alunos' || rota.startsWith('/alunos/') || rota.startsWith('/aluno/') || rota.startsWith('/meso/') ? 'alunos'
   : 'inicio' // '/' e rotas desconhecidas (a tela padrão é o Início)
 
@@ -262,6 +264,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   const [semFator, setSemFator] = useState(false)
   const [tutorial, setTutorial] = useState(tutorialCoachNaoVisto)
   const { lista: propostasMcp, verificando: verificandoMcp } = usePropostasMcp(true) // treinos que o assistente (Claude, ChatGPT…) preparou e aguardam o coach
+  useExerciciosProprios() // exercícios cadastrados pelo coach: entram na busca da montagem do treino e nas pílulas
   useEffect(() => {
     // O token vale até o próximo login: quem acabou de ativar o 2º fator precisa sair e entrar de novo.
     auth.currentUser?.getIdTokenResult().then((t) => setSemFator(faltaSegundoFator(t.claims))).catch(() => {})
@@ -292,6 +295,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/meso/:id/relatorio', rota))) tela = <RelatorioCoach key={p.id} mesoId={p.id} />
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />
   else if (guia) tela = <GuiasCoach guia={guia} nome={nome} />
+  else if (rota === '/catalogo') tela = <Catalogo nome={nome} />
   else if (rota.startsWith('/confirmar-treino-mcp')) tela = <ConfirmarTreinoMcp id={new URLSearchParams(rota.split('?')[1]).get('id')} pendentes={propostasMcp} verificando={verificandoMcp} />
   else if (rota.startsWith('/conectar-claude')) tela = <ConectarClaude pedido={new URLSearchParams(rota.split('?')[1]).get('pedido')} />
   else if (rota === '/conta') tela = <MinhaConta uid={uid} email={email} abrirTutorial={() => setTutorial(true)} />

@@ -32,7 +32,10 @@ describe('linhasVideos', () => {
   it('o catálogo real tem ids únicos (um documento por exercício)', () => {
     const ids = linhasVideos([]).map((x) => x.id)
     expect(new Set(ids).size).toBe(ids.length)
-    expect(ids.length).toBe(catalogo.reduce((s, g) => s + g.exercicios.length, 0))
+    // Os 2 excluídos pelo Celli (sem vídeo) ficam de fora; com vídeo registrado, voltam.
+    expect(ids.length).toBe(catalogo.reduce((s, g) => s + g.exercicios.length, 0) - 2)
+    expect(ids).not.toContain('remada-isometrica')
+    expect(linhasVideos([{ id: 'remada-isometrica', status: 'gravado', por: 'x' } as never]).map((x) => x.id)).toContain('remada-isometrica')
   })
 })
 
@@ -73,6 +76,7 @@ describe('demonstração no cartão', () => {
     const e = catalogo[0].exercicios[0]
     expect(idDoCatalogo(`  ${e.nome.toUpperCase()} `)).toBe(e.id)
     expect(idDoCatalogo('Exercício inventado')).toBeUndefined()
+    expect(idDoCatalogo('Rosca Direta Polia')).toBe(idDoCatalogo('Rosca Direta Cabo')) // nome novo do catálogo = mesmo vídeo
   })
   it('fonteDemo aceita os formatos do YouTube e monta o embed mudo, em loop, sem cookies', () => {
     const id = 'dQw4w9WgXcQ'

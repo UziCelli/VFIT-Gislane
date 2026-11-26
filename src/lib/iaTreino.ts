@@ -1,7 +1,7 @@
 // Assistente de voz do coach: transforma a fala ("adiciona crucifixo no treino 1", "3x12 em todas as semanas",
 // "deload na semana 4", "dropset na última série do supino") em ações sobre o meso: divisão, progressão e métodos.
 // Parte pura (sem rede, sem Firebase): o pedido ao Haiku e a leitura/limpeza da resposta. A chamada fica em ia.ts.
-import catalogo from '../data/exercicios.json'
+import { EXERCICIOS, EXERCICIOS_ATIVOS, nomesConhecidos } from '../data/catalogo'
 import { isometrico, METODOS, semanasTexto, type Metodo } from '../engine'
 
 export const MODELO_IA = 'claude-haiku-5-5'
@@ -9,8 +9,9 @@ export const MAX_TEXTO = 2000
 export const MAX_POR_TREINO = 10 // mesmo teto das posições do editor
 
 export const normalizar = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
-const nomes = catalogo.flatMap((g) => g.exercicios.map((e) => e.nome))
-const doCatalogo = new Map(nomes.map((n) => [normalizar(n), n]))
+// A IA recebe os nomes novos; nome antigo ou apelido que ela devolver vira o nome novo do mesmo exercício.
+const nomes = EXERCICIOS_ATIVOS.map((e) => e.nome) // os excluídos não são oferecidos; se a IA devolver um, ainda é reconhecido
+const doCatalogo = new Map(EXERCICIOS.flatMap((e) => nomesConhecidos(e).map((n) => [normalizar(n), e.nome] as const)))
 
 export interface ExercicioProposto {
   nome: string

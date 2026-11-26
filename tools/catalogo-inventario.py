@@ -1,0 +1,347 @@
+#!/usr/bin/env python3
+"""Inventário do catálogo atual de exercícios (etapa 1 do épico #255).
+
+Lê src/data/exercicios.json, doisLados.json e isometricos.json e gera
+docs/catalogo/inventario-atual.csv com os atributos propostos para cada um dos
+exercícios atuais. Não altera o catálogo nem o app: só produz a tabela para o
+Celli conferir. Regras por palavra do nome; quando a palavra não decide, a
+coluna `duvida` explica e `status` fica `a_confirmar` (nada é chutado).
+
+Uso: python3 tools/catalogo-inventario.py              (só a tabela)
+     python3 tools/catalogo-inventario.py --atributos  (também cria src/data/atributos.json)
+
+`--atributos` serve só para a primeira geração (etapa 2, #257). Depois disso, src/data/atributos.json
+é a fonte da verdade e é editado direto (ou pelo cadastro manual); não regere por cima.
+"""
+
+import csv
+import json
+import re
+import sys
+import unicodedata
+from collections import Counter, defaultdict
+from pathlib import Path
+
+RAIZ = Path(__file__).resolve().parent.parent
+DADOS = RAIZ / 'src' / 'data'
+SAIDA = RAIZ / 'docs' / 'catalogo' / 'inventario-atual.csv'
+ATRIBUTOS = DADOS / 'atributos.json'
+
+COLUNAS = [
+    'id', 'nome_atual', 'nome_proposto', 'aliases', 'status', 'grupo', 'grupos_secundarios', 'movimento_base',
+    'equipamento', 'mecanismo_carga', 'lateralidade', 'modo', 'unidade', 'pegada_variacao',
+    'convencao_carga', 'duvida',
+]
+
+# Rótulo do equipamento no fim do nome proposto (mesmo estilo da lista de exercícios novos).
+ROTULO = {
+    'halter': 'Halter', 'halteres': 'Halteres', 'barra': 'Barra', 'barra_w': 'Barra W',
+    'barra_hexagonal': 'Barra Hexagonal', 'smith': 'Smith', 'smith_dual': 'Smith Dual', 'caneleira': 'Caneleira', 'polia': 'Polia', 'duas_polias': 'Duas Polias',
+    'maquina_seletora': 'Máquina Seletora', 'maquina_articulada': 'Articulada', 'elastico': 'Elástico',
+    'anilha': 'Anilha', 'medicine_ball': 'Medicine Ball', 'kettlebell': 'Kettlebell',
+}
+
+# Máquinas que já têm nome próprio: o nome não ganha sufixo de equipamento.
+MAQUINAS_NOMEADAS = [
+    'cadeira extensora', 'cadeira flexora', 'cadeira abdutora', 'cadeira adutora', 'mesa flexora',
+    'flexora vertical', 'peck deck', 'leg press', 'agachamento hack', 'agachamento mini-hack',
+    'agachamento v squat', 'flexao nordica maquina',
+]
+
+MOVIMENTOS = [
+    'agachamento', 'leg press', 'terra', 'cadeira extensora', 'cadeira flexora', 'mesa flexora', 'flexora',
+    'passada', 'step up', 'afundo', 'avanco', 'retrocesso', 'elevacao pelvica', 'gluteo', 'bulgaro', 'stiff',
+    'flexao nordica', 'flexao de joelhos', 'cadeira abdutora', 'cadeira adutora', 'abducao', 'aducao',
+    'monster walk', 'prancha', 'supino', 'pull over', 'peck deck', 'crossover', 'crucifixo inverso', 'crucifixo',
+    'flexao de bracos', 'puxada', 'remada alta', 'remada', 'barra fixa', 'suspensao', 'panturrilha',
+    'abdominal', 'lombar', 'superman', 'perdigueiro', 'canoa', 'pallof', 'dead bug', 'elevacao lateral',
+    'elevacao diagonal', 'elevacao frontal', 'manguito', 'desenvolvimento', 'encolhimento', 'rosca punho',
+    'rosca', 'supinacao', 'pronacao', 'flexao palmar', 'pegada', 'triceps', 'snatch', 'clean', 'jerk',
+    'overhead squat', 'jump', 'bound', 'hurdlehop', 'skip', 'push-up', 'pushup', 'medicine ball',
+]
+
+
+def sem_acento(s: str) -> str:
+    return ''.join(c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn').lower()
+
+
+def tem(n: str, *palavras: str) -> bool:
+    return any(re.search(r'\b' + re.escape(p) + r'\b', n) for p in palavras)
+
+
+# Respostas do Celli (26/11/2026) para "Halter" sem pista: o item atual fica com 1 halter ou 2,
+# e a outra forma vira variante nova (VARIANTES_NOVAS), sem mudar o id de quem já tem histórico.
+HALTER_DECIDIDO = {
+    'agachamento-livre-halter': 'halter', 'pull-over-halter': 'halter', 'rosca-scott-halter': 'halter',
+    'triceps-frances-em-pe-halter': 'halter', 'triceps-frances-sentado-halter': 'halter',
+}
+# Sem resposta direta: 1 halter é o uso comum (segurado entre as pernas, nos pés ou numa mão). Premissa.
+HALTER_PREMISSA_1 = {
+    'terra-sumo-com-halter', 'elevacao-pelvica-halter', 'flexao-de-joelhos-deitado-a-com-halter',
+    'abdominal-obliquo-halter', 'supinacao-com-halter', 'pronacao-com-halter', 'supinacao-e-pronacao-com-halter',
+}
+# Celli (26/11/2026): Remada Curvada sem equipamento no nome é "geralmente barra, mas existem os dois".
+# O item atual fica com barra; as versões com halteres são exercícios à parte (lista dos novos).
+BARRA_DECIDIDO = {'remada-curvada-fechada', 'remada-curvada-pronada', 'remada-curvada-supinada'}
+# Respostas do Celli às 13 dúvidas (26/11/2026). id → (equipamento, mecanismo). A outra forma, quando existe,
+# vira exercício novo (docs/catalogo/exercicios-novos.csv), sem mudar o id de quem já tem histórico.
+EQUIP_DECIDIDO = {
+    'agachamento-halter-banco': ('halter', 'livre'),
+    'elevacao-pelvica-maquina-guiada': ('maquina_seletora', 'pinos'),  # a articulada já existe à parte
+    'remada-linear-45o-guiada': ('maquina_articulada', 'anilhas'),
+    'stiff-no-smith-com-halter': ('halter', 'livre'),  # carga anotada = a do halter; sai da busca (OCULTOS)
+    'remada-unilateral-serrote': ('halter', 'livre'),  # + versão Polia
+    'remada-cavalinho': ('barra', 'livre'),  # + versão Articulada (T-Bar Row)
+    'panturrilha-em-pe-unilateral': ('peso_do_corpo', 'corporal'),  # + versão Halter
+    'panturrilha-sentado-unilateral': ('maquina_articulada', 'anilhas'),
+    'elevacao-lateral-inclinado': ('halter', 'livre'),  # + versão Polia
+    'elevacao-lateral-isometrica': ('halteres', 'livre'),  # + versão Elástico
+    'rosca-isometrica-a-90o': ('halteres', 'livre'),  # Celli: "tanto faz"; ficou o uso mais comum
+    'triceps-coice-apoiado': ('halter', 'livre'),  # + versão Polia
+}
+NOME_DECIDIDO = {'elevacao-lateral-inclinado': 'Elevação Lateral Banco Inclinado Halter', 'stiff-no-smith-com-halter': 'Stiff no Smith com Halter'}
+# Celli: "pode excluir / pode tirar". Não some do app: o histórico continua ligado; só sai da busca e do catálogo.
+OCULTOS = {'stiff-no-smith-com-halter': 'Excluído pelo Celli (ninguém usa).', 'remada-isometrica': 'Excluído pelo Celli (não precisa).'}
+DUPLICATAS_DESCARTADAS = {frozenset({'box-jumps', 'box-jump'})}  # Celli: exercícios diferentes
+
+
+def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado: bool):
+    """Devolve (equipamento, mecanismo, dúvida). `n` sem acento e minúsculo."""
+    if tem(n, 'bound', 'jump', 'jumps', 'hurdlehop', 'skip', 'barrierhop'):
+        return 'peso_do_corpo', 'corporal', ''
+    if ex_id in HALTER_DECIDIDO:
+        return HALTER_DECIDIDO[ex_id], 'livre', ''
+    if ex_id in EQUIP_DECIDIDO:
+        return (*EQUIP_DECIDIDO[ex_id], '')
+    if ex_id in OCULTOS:
+        return 'a_confirmar', '', ''
+    if ex_id in BARRA_DECIDIDO:
+        return 'barra', 'livre', ''
+    if ex_id in HALTER_PREMISSA_1:
+        return 'halter', 'livre', ''
+    if tem(n, 'smith') and tem(n, 'halter'):
+        return 'a_confirmar', '', 'Smith com halter: qual equipamento define a carga anotada?'
+    if tem(n, 'smith dual'):
+        return 'smith_dual', 'anilhas', ''
+    if tem(n, 'smith'):
+        return 'smith', 'anilhas', ''
+    if tem(n, 'barra hexagonal'):
+        return 'barra_hexagonal', 'livre', ''
+    if 'barra w' in n:
+        return 'barra_w', 'livre', ''
+    if tem(n, 'articulada', 'articulado'):
+        return 'maquina_articulada', 'anilhas', ''
+    if tem(n, 'crossover') and not unilateral:
+        return 'duas_polias', 'pinos', ''
+    if tem(n, 'cabo', 'polia', 'pulley', 'crossover'):
+        return 'polia', 'pinos', ''
+    if tem(n, 'elastico'):
+        return 'elastico', 'elastico', ''
+    if tem(n, 'caneleira'):
+        return 'caneleira', 'livre', ''
+    if tem(n, 'halteres'):
+        return 'halteres', 'livre', ''
+    if tem(n, 'halter'):
+        # Celli: carga anotada por lado = 2 halteres, mesmo em exercício unilateral de pernas (afundo, búlgaro).
+        if por_lado or alternado:
+            return 'halteres', 'livre', ''
+        if unilateral or tem(n, 'concentrada', 'serrote'):
+            return 'halter', 'livre', ''
+        if tem(n, 'goblet') or ex_id == 'agachamento-halter-banco':
+            return 'a_confirmar', '', 'Confirmar: 1 halter (goblet/segurado no peito)?'
+        return 'halter', 'livre', 'Nome diz "Halter": é 1 halter ou 2 (Halteres)? Confirmar.'
+    if tem(n, 'anilha'):
+        return 'anilha', 'livre', ''
+    if tem(n, 'medicine ball', 'medicineball'):
+        return 'medicine_ball', 'livre', ''
+    if tem(n, 'bola'):
+        return 'outro', 'nenhum', ''  # bola de adução
+    if tem(n, 'cinto'):
+        return 'outro', 'livre', ''  # cinto de carga
+    if tem(n, 'leg press 45', 'pendulo', 'hack', 'mini-hack', 'v squat', 'remada linear 45'):
+        return 'maquina_articulada', 'anilhas', ''
+    if tem(n, 'maquina', 'guiada', 'cadeira', 'mesa flexora', 'flexora vertical', 'peck deck', 'leg press'):
+        if tem(n, 'guiada'):
+            return 'a_confirmar', '', 'Máquina "guiada": seletora (pinos) ou com anilhas? Confirmar.'
+        return 'maquina_seletora', 'pinos', ''
+    if tem(n, 'barra fixa', 'paralela', 'espaldar', 'suspensao', 'banco romano') or tem(n, 'triceps banco'):
+        return 'peso_do_corpo', 'corporal', ''
+    if tem(n, 'barra', 'snatch', 'clean', 'jerk', 'overhead squat', 'supino fechado'):
+        return 'barra', 'livre', ''
+    if tem(n, 'puxada', 'remada baixa', 'remada sentada'):
+        return 'maquina_seletora', 'pinos', ''  # Celli: puxadas e remadas baixas são, em geral, seletoras
+    if tem(n, 'remada tradicional', 'remada cavalinho'):
+        return 'a_confirmar', '', 'Remada sem equipamento no nome: barra livre, máquina seletora ou articulada?'
+    if tem(n, 'remada curvada'):
+        return 'a_confirmar', '', 'Remada curvada sem equipamento no nome: barra ou halteres?'
+    if tem(n, 'remada unilateral', 'remada isometrica'):
+        return 'a_confirmar', '', 'Remada sem equipamento no nome: halter, polia ou máquina?'
+    if tem(n, 'rosca zottman', 'supinacao', 'pronacao', 'farmer'):
+        return 'halter', 'livre', ''
+    if tem(n, 'triceps coice'):
+        return 'a_confirmar', '', 'Tríceps coice sem equipamento no nome: halter ou polia?'
+    if tem(n, 'panturrilha em pe unilateral', 'panturrilha sentado unilateral', 'elevacao lateral inclinado',
+           'elevacao lateral isometrica', 'rosca isometrica', 'abdominal oblíquo'):
+        return 'a_confirmar', '', 'Sem equipamento no nome: qual é?'
+    return 'peso_do_corpo', 'corporal', ''
+
+
+def lateralidade(n: str) -> str:
+    if tem(n, 'alternado', 'alternada', 'passada'):
+        return 'alternado'
+    if tem(n, 'unilateral', 'serrote', 'concentrada', 'bulgaro', 'afundo', 'avanco', 'retrocesso', 'step up',
+           'single leg', 'copenhagen', 'prancha lateral', 'lateral hurdlehop', 'lateral jump'):
+        return 'unilateral'
+    return 'bilateral'
+
+
+def movimento(n: str) -> str:
+    if tem(n, 'bound', 'jump', 'jumps', 'hurdlehop', 'skip', 'barrierhop'):
+        return 'salto'
+    for m in MOVIMENTOS:
+        if m in n:
+            return m.replace(' ', '_')
+    return ''
+
+
+TIRAR_GERAL = [
+    r'\bcom halteres\b', r'\bcom halter\b', r'\bhalteres\b', r'\bhalter\b', r'\bno smith\b', r'\bsmith\b',
+    r'\bna polia\b', r'\bno cabo\b', r'\bcabo\b', r'\bm[aá]quina\b', r'\barticulad[ao]\b',
+]
+# Barra só sai do nome quando ela é o equipamento; na polia, "Barra"/"Corda" é o acessório e fica.
+TIRAR_BARRA = [r'\bbarra hexagonal\b', r'\bcom barra\b', r'\bbarra w\b', r'\bbarra\b(?! (reta|v|fixa|paralela|aberta|neutra))']
+
+
+def compacto(s: str) -> str:
+    return re.sub(r'[^a-z0-9]', '', sem_acento(s))
+
+
+def nome_proposto(nome: str, equip: str, n: str) -> str:
+    if equip in ('peso_do_corpo', 'a_confirmar', 'outro', 'caneleira', 'smith_dual') or tem(n, 'snatch', 'clean', 'jerk', 'jump', 'bound'):
+        return nome
+    # Máquina que já se chama pelo nome (Leg Press 45, Hack, Cadeira Extensora...): o tipo vira pílula, não sufixo.
+    if equip.startswith('maquina') and not tem(n, 'maquina', 'articulada', 'articulado'):
+        return nome
+    rotulo = ROTULO.get(equip)
+    if not rotulo:
+        return nome
+    # Rótulo já no nome (Elástico, Anilha, Medicine Ball, Barra Reta, Pulley): só arruma, sem repetir.
+    ja_tem = compacto(rotulo) in compacto(nome) or (equip == 'polia' and tem(n, 'pulley'))
+    if ja_tem and not equip.startswith('maquina') and equip not in ('halter', 'halteres', 'smith', 'polia', 'duas_polias'):
+        return nome
+    base = nome
+    polia_lugar = re.search(r'\b(?:na )?(polia (?:alta|m[eé]dia|baixa))\b', base, re.IGNORECASE)
+    if equip == 'polia' and polia_lugar:
+        # "na Polia Alta" vira "Polia Alta" e fica como variação; não ganha outro sufixo.
+        return re.sub(r'\s+', ' ', re.sub(r'\b(?:no )?cabo\b', '', base.replace(polia_lugar.group(0), polia_lugar.group(1).title()), flags=re.IGNORECASE)).strip()
+    for padrao in TIRAR_GERAL + (TIRAR_BARRA if equip.startswith('barra') else []):
+        base = re.sub(padrao, '', base, flags=re.IGNORECASE)
+    base = re.sub(r'\(\s*\)', '', re.sub(r'\s+', ' ', base)).strip()
+    if equip == 'polia' and tem(n, 'pulley'):
+        return base
+    if equip == 'duas_polias':
+        base = re.sub(r'\b(?:no )?crossover\b', 'Crossover', base, flags=re.IGNORECASE).strip()
+    if equip == 'barra' and re.search(r'\bbarra\b', base, re.IGNORECASE):
+        return base
+    return f'{base} {rotulo}'.strip()
+
+
+# Decisões do Celli (26/11/2026): Retrocesso passa a Recuo; Pull Over Cabo passa a Pulldown; Remada Cavalinho também atende por T-Bar Row.
+TROCAS = [(r'\bRetrocesso\b', 'Recuo'), (r'^Pull Over Polia$', 'Pulldown Polia')]
+APELIDOS_EXTRA: dict[str, list[str]] = {}  # T-Bar Row agora é a versão Articulada (exercício novo)
+MOVIMENTO_EXTRA = {'pull-over-cabo': 'pulldown'}
+
+
+def main() -> None:
+    grupos = json.loads((DADOS / 'exercicios.json').read_text(encoding='utf-8'))
+    dois = set(json.loads((DADOS / 'doisLados.json').read_text(encoding='utf-8')))
+    iso = set(json.loads((DADOS / 'isometricos.json').read_text(encoding='utf-8')))
+    anat = json.loads((DADOS / 'anatomia.json').read_text(encoding='utf-8'))
+
+    linhas = []
+    for g in grupos:
+        for ex in g['exercicios']:
+            nome, ex_id = ex['nome'], ex['id']
+            n = sem_acento(nome)
+            lat = lateralidade(n)
+            equip, mec, duvida = equipamento(n, ex_id, ex_id in dois, lat == 'unilateral', lat == 'alternado')
+            isometrico = ex_id in iso or tem(n, 'isometrica', 'isometrico', 'hold', 'dead hang', 'l-sit')
+            modo = 'isometrico' if isometrico else ('dinamico;excentrico' if tem(n, 'flexao nordica') else 'dinamico')
+            if equip == 'peso_do_corpo':
+                conv = 'corporal'
+            elif ex_id in dois:
+                conv = 'por_lado'
+            else:
+                conv = 'total'
+            secundarios = ', '.join(anat.get(ex_id, {}).get('secundarios', []))
+            var = re.findall(r'\(([^)]*)\)', nome)
+            proposto = NOME_DECIDIDO.get(ex_id) or nome_proposto(nome, equip, n)
+            for padrao, novo in TROCAS:
+                proposto = re.sub(padrao, novo, proposto)
+            aliases = ([nome] if proposto != nome else []) + APELIDOS_EXTRA.get(ex_id, [])
+            status = 'excluido' if ex_id in OCULTOS else 'a_confirmar' if duvida or equip == 'a_confirmar' else ('igual' if proposto == nome else 'renomear')
+            linhas.append({
+                'id': ex_id, 'nome_atual': nome, 'nome_proposto': proposto, 'aliases': '; '.join(aliases), 'status': status, 'grupo': g['grupo'],
+                'grupos_secundarios': secundarios, 'movimento_base': MOVIMENTO_EXTRA.get(ex_id, movimento(n)), 'equipamento': equip,
+                'mecanismo_carga': mec, 'lateralidade': lat, 'modo': modo,
+                'unidade': 'tempo' if isometrico else 'reps', 'pegada_variacao': '; '.join(var),
+                'convencao_carga': conv, 'duvida': duvida,
+            })
+
+    # Nomes quase iguais (sem acento, caixa, espaço e plural final) viram dúvida de duplicata.
+    chave = defaultdict(list)
+    for l in linhas:
+        chave[re.sub(r's\b', '', re.sub(r'[^a-z0-9]', '', sem_acento(l['nome_atual'])))].append(l)
+    for iguais in chave.values():
+        if len(iguais) > 1 and frozenset(l['id'] for l in iguais) not in DUPLICATAS_DESCARTADAS:
+            for l in iguais:
+                outros = ', '.join(o['nome_atual'] for o in iguais if o is not l)
+                l['duvida'] = (l['duvida'] + ' ' if l['duvida'] else '') + f'Possível duplicata de: {outros}.'
+                l['status'] = 'a_confirmar'
+
+    SAIDA.parent.mkdir(parents=True, exist_ok=True)
+    with SAIDA.open('w', encoding='utf-8', newline='') as f:
+        w = csv.DictWriter(f, fieldnames=COLUNAS)
+        w.writeheader()
+        w.writerows(linhas)
+
+    if '--atributos' in sys.argv:
+        gerar_atributos(linhas)
+
+    print(f'{len(linhas)} exercícios → {SAIDA.relative_to(RAIZ)}')
+    print('status:', dict(Counter(l['status'] for l in linhas)))
+    print('equipamento:', dict(Counter(l['equipamento'] for l in linhas).most_common()))
+
+
+def gerar_atributos(linhas: list[dict]) -> None:
+    """Atributos por id. O nome exibido sai de `base` + rótulo do equipamento (quando `sufixo`)."""
+    saida = {}
+    for l in linhas:
+        equip = None if l['equipamento'] == 'a_confirmar' else l['equipamento']
+        rotulo = ROTULO.get(equip or '', '')
+        proposto = l['nome_proposto']
+        sufixo = bool(rotulo) and proposto.endswith(' ' + rotulo)
+        base = proposto[: -len(rotulo) - 1] if sufixo else proposto
+        item = {
+            'base': base,
+            'sufixo': sufixo,
+            'equipamento': equip,
+            'mecanismo': l['mecanismo_carga'] or None,
+            'lateralidade': l['lateralidade'],
+            'modo': l['modo'].split(';'),
+            'unidade': l['unidade'],
+            'carga': l['convencao_carga'],
+            'movimento': l['movimento_base'] or None,
+            'apelidos': [a for a in l['aliases'].split('; ') if a],
+        }
+        if l['status'] == 'a_confirmar':
+            item['aConfirmar'] = l['duvida'] or 'Equipamento a confirmar.'
+        if l['id'] in OCULTOS:
+            item['oculto'] = OCULTOS[l['id']]
+        saida[l['id']] = item
+    ATRIBUTOS.write_text(json.dumps(saida, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
+    print(f'{len(saida)} atributos → {ATRIBUTOS.relative_to(RAIZ)}')
+
+
+if __name__ == '__main__':
+    main()

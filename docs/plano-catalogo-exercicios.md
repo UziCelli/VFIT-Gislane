@@ -1,0 +1,22 @@
+# Catálogo de exercícios: proposta para validação do Celli
+
+> **Atualização (26/11/2026):** o Celli liberou a divisão em etapas, registrada no épico #255. Esta PR entrega as etapas 1 a 4 (#256 a #259). As etapas de máquinas e carga (#260 a #263) vão em PRs próprias. Os vídeos ficaram na PR #252. Inventário da etapa 1: [docs/catalogo/inventario.md](catalogo/inventario.md).
+
+## Ponto de partida
+
+O app já tem um catálogo estático em `src/data/exercicios.json` e sugestões com texto livre no seletor do coach em `src/lib/busca.ts`. Há metadados de anatomia e de carga por lado separados; alguns consumidores reconhecem exercícios pelo nome, não só pelo ID. A proposta é evoluir o catálogo existente, sem criar uma lista desconectada da montagem do treino.
+
+## O que o Claude deve entregar nesta PR
+
+1. **Inventário para aprovação.** Gere uma tabela pesquisável/ordenável, em arquivo no PR, com cada ID, nome atual, nome proposto, aliases, grupo muscular, equipamento/máquina e a indicação de carga por lado quando existente. Informe totais de iguais, renomes, possíveis duplicatas, equipamento desconhecido e classificação a confirmar. Mostre exemplos na descrição e deixe casos ambíguos separados para o Celli decidir. Inventarie todos os itens, não só uma amostra.
+2. **Catálogo no painel do coach.** Proponha e implemente um fluxo utilizável no celular, por exemplo **Catálogo de exercícios → Adicionar exercício**. O coach deve poder informar o movimento, selecionar grupo principal e, quando necessário, secundários, escolher equipamento e tipo/modelo de máquina e conferir o nome final antes de salvar. Use uma lista controlada (halter, halteres, barra, cabo/polia, peso do corpo, elástico e tipos de máquina, incluindo articulada e Smith); permita sinalizar uma opção nova sem multiplicar sinônimos. Inclua busca por nome antigo e novo, filtros por grupo/equipamento e seleção do item cadastrado na montagem do treino. Não grave no catálogo só por digitar um nome livre no treino. O cadastro deve persistir entre sessões e ficar isolado por conta/marca conforme o modelo de permissões existente; não deve editar o catálogo base global nem ir para a outra marca por acidente.
+3. **Um padrão de nomes, não um nome para tudo.** Proponha a ordem fixa dos termos, por exemplo **Movimento + variação relevante + equipamento**. Use **Halter** para um halter e **Halteres** para dois; dois braços não implicam dois halteres. Use **Articulado** (rótulo de equipamento) para a variante realmente articulada, sem equiparar toda máquina a ela. Exemplos ilustrativos de rótulo: **Agachamento Goblet · Halter**, **Supino Inclinado · Halteres**, **Supino Inclinado · Articulado**. Preserve ângulo, posição, pegada e lateralidade quando distinguirem exercícios. Não chute equipamento pelo texto nem deduza carga por lado só do rótulo; marque dúvidas para o Celli. Para busca e duplicatas, normalize acentos, caixa e espaços sem apagar diferenças de equipamento ou execução.
+4. **Compatibilidade verificável.** Preserve IDs e aliases dos nomes já usados. Rastreie no código busca, histórico/evolução, progressão, anatomia e carga por lado; não recalcule, renomeie em massa nem regrave treinos anteriores ou cargas. Garanta que os nomes antigos continuam resolvendo para o mesmo exercício e que o extrator da planilha não sobrescreve o cadastro manual. Preserve o treino já disponível offline. Não mude o MCP em produção; documente qualquer diferença entre o catálogo do painel e o do conector.
+
+## Aceite para revisão
+
+- Mostre o caminho de cliques no celular e um print ou vídeo com dados de teste: cadastrar exercício, salvar/reabrir, filtrar e selecionar em um treino; testar grupo e equipamento ausentes, duplicata e variantes realmente distintas.
+- Cubra nomes antigos, Halter vs. Halteres, máquina articulada vs. outras, comportamento de carga por lado, e permissões/isolamento do cadastro. Não use dados reais nem altere produção para testar.
+- Peça revisão cruzada do Codex para o commit final e traga o link, os testes e as limitações. Não rode CI pesado só pelo documento inicial.
+
+**Regra específica do Celli: esta PR deve permanecer aberta e em rascunho até ele conferir o inventário, os nomes e o fluxo. Não fechar, tirar do rascunho, habilitar auto-merge, fazer merge, publicar ou aplicar migração em produção. Não abra uma PR paralela. Esta trava prevalece sobre o fluxo automático deste repositório.**

@@ -1,5 +1,6 @@
 // Segmentos do corpo: cruza a medida (perímetro x dobra) com a evolução da carga dos exercícios do segmento.
 // Só descreve; nunca diz "piorou". Funções puras.
+import { resolverExercicio } from '../data/catalogo'
 import catalogo from '../data/exercicios.json'
 import { diaSP } from './acesso'
 import { mudancaReal, type Etm } from './etm'
@@ -39,13 +40,16 @@ const DO_CATALOGO = new Map<string, SegmentoId | null>(
   catalogo.flatMap((g) =>
     g.exercicios.map((e): [string, SegmentoId | null] => {
       const d = DIVIDE[g.grupo]
-      return [norm(e.nome), d ? (d[0].test(norm(e.nome)) ? d[1] : d[2]) : (POR_GRUPO[g.grupo] ?? null)]
+      return [e.id, d ? (d[0].test(norm(e.nome)) ? d[1] : d[2]) : (POR_GRUPO[g.grupo] ?? null)]
     }),
   ),
 )
 
 // Nome fora do catálogo (texto livre) ou de Power Exercises: null. Nunca adivinha.
-export const segmentoDoExercicio = (nome: string): SegmentoId | null => DO_CATALOGO.get(norm(nome)) ?? null
+export const segmentoDoExercicio = (nome: string): SegmentoId | null => {
+  const e = resolverExercicio(nome)
+  return e ? (DO_CATALOGO.get(e.id) ?? null) : null
+}
 
 export type ClasseCarga = 'sobe' | 'cai' | 'estavel'
 export type CargaSegmento = { pct: number; n: number; classe: ClasseCarga; melhor: { nome: string; de: number; ate: number } }

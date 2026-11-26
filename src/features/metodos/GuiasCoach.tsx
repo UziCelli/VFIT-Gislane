@@ -18,6 +18,9 @@ export default function GuiasCoach({ guia, nome }: { guia: Guia; nome: string })
     <main className="mx-auto max-w-md px-4 py-4">
       <BotaoVoltar para="/" />
       <SeletorGuia ativo={guia} />
+      <a href="#/catalogo" className="mb-3 flex min-h-11 items-center justify-between rounded-xl border border-slate-700 px-3 text-sm font-semibold text-slate-200 hover:text-white">
+        Catálogo de exercícios <span aria-hidden className="text-slate-400">›</span>
+      </a>
       <div className="-mx-4">
         <Tela chave={guia} lado={LADO[guia]} dentro>
           <div className="px-4">

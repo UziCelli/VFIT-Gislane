@@ -301,6 +301,18 @@ describe('cargaAnterior: meso anterior (pelo nome do exercício)', () => {
     const acento = cargaAnterior(mk('Elevação Pélvica'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('elevacao pelvica') })
     expect(acento).toMatchObject({ series: [44, 46] })
   })
+  it('nome antigo do catálogo casa com o nome novo do mesmo exercício (e vice-versa)', () => {
+    // Rosca Direta Cabo → Rosca Direta Polia (carga total); Supino Reto Halter → Halteres (por lado) fica de fora:
+    // célula antiga de 2 lados não serve, regra que não muda aqui.
+    const r = cargaAnterior(mk('Rosca Direta Polia'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Rosca Direta Cabo') })
+    expect(r).toMatchObject({ series: [44, 46], origem: { anterior: true } })
+    const volta = cargaAnterior(mk('Rosca Direta Cabo'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('rosca direta polia') })
+    expect(volta).toMatchObject({ series: [44, 46] })
+  })
+  it('no mesmo meso, o slot com o nome novo acha a carga do slot com o nome antigo', () => {
+    const m: Meso = { ...mk('Rosca Direta Cabo'), frequencia: 2, divisao: [[slot('a', 'Rosca Direta Cabo')], [slot('b', 'Rosca Direta Polia')]] }
+    expect(cargaAnterior(m, { '1-1': { a: [30, 32] } }, 1, 2, 1)).toMatchObject({ series: [30, 32] })
+  })
   it('nome parecido NÃO casa (outro equipamento é outro exercício)', () => {
     expect(cargaAnterior(mk('Supino Reto Halter'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })).toBeNull()
     expect(cargaAnterior(mk('Supino Reto'), {}, 1, 1, 1, undefined, undefined, undefined, { anterior: ant('Supino Reto Barra') })).toBeNull()

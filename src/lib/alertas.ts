@@ -1,4 +1,5 @@
 // Alertas do coach e do aluno, calculados no aparelho a partir dos registros (sem dado novo). Funções puras.
+import { nomeAtualizado } from '../data/catalogo'
 import { isometrico, prescreverSessao, type Meso } from '../engine'
 import { diaSP } from './acesso'
 import { comVolta } from './agenda'
@@ -44,8 +45,9 @@ export function repsAbaixo(meso: Meso, registros: RegistroAlerta[], agora: Date)
         abaixo++
         faltaram += meta - feito
         achou = true
-        const x = porNome.get(e.slot.nome) ?? { abaixo: 0, faltaram: 0 }
-        porNome.set(e.slot.nome, { abaixo: x.abaixo + 1, faltaram: x.faltaram + meta - feito })
+        const nome = nomeAtualizado(e.slot.nome)
+        const x = porNome.get(nome) ?? { abaixo: 0, faltaram: 0 }
+        porNome.set(nome, { abaixo: x.abaixo + 1, faltaram: x.faltaram + meta - feito })
       })
     }
     if (achou && ms! > ultimo.ms) ultimo = { ms: ms!, dia: diaSP(ms!), semana: r.semana }

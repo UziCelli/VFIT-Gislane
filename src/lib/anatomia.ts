@@ -2,8 +2,7 @@
 // Dados em src/data/anatomia.json, por id do exercício. Fica fora do exercicios.json porque
 // tools/extrair_planilha.py regrava aquele arquivo inteiro. Funções puras.
 import anatomia from '../data/anatomia.json'
-import catalogo from '../data/exercicios.json'
-import { norm } from './busca'
+import { resolverExercicio } from '../data/catalogo'
 
 // Mesmos ids da anamnese (pergunta "dores"): a dor do treino cruza com a da ficha. O teste compara os dois.
 export const ARTICULACOES = ['ombro', 'cotovelo', 'punho', 'cervical', 'lombar', 'quadril', 'joelho', 'tornozelo'] as const
@@ -22,10 +21,12 @@ export type MusculoId = keyof typeof MUSCULOS
 export type Anatomia = { articulacoes: ArticulacaoId[]; principais: MusculoId[]; secundarios: MusculoId[] }
 
 const DADOS = anatomia as Record<string, Anatomia>
-const POR_NOME = new Map(catalogo.flatMap((g) => g.exercicios.map((e): [string, Anatomia] => [norm(e.nome.trim()), DADOS[e.id]])))
 
-// Nome fora do catálogo (texto livre): null. Nunca adivinha.
-export const anatomiaDo = (nome: string): Anatomia | null => POR_NOME.get(norm(nome.trim())) ?? null
+// Nome atual, novo ou apelido do catálogo. Fora do catálogo (texto livre): null. Nunca adivinha.
+export const anatomiaDo = (nome: string): Anatomia | null => {
+  const e = resolverExercicio(nome)
+  return e ? (DADOS[e.id] ?? null) : null
+}
 
 // Opções do "Senti dor": as do exercício; fora do catálogo, todas.
 export const articulacoesDo = (nome: string): readonly ArticulacaoId[] => anatomiaDo(nome)?.articulacoes ?? ARTICULACOES

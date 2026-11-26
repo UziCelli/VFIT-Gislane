@@ -493,14 +493,17 @@ export const cancelarTreino = (mesoId: string, semana: number, treino: number, a
 
 // Anotação do aluno por exercício (vale em todas as semanas/mesos), com a data em que foi escrita.
 // '' = apaga a anotação e a data (aluno ou coach, depois de confirmar).
-export const salvarNota = (alunoId: string, exercicio: string, texto: string) => {
+// `outras`: chaves do mesmo exercício com outro nome (antigo/novo do catálogo, ver notaDoExercicio); saem para a
+// anotação ficar só sob o nome atual.
+export const salvarNota = (alunoId: string, exercicio: string, texto: string, outras: string[] = []) => {
   const t = texto.trim().slice(0, 300)
+  const apagar = Object.fromEntries(outras.filter((k) => k !== exercicio).map((k) => [k, deleteField()]))
   return setDoc(
     doc(db, 'notas', alunoId),
     {
       alunoId,
-      exercicios: { [exercicio]: t || deleteField() },
-      datas: { [exercicio]: t ? serverTimestamp() : deleteField() },
+      exercicios: { ...apagar, [exercicio]: t || deleteField() },
+      datas: { ...apagar, [exercicio]: t ? serverTimestamp() : deleteField() },
       atualizadoEm: serverTimestamp(),
     },
     { merge: true },
@@ -653,3 +656,8 @@ export function sair() {
   })
   return saindo
 }
+
+// Exercício cadastrado pelo coach (exerciciosProprios/{id}); dados de validarProprio em catalogoProprio.ts.
+// Só cria (o nome é a identidade no histórico: não se renomeia) ou apaga. Sem await (offline).
+export const gravarProprio = (id: string, dados: Record<string, unknown>) => setDoc(doc(db, 'exerciciosProprios', id), { ...dados, em: serverTimestamp() })
+export const apagarProprio = (id: string) => deleteDoc(doc(db, 'exerciciosProprios', id))

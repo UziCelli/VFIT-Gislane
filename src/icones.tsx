@@ -70,3 +70,19 @@ export const IcEstrela = ({ className = 'size-6', cheia = false }: P & { cheia?:
   </svg>
 )
 export const IcBalao = svg(<path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />)
+
+// Equipamentos e modos do catálogo de exercícios (pílulas, src/features/catalogo/PilulasExercicio.tsx).
+export const IcHalteres = svg(<path d="M5 4v6M10 4v6M3 5.5v3M12 5.5v3M5 7h5M14 14v6M19 14v6M12 15.5v3M21 15.5v3M14 17h5" />)
+export const IcBarra = svg(<path d="M2 12h20M5.5 7.5v9M18.5 7.5v9M8 9.5v5M16 9.5v5" />)
+export const IcPolia = svg(<><circle cx="12" cy="6" r="3" /><path d="M12 9v6" /><rect x="8.5" y="15" width="7" height="5" rx="1" /></>)
+export const IcDuasPolias = svg(<><circle cx="6" cy="6" r="2.5" /><circle cx="18" cy="6" r="2.5" /><path d="M6 8.5 12 17l6-8.5M12 17v3" /></>)
+export const IcSeletora = svg(<><rect x="6" y="3" width="12" height="18" rx="1.5" /><path d="M6 8h12M6 12h12M6 16h12M3 12h6" /></>)
+export const IcArticulada = svg(<><circle cx="6" cy="18" r="2" /><path d="M7.5 16.5 17 7M15 4.5l4.5 4.5M17.5 2.5 21.5 6.5" /></>)
+export const IcSmith = svg(<path d="M5 3v18M19 3v18M3 21h4M17 21h4M3 10h18M8 8v4M16 8v4" />)
+export const IcElastico = svg(<path d="M3 12c2-4 4-4 6 0s4 4 6 0 4-4 6 0" />)
+export const IcKettlebell = svg(<><path d="M9 8V6.5a3 3 0 0 1 6 0V8" /><path d="M7.5 8h9a2.5 2.5 0 0 1 2.4 3.2l-1.6 6.3A3.3 3.3 0 0 1 14.1 20H9.9a3.3 3.3 0 0 1-3.2-2.5l-1.6-6.3A2.5 2.5 0 0 1 7.5 8z" /></>)
+export const IcAnilha = svg(<><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="2" /></>)
+export const IcBola = svg(<><circle cx="12" cy="12" r="8.5" /><path d="M4 10c5 2 11 2 16 0M5 16c4-2 10-2 14 0" /></>)
+export const IcUnilateral = svg(<><path d="M12 3v18" /><path d="M16 8h4v8h-4" /></>)
+export const IcAlternado = svg(<path d="M4 8h14m0 0-3-3m3 3-3 3M20 16H6m0 0 3-3m-3 3 3 3" />)
+export const IcExcentrico = svg(<path d="M12 3v15m0 0-4-4m4 4 4-4M7 21h10" />)

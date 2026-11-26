@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { textoNota } from '../../../lib/notas'
 import { isometrico, metricasSessao, type Cargas, type Sessao } from '../../../engine'
 import { registrarCarga, registrarCargaLados, salvarNota } from '../../../lib/acoes'
-import { confirmarExclusao, dataDaNota, msDaNota } from '../../../lib/notas'
+import { confirmarExclusao, dataDaNota, notaDoExercicio } from '../../../lib/notas'
+import PilulasExercicio from '../../catalogo/PilulasExercicio'
 import { doc } from 'firebase/firestore'
 import { db } from '../../../lib/firebase'
 import { useDoc } from '../../../lib/hooks'
@@ -154,10 +154,11 @@ export default function SessaoCard({
                 <td className="p-2">{e.pos}</td>
                 <td className="p-2">
                   {e.slot.nome}
-                  {textoNota(notas?.exercicios?.[e.slot.nome.trim()]) && (() => {
+                  <PilulasExercicio nome={e.slot.nome} className="mt-1" />
+                  {notaDoExercicio(notas, e.slot.nome).texto && (() => {
                     const nome = e.slot.nome.trim()
-                    const texto = textoNota(notas?.exercicios?.[nome])
-                    const data = dataDaNota(msDaNota(notas?.datas?.[nome]))
+                    const { texto, em, outras } = notaDoExercicio(notas, nome)
+                    const data = dataDaNota(em)
                     return (
                       <div className="mt-0.5 flex max-w-[14rem] items-start gap-1 whitespace-normal text-[11px] text-slate-400">
                         <span className="min-w-0 break-words">
@@ -165,7 +166,7 @@ export default function SessaoCard({
                           <span className="block text-slate-500">{data}</span>
                         </span>
                         <button
-                          onClick={() => confirmarExclusao(nome, texto, data, 'o aluno') && salvarNota(alunoId, nome, '')}
+                          onClick={() => confirmarExclusao(nome, texto, data, 'o aluno') && salvarNota(alunoId, nome, '', outras)}
                           aria-label={`Excluir anotação de ${nome}`}
                           className="shrink-0 rounded p-1 text-slate-500 hover:text-red-400"
                         >

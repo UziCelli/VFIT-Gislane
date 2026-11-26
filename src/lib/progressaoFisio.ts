@@ -1,6 +1,7 @@
 // A1 do Físio (docs/fisio-a1-proposta.md): sinais de progressão acima do planejado, por exercício e por região.
 // Números aprovados pelo Victor em 13/11/2026 (heurísticas, sem calibração científica; docs/fisio-pesquisa-volume.md).
 // Só DESCREVE: o cruzamento com dor e a decisão ficam em sugestoesFisio e com o coach. Função pura.
+import { nomeAtualizado } from '../data/catalogo'
 import { prescreverSessao, type Meso } from '../engine'
 import { diaSP } from './acesso'
 import { anatomiaDo } from './anatomia'
@@ -49,7 +50,7 @@ function sessoesPorExercicio(mesos: Map<string, Meso>, registros: RegistroProgre
       const series: Serie[] = e.reps.map((meta, k) => ({ carga: cargas[e.slot.slotId]?.[k] ?? 0, feito: reps[e.slot.slotId]?.[k] ?? null, meta }))
         .filter((s) => s.carga > 0 || s.feito != null)
       if (!series.length) continue
-      const nome = e.slot.nome.trim()
+      const nome = nomeAtualizado(e.slot.nome)
       porNome.set(nome, [...(porNome.get(nome) ?? []), { ms, id: `${r.mesoId}_s${r.semana}_t${r.treino}`, series }])
       volume.push({ ms, nome, kgReps: series.reduce((a, s) => a + s.carga * (s.feito ?? s.meta), 0) })
     }

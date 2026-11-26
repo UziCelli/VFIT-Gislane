@@ -3,6 +3,7 @@
 // O vídeo fica fora do app (YouTube "não listado", sem custo): o app guarda só o link. Funções puras.
 import catalogo from '../data/exercicios.json'
 import { norm } from './busca'
+import { exercicioPorId, resolverExercicio } from '../data/catalogo'
 
 export type StatusVideo = 'gravar' | 'gravado' | 'no-ar'
 export const STATUS_VIDEO: { id: StatusVideo; rotulo: string }[] = [
@@ -29,8 +30,9 @@ type Catalogo = { grupo: string; exercicios: { id: string; nome: string }[] }[]
 // Status desconhecido (gravação de versão futura) conta como "A gravar", mas mantém link e nota.
 export function linhasVideos(docs: DocVideo[], cat: Catalogo = catalogo): LinhaVideo[] {
   const porId = new Map(docs.map((d) => [d.id, d]))
+  // Excluído do catálogo (oculto) só aparece se já tem vídeo registrado.
   return cat.flatMap((g) =>
-    g.exercicios.map((e) => {
+    g.exercicios.filter((e) => !exercicioPorId(e.id)?.oculto || porId.has(e.id)).map((e) => {
       const d = porId.get(e.id)
       const status: StatusVideo = d?.status === 'gravado' || d?.status === 'no-ar' ? d.status : 'gravar'
       return { id: e.id, nome: e.nome, grupo: g.grupo, status, link: texto(d?.link), nota: texto(d?.nota), por: texto(d?.por) }
@@ -65,10 +67,8 @@ export function dadosVideo(status: StatusVideo, link: string, nota: string, por:
 // O aluno só vê o que está "No ar" com link do YouTube: o player é o embed sem cookies, mudo e em loop, criado só
 // quando ele toca "Ver demonstração" (nada é baixado com o cartão fechado).
 
-const idPorNome = new Map(catalogo.flatMap((g) => g.exercicios.map((e) => [norm(e.nome.trim()), e.id] as const)))
-
-// Id do catálogo pelo nome do exercício no treino; fora do catálogo = undefined (sem demonstração).
-export const idDoCatalogo = (nome: string) => idPorNome.get(norm(nome.trim()))
+// Id do catálogo pelo nome do exercício no treino (antigo, gerado ou apelido); fora do catálogo = undefined (sem demonstração).
+export const idDoCatalogo = (nome: string) => resolverExercicio(nome)?.id
 
 // youtu.be/ID, youtube.com/watch?v=ID, /shorts/ID, /embed/ID, /live/ID (com ou sem www./m.).
 const RE_YT = /^https:\/\/(?:(?:www\.|m\.)?youtube\.com\/(?:watch\?(?:[^#\s]*&)?v=|shorts\/|embed\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})(?:[?&#/][^\s]*)?$/

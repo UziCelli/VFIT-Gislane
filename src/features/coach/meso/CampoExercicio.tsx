@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { buscarExercicios } from '../../../lib/busca'
+import PilulasExercicio from '../../catalogo/PilulasExercicio'
 import { campoBase } from '../../../ui'
 
 // Campo de exercício com sugestões do catálogo. Aceita texto livre.
@@ -93,6 +94,8 @@ export default function CampoExercicio({
             >
               {s.nome}
               <span className="ml-2 text-xs text-slate-400">{s.grupo}</span>
+              {s.proprio && <span className="ml-2 rounded-full bg-marca-600 px-1.5 py-0.5 text-[11px] font-bold text-white">Seu</span>}
+              <PilulasExercicio nome={s.nome} className="mt-1" />
             </li>
           ))}
         </ul>

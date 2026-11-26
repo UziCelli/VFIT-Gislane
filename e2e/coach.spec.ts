@@ -78,8 +78,8 @@ test('fluxo completo do painel do coach', async ({ page }) => {
 
     const busca = page.getByTestId('treino-1').locator(CAMPO).nth(3)
     await busca.fill('halt bulg')
-    await page.getByRole('option', { name: /Búlgaro com Halter/ }).click()
-    await expect(busca).toHaveValue(/Búlgaro com Halter/)
+    await page.getByRole('option', { name: /Búlgaro Halteres/ }).click()
+    await expect(busca).toHaveValue(/Búlgaro Halteres/)
     await page.getByTestId('treino-1').getByLabel('Pausa em segundos, posição 1').fill('75')
     await page.getByTestId('treino-1').getByLabel('Pausa em segundos, posição 1').press('Tab')
     await page.screenshot({ path: 'test-results/prints/71-divisao-pc.png' })

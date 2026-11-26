@@ -409,6 +409,10 @@ describe('recordeAnterior', () => {
     expect(recordeAnterior(h, 'Terra')).toBeNull()
   })
 
+  it('nome antigo do catálogo acha o histórico guardado sob o nome novo', () => {
+    expect(recordeAnterior({ 'Rosca Direta Polia': [o(1, 1, 30)] }, 'Rosca Direta Cabo')).toBe(30)
+  })
+
   it('ignora o registro excluído (mesmo meso, semana e treino)', () => {
     expect(recordeAnterior(h, 'Supino', { mesoId: 'm1', semana: 2, treino: 1 })).toBe(50)
     expect(recordeAnterior(h, 'Supino', { mesoId: 'm2', semana: 2, treino: 1 })).toBe(60) // outro meso

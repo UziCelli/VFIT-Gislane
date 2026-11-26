@@ -1,18 +1,13 @@
 // Carga por lado (2 halteres / máquina articulada). Funções puras. Plano: docs/plano-lados-isometria.md.
 // Convenção: cargas.<slot>.sN = TOTAL (esq + dir + pc); lados.<slot>.sN = kg do lado ESQUERDO.
 // Célula com `lados` = formato novo. Célula sem `lados` num slot de 2 lados = antiga (só lida, nunca reescrita).
-import catalogo from '../data/exercicios.json'
-import idsDoisLados from '../data/doisLados.json'
+import { resolverExercicio } from '../data/catalogo'
 import type { Slot } from '../engine'
 import type { CelulaLados } from '../engine/celulaLados'
-import { norm } from './busca'
 
-// Ids do catálogo com 2 lados ficam em src/data/doisLados.json (fora do exercicios.json, que o extrator regrava inteiro).
-const ids = new Set<string>(idsDoisLados)
-const padrao = new Map(catalogo.flatMap((g) => g.exercicios.map((e) => [norm(e.nome), ids.has(e.id)] as const)))
-
-// Padrão do catálogo (pelo nome); exercício fora do catálogo = comum.
-export const doisLadosPadrao = (nome: string) => padrao.get(norm(nome.trim())) ?? false
+// Padrão do catálogo (convenção de carga em src/data/atributos.json, pelo nome atual, novo ou apelido);
+// exercício fora do catálogo = comum.
+export const doisLadosPadrao = (nome: string) => resolverExercicio(nome)?.carga === 'por_lado'
 
 // O ajuste do meso (slot.doisLados) vence o catálogo.
 export const doisLados = (slot: Pick<Slot, 'nome' | 'doisLados'>) => slot.doisLados ?? doisLadosPadrao(slot.nome)

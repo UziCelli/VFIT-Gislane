@@ -49,13 +49,15 @@ export function validarProprio(d: DadosProprio, existentes: readonly ExercicioPr
   const igual = resolverExercicio(nome)
   if (igual) return { erro: `Já existe no catálogo: ${igual.nome}.` } as const
   const k = chave(nome)
-  const dup = existentes.find((e) => chave(e.nome) === k)
+  const id = idDoProprio(nome)
+  // O id ignora pontuação: "Remada (Hammer)" e "Remada Hammer" dariam o mesmo documento (e a regra não deixa sobrescrever).
+  const dup = existentes.find((e) => chave(e.nome) === k || e.id === id)
   if (dup) return { erro: `Você já cadastrou: ${dup.nome}.` } as const
   const dados: DocProprio = {
     base, grupo: d.grupo, equipamento: d.equipamento, sufixo: d.sufixo, lateralidade: d.lateralidade,
     modo: d.modo.filter((m) => m === 'excentrico'), carga: d.carga, por: limpar(por).slice(0, 80) || 'Coach',
   }
-  return { id: idDoProprio(nome), nome, dados } as const
+  return { id, nome, dados } as const
 }
 
 export const deDoc = (d: DocProprio & { id: string }): ExercicioProprio => ({

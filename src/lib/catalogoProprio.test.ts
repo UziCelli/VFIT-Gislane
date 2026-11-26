@@ -38,6 +38,10 @@ describe('validarProprio', () => {
     const ja = salvar(d())
     expect(validarProprio(d({ base: 'REMADA PRONADA UNILATERAL' }), [ja], 'x')).toMatchObject({ erro: expect.stringContaining('já cadastrou') })
   })
+  it('recusa nome que só muda a pontuação (mesmo id)', () => {
+    const ja = salvar(d({ base: 'Remada (Hammer)', lateralidade: 'bilateral' }))
+    expect(validarProprio(d({ base: 'Remada Hammer', lateralidade: 'bilateral' }), [ja], 'x')).toMatchObject({ erro: expect.stringContaining('já cadastrou') })
+  })
   it('recusa movimento curto/longo, grupo e equipamento fora da lista; tira isométrico', () => {
     expect(validarProprio(d({ base: 'ab' }), [], 'x')).toHaveProperty('erro')
     expect(validarProprio(d({ base: 'x'.repeat(61) }), [], 'x')).toHaveProperty('erro')

@@ -144,6 +144,8 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
         return 'maquina_seletora', 'pinos', ''  # Celli: puxadas e remadas baixas são, em geral, seletoras
     if tem(n, 'remada tradicional', 'remada cavalinho'):
         return 'a_confirmar', '', 'Remada sem equipamento no nome: barra livre, máquina seletora ou articulada?'
+    if tem(n, 'remada curvada'):
+        return 'a_confirmar', '', 'Remada curvada sem equipamento no nome: barra ou halteres?'
     if tem(n, 'remada unilateral', 'remada isometrica'):
         return 'a_confirmar', '', 'Remada sem equipamento no nome: halter, polia ou máquina?'
     if tem(n, 'rosca zottman', 'supinacao', 'pronacao', 'farmer'):

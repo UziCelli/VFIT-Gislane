@@ -1953,3 +1953,47 @@ describe('anamneses', () => {
     });
   });
 });
+
+// Exercícios cadastrados pelo coach (catálogo, #259): exerciciosProprios/{id}. Só o coach com 2º fator; sem renomear.
+describe('exerciciosProprios', () => {
+  const ex = (uid: string | undefined, id = 'p-supino-inclinado-articulada') => doc(db(uid), 'exerciciosProprios', id);
+  const ok = (extra: object = {}) => ({
+    base: 'Supino Inclinado', grupo: 'Peitorais', equipamento: 'maquina_articulada', sufixo: true, lateralidade: 'bilateral',
+    modo: [], carga: 'por_lado', por: 'Gislane', em: serverTimestamp(), ...extra,
+  });
+
+  it('coach com 2º fator cria, lê, lista e apaga; não edita', async () => {
+    await assertSucceeds(setDoc(ex('coach'), ok()));
+    await assertSucceeds(getDoc(ex('coach')));
+    await assertSucceeds(getDocs(collection(db('coach'), 'exerciciosProprios')));
+    await assertFails(setDoc(ex('coach'), ok({ base: 'Supino Reto' })));
+    await assertSucceeds(deleteDoc(ex('coach')));
+  });
+
+  it('coach: nega id, equipamento, lados, modo, carga e campos inválidos', async () => {
+    await assertFails(setDoc(ex('coach', 'supino'), ok()));
+    await assertFails(setDoc(ex('coach'), ok({ equipamento: 'maquina' })));
+    await assertFails(setDoc(ex('coach'), ok({ lateralidade: 'dois' })));
+    await assertFails(setDoc(ex('coach'), ok({ modo: ['isometrico'] })));
+    await assertFails(setDoc(ex('coach'), ok({ carga: 'kg' })));
+    await assertFails(setDoc(ex('coach'), ok({ base: 'ab' })));
+    await assertFails(setDoc(ex('coach'), ok({ base: 'x'.repeat(61) })));
+    await assertFails(setDoc(ex('coach'), ok({ apelidos: [] })));
+    await assertFails(setDoc(ex('coach'), ok({ em: passado })));
+  });
+
+  it('coach sem 2º fator, aluno e anônimo: nada', async () => {
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore() as unknown as Firestore, 'exerciciosProprios', 'p-supino-inclinado-articulada'), { ...ok(), em: Timestamp.now() }),
+    );
+    const semFator = doc(contexto('coach', SEM_FATOR).firestore() as unknown as Firestore, 'exerciciosProprios', 'p-supino-inclinado-articulada');
+    await assertFails(getDoc(semFator));
+    await assertFails(setDoc(doc(contexto('coach', SEM_FATOR).firestore() as unknown as Firestore, 'exerciciosProprios', 'p-outro'), ok()));
+    for (const uid of ['ana', undefined]) {
+      await assertFails(getDoc(ex(uid)));
+      await assertFails(getDocs(collection(db(uid), 'exerciciosProprios')));
+      await assertFails(setDoc(ex(uid, 'p-outro'), ok()));
+      await assertFails(deleteDoc(ex(uid)));
+    }
+  });
+});

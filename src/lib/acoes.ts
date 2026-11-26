@@ -656,3 +656,8 @@ export function sair() {
   })
   return saindo
 }
+
+// Exercício cadastrado pelo coach (exerciciosProprios/{id}); dados de validarProprio em catalogoProprio.ts.
+// Só cria (o nome é a identidade no histórico: não se renomeia) ou apaga. Sem await (offline).
+export const gravarProprio = (id: string, dados: Record<string, unknown>) => setDoc(doc(db, 'exerciciosProprios', id), { ...dados, em: serverTimestamp() })
+export const apagarProprio = (id: string) => deleteDoc(doc(db, 'exerciciosProprios', id))

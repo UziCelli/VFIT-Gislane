@@ -296,6 +296,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 | `/ranking` | RankingAlunos | Coach |
 | `/feedbacks` | Feedbacks (`coach/feedbacks/Feedbacks.tsx`) | Coach |
 | `/videos` | Videos (`videos/Videos.tsx`, 4ª aba das Guias) | Coach |
+| `/catalogo` | Catalogo (`catalogo/Catalogo.tsx`, link nas Guias): consulta e cadastro de exercícios (#259) | Coach |
 | `/execucoes` · `/execucao/:id` | FilaExecucoes · RevisarExecucao (`videos/Execucoes.tsx`; só com vídeos privados ligados) | Coach |
 | `/conta` | MinhaConta (coach) · ContaAluno (aluno) | Ambos |
 | `/evolucao` | EvolucaoAluno (`PainelEvolucao.tsx`) | Aluno |
@@ -354,6 +355,9 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 
 ### `videos/{exercicioId}`
 - `status` (`gravado` | `no-ar`), `link?` (https, ≤ 300; obrigatório em `no-ar` e do YouTube), `nota?` (≤ 140), `por` (nome do coach), `em`. Sem documento = "A gravar" (voltar apaga). O vídeo fica no YouTube "não listado" (Storage exige plano pago). Só o coach com 2º fator grava; o aluno liberado lê só o que está `no-ar` (consulta filtrada) e vê a nota junto. Regras puras em `src/lib/videos.ts`. Cada marca tem o próprio Firebase: a lista não é compartilhada entre os apps.
+
+### `exerciciosProprios/{id}` (#259)
+- `id` = `p-<nome>`; `base` (3–60), `grupo`, `equipamento` (lista de `EQUIPAMENTOS`), `sufixo`, `lateralidade`, `modo` (só `excentrico`), `carga` (`total` | `por_lado` | `corporal`), `por`, `em`. Exercício cadastrado pelo coach; só cria e apaga (sem renomear). Só o coach com 2º fator. Regras puras em `src/lib/catalogoProprio.ts`.
 
 ### `midias/{id}` (#253)
 - `alunoId`, `autor`, `tipo` (`execucao` | `orientacao`), `exercicioId` (catálogo ou `x-<nome>`), `exercicio`, `sessao` `{ mesoId, semana, treino }`, `status` (`enviando` → `pronto`, com `prontoEm`, feito pelo Worker), `bytes` (≤ 50 MB), `mime`, `duracaoS` (aluno ≤ 60, coach ≤ 90), `em`; execução: `respondida`, `respondidaEm?`, `marcas?` (≤ 300: `{ t, k: 'caneta'|'ponto', p: [x,y,...] }` de 0 a 1); orientação: `respondeA?`, `vistoEm?`. Lê: aluno dono liberado e coach. Arquivo no Worker `push/` (`docs/plano-videos.md`).

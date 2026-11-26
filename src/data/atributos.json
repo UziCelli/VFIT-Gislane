@@ -2033,16 +2033,17 @@
  "remada-curvada-fechada": {
   "base": "Remada Curvada Fechada",
   "sufixo": false,
-  "equipamento": "peso_do_corpo",
-  "mecanismo": "corporal",
+  "equipamento": null,
+  "mecanismo": null,
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
   ],
   "unidade": "reps",
-  "carga": "corporal",
+  "carga": "total",
   "movimento": "remada",
-  "apelidos": []
+  "apelidos": [],
+  "aConfirmar": "Remada curvada sem equipamento no nome: barra ou halteres?"
  },
  "remada-curvada-no-smith": {
   "base": "Remada Curvada",
@@ -2063,30 +2064,32 @@
  "remada-curvada-pronada": {
   "base": "Remada Curvada Pronada",
   "sufixo": false,
-  "equipamento": "peso_do_corpo",
-  "mecanismo": "corporal",
+  "equipamento": null,
+  "mecanismo": null,
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
   ],
   "unidade": "reps",
-  "carga": "corporal",
+  "carga": "total",
   "movimento": "remada",
-  "apelidos": []
+  "apelidos": [],
+  "aConfirmar": "Remada curvada sem equipamento no nome: barra ou halteres?"
  },
  "remada-curvada-supinada": {
   "base": "Remada Curvada Supinada",
   "sufixo": false,
-  "equipamento": "peso_do_corpo",
-  "mecanismo": "corporal",
+  "equipamento": null,
+  "mecanismo": null,
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
   ],
   "unidade": "reps",
-  "carga": "corporal",
+  "carga": "total",
   "movimento": "remada",
-  "apelidos": []
+  "apelidos": [],
+  "aConfirmar": "Remada curvada sem equipamento no nome: barra ou halteres?"
  },
  "barra-fixa-aberta": {
   "base": "Barra Fixa Aberta",

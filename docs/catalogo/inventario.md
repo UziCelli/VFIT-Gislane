@@ -13,9 +13,9 @@ O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-
 
 ## Totais dos 359 atuais
 
-- **216 iguais**: o nome já segue o padrão.
+- **213 iguais**: o nome já segue o padrão.
 - **130 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
-- **13 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
+- **16 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
 
 Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos novos. Exemplos:
 
@@ -26,12 +26,13 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 - Crossover no Cabo → Crossover Duas Polias
 - Máquinas com nome próprio (Leg Press 45, Hack, Cadeira Extensora, Puxada Frente) **não** ganham sufixo. O tipo aparece só na pílula.
 
-## Ainda a confirmar (13)
+## Ainda a confirmar (16)
 
 1. **Sem equipamento no nome (10).** Remada Unilateral (serrote), Remada Cavalinho, Remada Isométrica, Panturrilha em Pé Unilateral, Panturrilha Sentado Unilateral, Elevação Lateral Inclinado, Elevação Lateral Isométrica, Rosca Isométrica a 90º, Tríceps Coice Apoiado e Stiff no Smith com Halter.
 2. **"Guiada" (2).** Elevação Pélvica Máquina Guiada e Remada Linear 45º Guiada: é de pinos ou de anilhas?
 3. **Agachamento Halter Banco:** é com 1 halter?
-4. **Cinto de carga e bola de adução** ficam em "outro" por enquanto. Viram equipamentos próprios?
+4. **Remada Curvada Fechada, Pronada e Supinada (3):** sem equipamento no nome. É com barra ou com halteres? (antes estavam como peso do corpo por engano)
+5. **Cinto de carga e bola de adução** ficam em "outro" por enquanto. Viram equipamentos próprios?
 
 ## Variantes novas que saem das respostas
 
@@ -74,3 +75,12 @@ Já entraram em [exercicios-novos.csv](exercicios-novos.csv): Agachamento Livre 
 - **Assistente de voz:** recebe os nomes novos, e nome antigo vira o novo.
 - **Conector MCP:** continua oferecendo os nomes atuais, mas também aceita os novos e os apelidos. Sem isso, copiar um meso com nome novo seria recusado. Ainda não foi publicado; a mudança completa é a etapa 8 (#263).
 - `doisLados.json` e `isometricos.json` ficam por enquanto. O teste garante que batem com os atributos, e o extrator da planilha ainda usa `isometricos.json`.
+
+## Etapa 4: cadastro manual (#259)
+
+- **Onde:** Guias → **Catálogo de exercícios** (`#/catalogo`, só coach). Busca por nome novo, antigo ou apelido, filtro por grupo e equipamento, e pílulas em cada item.
+- **Adicionar exercício:** movimento (texto), grupo, equipamento (lista fechada), lados, carga anotada (total ou por lado) e excêntrico. O nome final e as pílulas aparecem antes de salvar.
+- **Duplicata:** recusa o mesmo nome do catálogo (novo, antigo ou apelido) ou de outro já cadastrado, sem ligar para acento, caixa e espaço.
+- **Onde fica:** `exerciciosProprios/{id}` no Firestore da marca (cada marca tem o próprio Firebase). Só o coach com 2º fator lê, cria e apaga. Não há edição: o nome é a identidade no histórico. O catálogo base e o extrator da planilha não são tocados.
+- **Montagem do treino:** o cadastrado aparece na busca do exercício com a marca "Seu" e com pílulas.
+- **Limites desta etapa:** isométrico novo fica para depois (o cronômetro só conhece os isométricos do catálogo base); o "2 lados" no treino continua sendo ligado no próprio exercício do treino; o aluno vê o nome, mas não as pílulas do cadastrado; o conector (IA) ainda não conhece os cadastrados (etapa 8, #263).

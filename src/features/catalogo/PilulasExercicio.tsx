@@ -1,7 +1,7 @@
 // Pílulas embaixo do nome do exercício: equipamento, lados e modo (src/lib/pilulas.ts).
 // Neutras (sem cor de método): só apoio visual; o texto vai junto do ícone.
 import { IcAlternado, IcAnilha, IcArticulada, IcBarra, IcBola, IcDuasPolias, IcElastico, IcExcentrico, IcHaltere, IcHalteres, IcKettlebell, IcPessoa, IcPolia, IcRelogio, IcSeletora, IcSmith, IcUnilateral, type Icone } from '../../icones'
-import { pilulasDo, type IdPilula } from '../../lib/pilulas'
+import { pilulasDo, type IdPilula, type Pilula } from '../../lib/pilulas'
 
 const ICONE: Partial<Record<IdPilula, Icone>> = {
   halter: IcHaltere, halteres: IcHalteres, kettlebell: IcKettlebell, kettlebells: IcKettlebell,
@@ -13,7 +13,11 @@ const ICONE: Partial<Record<IdPilula, Icone>> = {
 }
 
 export default function PilulasExercicio({ nome, className = '' }: { nome: string; className?: string }) {
-  const ps = pilulasDo(nome)
+  return <ListaPilulas pilulas={pilulasDo(nome)} className={className} />
+}
+
+// Prévia do cadastro: pílulas de atributos que ainda não viraram exercício.
+export function ListaPilulas({ pilulas: ps, className = '' }: { pilulas: Pilula[]; className?: string }) {
   if (!ps.length) return null
   return (
     <ul aria-label="Equipamento e modo" className={`flex flex-wrap gap-1.5 ${className}`}>

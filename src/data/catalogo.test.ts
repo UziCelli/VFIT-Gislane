@@ -23,8 +23,8 @@ describe('atributos do catálogo', () => {
       expect(e.modo.length, e.id).toBeGreaterThan(0)
       for (const m of e.modo) expect(['dinamico', 'isometrico', 'excentrico'], e.id).toContain(m)
       expect(e.base.trim(), e.id).toBe(e.base)
-      // Sem equipamento definido, o item precisa dizer o que falta confirmar.
-      if (e.equipamento === null) expect(e.aConfirmar, e.id).toBeTruthy()
+      // Equipamento vazio ⇔ dúvida registrada: nada a confirmar fica exposto como atributo definido.
+      expect(e.equipamento === null, e.id).toBe(!!e.aConfirmar)
     }
   })
 
@@ -33,6 +33,8 @@ describe('atributos do catálogo', () => {
       if (e.equipamento === 'maquina_articulada') expect(e.mecanismo, e.id).toBe('anilhas')
       if (e.equipamento === 'halter' || e.equipamento === 'halteres') expect(e.mecanismo, e.id).toBe('livre')
       if (e.equipamento === 'peso_do_corpo') expect(e.carga, e.id).toBe('corporal')
+      // Decisão do Celli: carga anotada por lado com halter = 2 halteres (Halteres), inclusive em afundo e búlgaro.
+      if (e.carga === 'por_lado') expect(e.equipamento, e.id).not.toBe('halter')
     }
   })
 
@@ -61,6 +63,8 @@ describe('nome gerado', () => {
     expect(exercicioPorId('pull-over-halter')?.nome).toBe('Pull Over Halter')
     expect(exercicioPorId('crossover-no-cabo')?.nome).toBe('Crossover Duas Polias')
     expect(exercicioPorId('rosca-direta-cabo')?.nome).toBe('Rosca Direta Polia')
+    expect(exercicioPorId('bulgaro-com-halter')?.nome).toBe('Búlgaro Halteres')
+    expect(exercicioPorId('crossover-bound')?.equipamento).toBe('peso_do_corpo')
   })
 
   it('nome antigo vira apelido quando o nome muda', () => {

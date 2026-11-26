@@ -85,6 +85,8 @@ DUPLICATAS_DESCARTADAS = {frozenset({'box-jumps', 'box-jump'})}  # Celli: exerc�
 
 def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado: bool):
     """Devolve (equipamento, mecanismo, dúvida). `n` sem acento e minúsculo."""
+    if tem(n, 'bound', 'jump', 'jumps', 'hurdlehop', 'skip', 'barrierhop'):
+        return 'peso_do_corpo', 'corporal', ''
     if ex_id in HALTER_DECIDIDO:
         return HALTER_DECIDIDO[ex_id], 'livre', ''
     if ex_id in HALTER_PREMISSA_1:
@@ -112,28 +114,27 @@ def equipamento(n: str, ex_id: str, por_lado: bool, unilateral: bool, alternado:
     if tem(n, 'halteres'):
         return 'halteres', 'livre', ''
     if tem(n, 'halter'):
+        # Celli: carga anotada por lado = 2 halteres, mesmo em exercício unilateral de pernas (afundo, búlgaro).
+        if por_lado or alternado:
+            return 'halteres', 'livre', ''
         if unilateral or tem(n, 'concentrada', 'serrote'):
             return 'halter', 'livre', ''
-        if alternado:
-            return 'halteres', 'livre', ''
         if tem(n, 'goblet') or ex_id == 'agachamento-halter-banco':
-            return 'halter', 'livre', 'Confirmar: 1 halter (goblet/segurado no peito)?'
-        if por_lado:
-            return 'halteres', 'livre', ''  # Celli: com carga por lado, são 2 halteres
+            return 'a_confirmar', '', 'Confirmar: 1 halter (goblet/segurado no peito)?'
         return 'halter', 'livre', 'Nome diz "Halter": é 1 halter ou 2 (Halteres)? Confirmar.'
     if tem(n, 'anilha'):
         return 'anilha', 'livre', ''
     if tem(n, 'medicine ball', 'medicineball'):
         return 'medicine_ball', 'livre', ''
     if tem(n, 'bola'):
-        return 'outro', 'nenhum', 'Bola de adução (fica em "outro").'
+        return 'outro', 'nenhum', ''  # bola de adução
     if tem(n, 'cinto'):
-        return 'outro', 'livre', 'Cinto de carga (fica em "outro").'
+        return 'outro', 'livre', ''  # cinto de carga
     if tem(n, 'leg press 45', 'pendulo', 'hack', 'mini-hack', 'v squat', 'remada linear 45'):
         return 'maquina_articulada', 'anilhas', ''
     if tem(n, 'maquina', 'guiada', 'cadeira', 'mesa flexora', 'flexora vertical', 'peck deck', 'leg press'):
         if tem(n, 'guiada'):
-            return 'maquina_seletora', 'pinos', 'Máquina "guiada": seletora (pinos) ou com anilhas? Confirmar.'
+            return 'a_confirmar', '', 'Máquina "guiada": seletora (pinos) ou com anilhas? Confirmar.'
         return 'maquina_seletora', 'pinos', ''
     if tem(n, 'barra fixa', 'paralela', 'espaldar', 'suspensao', 'banco romano') or tem(n, 'triceps banco'):
         return 'peso_do_corpo', 'corporal', ''
@@ -165,6 +166,8 @@ def lateralidade(n: str) -> str:
 
 
 def movimento(n: str) -> str:
+    if tem(n, 'bound', 'jump', 'jumps', 'hurdlehop', 'skip', 'barrierhop'):
+        return 'salto'
     for m in MOVIMENTOS:
         if m in n:
             return m.replace(' ', '_')
@@ -216,6 +219,7 @@ def nome_proposto(nome: str, equip: str, n: str) -> str:
 # Decisões do Celli (26/11/2026): Retrocesso passa a Recuo; Pull Over Cabo passa a Pulldown; Remada Cavalinho também atende por T-Bar Row.
 TROCAS = [(r'\bRetrocesso\b', 'Recuo'), (r'^Pull Over Polia$', 'Pulldown Polia')]
 APELIDOS_EXTRA = {'remada-cavalinho': ['T-Bar Row']}
+MOVIMENTO_EXTRA = {'pull-over-cabo': 'pulldown'}
 
 
 def main() -> None:
@@ -248,7 +252,7 @@ def main() -> None:
             status = 'a_confirmar' if duvida or equip == 'a_confirmar' else ('igual' if proposto == nome else 'renomear')
             linhas.append({
                 'id': ex_id, 'nome_atual': nome, 'nome_proposto': proposto, 'aliases': '; '.join(aliases), 'status': status, 'grupo': g['grupo'],
-                'grupos_secundarios': secundarios, 'movimento_base': movimento(n), 'equipamento': equip,
+                'grupos_secundarios': secundarios, 'movimento_base': MOVIMENTO_EXTRA.get(ex_id, movimento(n)), 'equipamento': equip,
                 'mecanismo_carga': mec, 'lateralidade': lat, 'modo': modo,
                 'unidade': 'tempo' if isometrico else 'reps', 'pegada_variacao': '; '.join(var),
                 'convencao_carga': conv, 'duvida': duvida,

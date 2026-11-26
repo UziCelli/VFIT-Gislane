@@ -18,8 +18,8 @@ describe('buscarExercicios', () => {
     expect(nomes('bulgaro').every((n) => /búlgaro/i.test(n))).toBe(true)
   })
   it('todos os termos precisam casar, em qualquer ordem', () => {
-    expect(nomes('halt bulg')).toEqual(['Búlgaro Halter'])
-    expect(nomes('bulg halt')).toEqual(['Búlgaro Halter'])
+    expect(nomes('halt bulg')).toEqual(['Búlgaro Halteres'])
+    expect(nomes('bulg halt')).toEqual(['Búlgaro Halteres'])
     const r = nomes('agach livre')
     expect(r).toEqual(['Agachamento Livre Barra', 'Agachamento Livre Halter', 'Agachamento Livre Banco', 'Agachamento Isométrico Livre'])
   })

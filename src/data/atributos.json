@@ -83,8 +83,7 @@
   "unidade": "reps",
   "carga": "total",
   "movimento": "agachamento",
-  "apelidos": [],
-  "aConfirmar": "Cinto de carga (fica em \"outro\")."
+  "apelidos": []
  },
  "agachamento-livre-banco": {
   "base": "Agachamento Livre Banco",
@@ -101,10 +100,10 @@
   "apelidos": []
  },
  "agachamento-halter-banco": {
-  "base": "Agachamento Banco",
-  "sufixo": true,
-  "equipamento": "halter",
-  "mecanismo": "livre",
+  "base": "Agachamento Halter Banco",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
@@ -112,9 +111,7 @@
   "unidade": "reps",
   "carga": "total",
   "movimento": "agachamento",
-  "apelidos": [
-   "Agachamento Halter Banco"
-  ],
+  "apelidos": [],
   "aConfirmar": "Confirmar: 1 halter (goblet/segurado no peito)?"
  },
  "agachamento-com-peso-do-corpo": {
@@ -482,7 +479,7 @@
  "afundo-halter": {
   "base": "Afundo",
   "sufixo": true,
-  "equipamento": "halter",
+  "equipamento": "halteres",
   "mecanismo": "livre",
   "lateralidade": "unilateral",
   "modo": [
@@ -491,7 +488,9 @@
   "unidade": "reps",
   "carga": "por_lado",
   "movimento": "afundo",
-  "apelidos": []
+  "apelidos": [
+   "Afundo Halter"
+  ]
  },
  "avanco-barra": {
   "base": "Avanço",
@@ -510,7 +509,7 @@
  "avanco-halter": {
   "base": "Avanço",
   "sufixo": true,
-  "equipamento": "halter",
+  "equipamento": "halteres",
   "mecanismo": "livre",
   "lateralidade": "unilateral",
   "modo": [
@@ -519,7 +518,9 @@
   "unidade": "reps",
   "carga": "por_lado",
   "movimento": "avanco",
-  "apelidos": []
+  "apelidos": [
+   "Avanço Halter"
+  ]
  },
  "retrocesso-barra": {
   "base": "Recuo",
@@ -540,7 +541,7 @@
  "retrocesso-halter": {
   "base": "Recuo",
   "sufixo": true,
-  "equipamento": "halter",
+  "equipamento": "halteres",
   "mecanismo": "livre",
   "lateralidade": "unilateral",
   "modo": [
@@ -586,10 +587,10 @@
   ]
  },
  "elevacao-pelvica-maquina-guiada": {
-  "base": "Elevação Pélvica Guiada",
-  "sufixo": true,
-  "equipamento": "maquina_seletora",
-  "mecanismo": "pinos",
+  "base": "Elevação Pélvica Máquina Guiada",
+  "sufixo": false,
+  "equipamento": null,
+  "mecanismo": null,
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
@@ -597,9 +598,7 @@
   "unidade": "reps",
   "carga": "total",
   "movimento": "elevacao_pelvica",
-  "apelidos": [
-   "Elevação Pélvica Máquina Guiada"
-  ],
+  "apelidos": [],
   "aConfirmar": "Máquina \"guiada\": seletora (pinos) ou com anilhas? Confirmar."
  },
  "elevacao-pelvica-halter-unilateral": {
@@ -711,7 +710,7 @@
  "bulgaro-com-halter": {
   "base": "Búlgaro",
   "sufixo": true,
-  "equipamento": "halter",
+  "equipamento": "halteres",
   "mecanismo": "livre",
   "lateralidade": "unilateral",
   "modo": [
@@ -1254,8 +1253,7 @@
   "unidade": "tempo",
   "carga": "total",
   "movimento": "aducao",
-  "apelidos": [],
-  "aConfirmar": "Bola de adução (fica em \"outro\")."
+  "apelidos": []
  },
  "supino-reto-barra": {
   "base": "Supino Reto",
@@ -1774,8 +1772,8 @@
  "remada-linear-45o-guiada": {
   "base": "Remada Linear 45º Guiada",
   "sufixo": false,
-  "equipamento": "maquina_seletora",
-  "mecanismo": "pinos",
+  "equipamento": null,
+  "mecanismo": null,
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
@@ -4812,7 +4810,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "drop-jump": {
@@ -4826,7 +4824,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "lateral-jumps": {
@@ -4840,7 +4838,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "lunge-jumps": {
@@ -4854,7 +4852,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "hurdle-jumps": {
@@ -4868,7 +4866,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "bounding": {
@@ -4896,7 +4894,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "kneetuck-jump": {
@@ -4910,7 +4908,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "scissors-jump": {
@@ -4924,7 +4922,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "single-leg-vertical-jump": {
@@ -4938,7 +4936,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "stride-jump": {
@@ -4952,7 +4950,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "vertical-cmj-jump": {
@@ -4966,7 +4964,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "vertical-sj-jump": {
@@ -4980,7 +4978,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "horizontal-cmj-jump": {
@@ -4994,7 +4992,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "horizontal-sj-jump": {
@@ -5008,7 +5006,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "jump-squat": {
@@ -5022,7 +5020,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "clap-push-ups": {
@@ -5182,15 +5180,15 @@
  "crossover-bound": {
   "base": "Crossover Bound",
   "sufixo": false,
-  "equipamento": "duas_polias",
-  "mecanismo": "pinos",
+  "equipamento": "peso_do_corpo",
+  "mecanismo": "corporal",
   "lateralidade": "bilateral",
   "modo": [
    "dinamico"
   ],
   "unidade": "reps",
-  "carga": "total",
-  "movimento": "crossover",
+  "carga": "corporal",
+  "movimento": "salto",
   "apelidos": []
  },
  "diagonal-bound": {
@@ -5204,7 +5202,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "bound",
+  "movimento": "salto",
   "apelidos": []
  },
  "power-skip": {
@@ -5218,7 +5216,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "skip",
+  "movimento": "salto",
   "apelidos": []
  },
  "hurdlehop": {
@@ -5232,7 +5230,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "hurdlehop",
+  "movimento": "salto",
   "apelidos": []
  },
  "hurdlehop-and-bounce": {
@@ -5246,7 +5244,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "hurdlehop",
+  "movimento": "salto",
   "apelidos": []
  },
  "lateral-hurdlehop-and-bounce": {
@@ -5260,7 +5258,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "hurdlehop",
+  "movimento": "salto",
   "apelidos": []
  },
  "lateral-jump-and-stick": {
@@ -5274,7 +5272,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "jump",
+  "movimento": "salto",
   "apelidos": []
  },
  "single-leg-barrierhop": {
@@ -5288,7 +5286,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": null,
+  "movimento": "salto",
   "apelidos": []
  },
  "single-leg-hurdlehop-and-bounce": {
@@ -5302,7 +5300,7 @@
   ],
   "unidade": "reps",
   "carga": "corporal",
-  "movimento": "hurdlehop",
+  "movimento": "salto",
   "apelidos": []
  }
 }

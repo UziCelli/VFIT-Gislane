@@ -14,8 +14,8 @@ O GitHub mostra os CSV como tabela com busca. As colunas são: grupo, movimento-
 ## Totais dos 359 atuais
 
 - **216 iguais**: o nome já segue o padrão.
-- **128 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
-- **15 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
+- **130 renomear**: só muda a ordem ou o termo do equipamento. O id **não muda**, e o nome antigo vira apelido.
+- **13 a confirmar**: listados abaixo. Nada foi chutado e nenhum deles bloqueia a etapa 2. Até a decisão, o equipamento fica vazio.
 
 Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos novos. Exemplos:
 
@@ -26,12 +26,12 @@ Padrão usado: **Movimento + variação + equipamento**, igual ao da lista dos n
 - Crossover no Cabo → Crossover Duas Polias
 - Máquinas com nome próprio (Leg Press 45, Hack, Cadeira Extensora, Puxada Frente) **não** ganham sufixo. O tipo aparece só na pílula.
 
-## Ainda a confirmar (15)
+## Ainda a confirmar (13)
 
 1. **Sem equipamento no nome (10).** Remada Unilateral (serrote), Remada Cavalinho, Remada Isométrica, Panturrilha em Pé Unilateral, Panturrilha Sentado Unilateral, Elevação Lateral Inclinado, Elevação Lateral Isométrica, Rosca Isométrica a 90º, Tríceps Coice Apoiado e Stiff no Smith com Halter.
 2. **"Guiada" (2).** Elevação Pélvica Máquina Guiada e Remada Linear 45º Guiada: é de pinos ou de anilhas?
 3. **Agachamento Halter Banco:** é com 1 halter?
-4. **Cinto de carga e bola de adução:** viram equipamentos próprios?
+4. **Cinto de carga e bola de adução** ficam em "outro" por enquanto. Viram equipamentos próprios?
 
 ## Variantes novas que saem das respostas
 
@@ -39,7 +39,7 @@ Já entraram em [exercicios-novos.csv](exercicios-novos.csv): Agachamento Livre 
 
 ## Já decidido pelo Celli (26/11/2026)
 
-- **"Halter" com carga por lado = Halteres** (29 exercícios, como o Supino Reto).
+- **"Halter" com carga por lado = Halteres** (33 exercícios, como o Supino Reto). Isso vale também para Afundo, Avanço, Recuo e Búlgaro.
 - **Pull Over, Agachamento Livre, Tríceps Francês e Rosca Scott "Halter"** usam 1 halter. A versão com 2 halteres vira exercício novo.
 - Terra Sumô, Elevação Pélvica, Flexão de Joelhos deitado, Abdominal Oblíquo, Supinação e Pronação: **1 halter**. Isto é uma premissa, porque é o uso comum.
 - **Puxadas e remadas baixas sem equipamento no nome = máquina seletora.** "Máquina" sem detalhe também é seletora.

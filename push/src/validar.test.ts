@@ -228,7 +228,10 @@ describe('inscrições por aparelho', () => {
 
 describe('validarEsquecer', () => {
   it('aceita projeto da lista e de 1 a 20 uids', () => {
-    expect(validarEsquecer({ projeto: 'forca--app', uids: ['u1'] })).toEqual({ projeto: 'forca--app', uids: ['u1'] })
+    expect(validarEsquecer({ projeto: 'forca--app', uids: ['u1'] })).toEqual({ projeto: 'forca--app', uids: ['u1'], midias: [] })
+    expect(validarEsquecer({ projeto: 'forca--app', uids: ['u1'], midias: ['AbCdEfGhIjKlMnOpQrSt'] })?.midias).toEqual(['AbCdEfGhIjKlMnOpQrSt'])
+    expect(validarEsquecer({ projeto: 'forca--app', uids: ['u1'], midias: ['../x'] })).toBeNull()
+    expect(validarEsquecer({ projeto: 'forca--app', uids: ['u1'], midias: Array(501).fill('AbCdEfGhIjKlMnOpQrSt') })).toBeNull()
     expect(validarEsquecer({ projeto: 'gislane-personal-trainer', uids: Array.from({ length: 20 }, (_, i) => `u${i}`) })).not.toBeNull()
   })
   it('recusa o resto', () => {

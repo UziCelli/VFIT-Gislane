@@ -1,4 +1,4 @@
-import { lerCorpoJson } from './corpo'
+import { lerCorpoBinario, lerCorpoJson } from './corpo'
 import { atenderIA, MAX_CORPO_IA, ROTAS_IA, type AcaoIA, type ResultadoIA } from './ia'
 import { DurableObject } from 'cloudflare:workers'
 import { acessoComCache, appCheckOk, ehCoach, lerPermissao, podeAvisarTreino, quemAvisaCoach, registrarAgendamento, type CacheAcesso } from './acesso'
@@ -6,8 +6,10 @@ import { cors } from './cors'
 import { chaveDaConta, chaveDoGoogle, verificarAviso, verificarIdToken, type Projeto } from './jwt'
 import { alvosDe, comAparelho, endpointOk, semAparelho, type Fixa, inicioDoDiaBrasilia, nomeAgenda, nomeCoaches, nomeDO, passoAgenda, prefixoAgenda, tipoCoachOk, uidOk, validarAvisos, validarDesligados, validarEsquecer, validarFimEm, validarInscricao, validarRecado, type Aviso, type Inscricao, type Tipo, type TipoCoach } from './validar'
 import { enviarPush, gerarParVapid, type ParVapid } from './webpush'
+import { assinar, conferir, faixa, faltando, idOk, LINK_MS, limitarFaixa, lerMidia, marcarPronto, nomeMidia, ORFAO_MS, PARTE, partesDe, podeApagar, RETENCAO_DIAS, retomar, tamanhoParte, TETO_TOTAL, validarInicio, type Meta } from './midia'
 
-type Env = { DESCANSO: DurableObjectNamespace<Descanso> }
+// VIDEOS = "1" liga as rotas /midia/* (vídeos privados, #253). Desligado por padrão em wrangler.toml.
+type Env = { DESCANSO: DurableObjectNamespace<Descanso>; MIDIA: DurableObjectNamespace<Midia>; VIDEOS?: string }
 
 type Mensagem = { title: string; body: string; tag: string; url: string }
 
@@ -27,6 +29,9 @@ const DO_ALUNO: Record<TipoCoach, (nome: string, uid: string) => Mensagem> = {
   comentou: (n, u) => ({ title: 'Nova anotação', body: `${n} escreveu uma anotação no treino.`, tag: `comentou:${u}`, url: '/' }),
   pagou: (n, u) => ({ title: 'Pagamento informado', body: `${n} tocou em "Já paguei". Toque para confirmar.`, tag: `pagou:${u}`, url: '/#/alunos' }),
 }
+// Vídeos (#253): sem nome, link ou miniatura no texto. O coach abre a fila; o aluno abre o treino.
+const VIDEO_COACH: Mensagem = { title: 'Execução para analisar', body: 'Um aluno enviou um vídeo. Toque para ver.', tag: 'video', url: '/#/execucoes' }
+const ORIENTACAO: Mensagem = { title: 'Orientação do coach', body: 'Chegou um vídeo com orientação. Ligue o som.', tag: 'orientacao', url: '/' }
 const DEZ_MIN = 10 * 60_000
 const MAX_COACHES = 5
 
@@ -130,6 +135,16 @@ export class Descanso extends DurableObject<Env> {
     return resto.length
   }
 
+  // Vídeos do aluno (#253): ids guardados aqui para a Limpeza LGPD apagar os arquivos junto.
+  async anotarMidia(id: string) {
+    const lista = (await this.ctx.storage.get<string[]>('midias')) ?? []
+    if (!lista.includes(id)) await this.ctx.storage.put('midias', [...lista, id].slice(-5000))
+  }
+
+  async midias(): Promise<string[]> {
+    return (await this.ctx.storage.get<string[]>('midias')) ?? []
+  }
+
   // Limpeza LGPD ("Apagar de vez"): apaga tudo o que esta instância guarda da pessoa.
   async esquecer() {
     await this.ctx.storage.deleteAlarm()
@@ -213,6 +228,132 @@ export class Descanso extends DurableObject<Env> {
   }
 }
 
+// Um vídeo privado por instância (nome: nomeMidia). Guarda `meta` e as partes `p:<n>` de 1 MiB.
+// Instâncias especiais: '__chave' (chave HMAC dos links) e '__cota' (bytes guardados no total, teto TETO_TOTAL).
+export class Midia extends DurableObject<Env> {
+  private chave?: Promise<CryptoKey>
+
+  hmac(): Promise<CryptoKey> {
+    this.chave ??= (async () => {
+      let bruta = await this.ctx.storage.get<ArrayBuffer>('hmac')
+      if (!bruta) {
+        bruta = crypto.getRandomValues(new Uint8Array(32)).buffer as ArrayBuffer
+        await this.ctx.storage.put('hmac', bruta)
+      }
+      return crypto.subtle.importKey('raw', bruta, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify'])
+    })().catch((e) => {
+      this.chave = undefined
+      throw e
+    })
+    return this.chave
+  }
+
+  // Só em '__cota'.
+  async reservar(bytes: number): Promise<boolean> {
+    const total = (await this.ctx.storage.get<number>('total')) ?? 0
+    if (total + bytes > TETO_TOTAL) return false
+    await this.ctx.storage.put('total', total + bytes)
+    return true
+  }
+
+  async liberar(bytes: number) {
+    const total = (await this.ctx.storage.get<number>('total')) ?? 0
+    await this.ctx.storage.put('total', Math.max(0, total - bytes))
+  }
+
+  private cota() {
+    return this.env.MIDIA.get(this.env.MIDIA.idFromName('__cota'))
+  }
+
+  async meta(): Promise<Meta | undefined> {
+    return this.ctx.storage.get<Meta>('meta')
+  }
+
+  // Começa ou retoma. Devolve as partes que faltam; 'conflito' = outro arquivo com o mesmo id; 'cheio' = sem espaço.
+  async iniciar(m: Pick<Meta, 'projeto' | 'id' | 'autor' | 'alunoId' | 'tipo' | 'bytes' | 'mime'>): Promise<{ faltam: number[] } | 'conflito' | 'cheio'> {
+    const atual = await this.meta()
+    if (atual) return retomar(atual, m)
+    if (!(await this.cota().reservar(m.bytes))) return 'cheio'
+    const meta: Meta = { ...m, partes: partesDe(m.bytes), recebidas: [], criadoEm: Date.now(), completo: false, avisado: false }
+    await this.ctx.storage.put('meta', meta)
+    await this.ctx.storage.setAlarm(meta.criadoEm + ORFAO_MS) // envio largado no meio some em 24 h
+    return { faltam: faltando(meta) }
+  }
+
+  async parte(uid: string, n: number, dados: ArrayBuffer): Promise<200 | 400 | 403 | 404 | 409> {
+    const m = await this.meta()
+    if (!m) return 404
+    if (m.autor !== uid) return 403
+    if (m.completo) return 409
+    if (!Number.isInteger(n) || n < 0 || n >= m.partes || dados.byteLength !== tamanhoParte(m.bytes, n)) return 400
+    await this.ctx.storage.put(`p:${n}`, dados)
+    if (!m.recebidas.includes(n)) await this.ctx.storage.put('meta', { ...m, recebidas: [...m.recebidas, n] })
+    return 200
+  }
+
+  async concluir(uid: string): Promise<'ok' | 'faltam' | 403 | 404> {
+    const m = await this.meta()
+    if (!m) return 404
+    if (m.autor !== uid) return 403
+    if (m.completo) return 'ok'
+    if (faltando(m).length) return 'faltam'
+    await this.ctx.storage.put('meta', { ...m, completo: true })
+    await this.ctx.storage.setAlarm(Date.now() + RETENCAO_DIAS * 86_400_000)
+    return 'ok'
+  }
+
+  // Controle de duplicata: true só na primeira vez (o aviso sai uma vez por vídeo, mesmo com "concluir" repetido).
+  async primeiroAviso(): Promise<boolean> {
+    const m = await this.meta()
+    if (!m || m.avisado) return false
+    await this.ctx.storage.put('meta', { ...m, avisado: true })
+    return true
+  }
+
+  async ler(inicio: number, fim: number): Promise<Uint8Array | null> {
+    const m = await this.meta()
+    if (!m?.completo) return null
+    const de = Math.floor(inicio / PARTE)
+    const ate = Math.floor(fim / PARTE)
+    const chaves = Array.from({ length: ate - de + 1 }, (_, k) => `p:${de + k}`)
+    const partes = await this.ctx.storage.get<ArrayBuffer>(chaves)
+    const out = new Uint8Array(fim - inicio + 1)
+    let pos = 0
+    for (let n = de; n <= ate; n++) {
+      const p = partes.get(`p:${n}`)
+      if (!p) return null
+      const ini = n === de ? inicio - n * PARTE : 0
+      const fi = n === ate ? fim - n * PARTE + 1 : p.byteLength
+      out.set(new Uint8Array(p, ini, fi - ini), pos)
+      pos += fi - ini
+    }
+    return out
+  }
+
+  // Cancelar do autor: só apaga se o arquivo ainda não está completo. Roda na mesma instância que `concluir`, então
+  // as duas não se cruzam: depois de `completo`, o cancelamento recusa; depois do cancelamento, `concluir` dá 404.
+  async cancelar(uid: string): Promise<'ok' | 'completo' | 403> {
+    const m = await this.meta()
+    if (!m) return 'ok'
+    if (m.autor !== uid) return 403
+    if (m.completo) return 'completo'
+    await this.apagar()
+    return 'ok'
+  }
+
+  async apagar() {
+    const m = await this.meta()
+    await this.ctx.storage.deleteAlarm()
+    await this.ctx.storage.deleteAll()
+    if (m) await this.cota().liberar(m.bytes)
+  }
+
+  // Órfão (não terminou em 24 h) ou fim da retenção: apaga o arquivo. O documento no Firestore fica (histórico).
+  async alarm() {
+    await this.apagar()
+  }
+}
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const h = cors(req.headers.get('Origin'))
@@ -236,6 +377,12 @@ export default {
 
     const coaches = (projeto: Projeto) => env.DESCANSO.get(env.DESCANSO.idFromName(nomeCoaches(projeto)))
     const aluno = (projeto: Projeto, uid: string) => env.DESCANSO.get(env.DESCANSO.idFromName(nomeDO(projeto, uid)))
+    const midia = (projeto: Projeto, id: string) => env.MIDIA.get(env.MIDIA.idFromName(nomeMidia(projeto, id)))
+
+    if (pathname.startsWith('/midia/')) {
+      if (env.VIDEOS !== '1') return json({ erro: 'vídeos desligados' }, 404)
+      return atenderMidia(req, env, pathname, token, agora, appCheck, json, lerJson, { aluno, coaches, midia })
+    }
 
     if (req.method === 'POST' && ROTAS_IA.includes(pathname as AcaoIA)) {
       const id = token ? await verificarIdToken(token, kid => chaveDoGoogle(kid), agora, true) : null
@@ -272,11 +419,14 @@ export default {
     // Limpeza LGPD (GitHub): mesmo JWT da conta de serviço. Apaga o que o Worker guarda de cada pessoa apagada.
     if (req.method === 'POST' && pathname === '/esquecer') {
       if (!token || !(await verificarAviso(token, (iss, kid) => chaveDaConta(iss, kid), agora))) return json({ erro: 'não autorizado' }, 401)
-      const j = await lerJson(4096)
+      const j = await lerJson(32_768)
       if (j instanceof Response) return j
       const dados = validarEsquecer((j as { corpo: unknown }).corpo)
       if (!dados) return json({ erro: 'pedido inválido' }, 400)
+      // Ids dos vídeos lidos no Firestore pela limpeza: cobre arquivos indexados sob outro id (aluno presencial migrado).
+      for (const id of dados.midias) await midia(dados.projeto, id).apagar()
       for (const uid of dados.uids) {
+        for (const id of await aluno(dados.projeto, uid).midias()) await midia(dados.projeto, id).apagar()
         await aluno(dados.projeto, uid).esquecer()
         await coaches(dados.projeto).sairCoach(uid)
       }
@@ -371,4 +521,146 @@ export default {
 
     return json({ erro: 'não encontrado' }, 404)
   },
+}
+
+type Json = (corpo: unknown, status?: number, extra?: Record<string, string>) => Response
+type LerJson = (max: number) => Promise<{ corpo: unknown } | Response>
+type Inst = {
+  aluno: (p: Projeto, uid: string) => DurableObjectStub<Descanso>
+  coaches: (p: Projeto) => DurableObjectStub<Descanso>
+  midia: (p: Projeto, id: string) => DurableObjectStub<Midia>
+}
+
+// Rotas dos vídeos privados (#253). Contrato: docs/plano-videos.md.
+// A confirmação anterior pode ter gravado 'pronto' e a resposta se perdido: lê de novo para saber.
+async function jaPronto(projeto: Projeto, id: string, token: string, appCheck?: string): Promise<boolean> {
+  const d = await lerMidia(projeto, id, token, fetch, appCheck)
+  return !!d && d.status === 'pronto'
+}
+
+async function atenderMidia(req: Request, env: Env, pathname: string, token: string | undefined, agora: number, appCheck: string | undefined, json: Json, lerJson: LerJson, { aluno, coaches, midia }: Inst): Promise<Response> {
+  const chave = () => env.MIDIA.get(env.MIDIA.idFromName('__chave')).hmac()
+  const url = new URL(req.url)
+
+  // <video src>: link assinado e curto, sem token (o player não manda cabeçalho). Suporta Range (avançar/voltar).
+  if (req.method === 'GET' && pathname === '/midia/ver') {
+    const q = url.searchParams
+    const projeto = await conferir(await chave(), q.get('p'), q.get('id'), q.get('exp'), q.get('sig'), Date.now())
+    if (!projeto) return new Response('link expirado', { status: 403, headers: { 'Cache-Control': 'no-store' } })
+    const inst = midia(projeto, q.get('id')!)
+    const m = await inst.meta()
+    if (!m?.completo) return new Response('vídeo indisponível', { status: 404, headers: { 'Cache-Control': 'no-store' } })
+    const f = faixa(req.headers.get('Range'), m.bytes)
+    if (f === 'invalida') return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${m.bytes}` } })
+    const r = limitarFaixa(f ?? { inicio: 0, fim: m.bytes - 1 })
+    const corpo = await inst.ler(r.inicio, r.fim)
+    if (!corpo) return new Response('vídeo indisponível', { status: 404, headers: { 'Cache-Control': 'no-store' } })
+    const parcial = !!f || r.fim < m.bytes - 1
+    return new Response(corpo, {
+      status: parcial ? 206 : 200,
+      headers: {
+        'Content-Type': m.mime,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': String(corpo.byteLength),
+        ...(parcial ? { 'Content-Range': `bytes ${r.inicio}-${r.fim}/${m.bytes}` } : {}),
+        'Cache-Control': 'private, no-store',
+        'Cross-Origin-Resource-Policy': 'cross-origin',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    })
+  }
+
+  const id = token ? await verificarIdToken(token, (kid) => chaveDoGoogle(kid), agora) : null
+  if (!token || !id || !uidOk(id.uid)) return json({ erro: 'não autorizado' }, 401)
+  const { uid, projeto } = id
+  const meu = aluno(projeto, uid)
+
+  // Parte n do arquivo (corpo binário de até 1 MiB). Só o autor; tamanho exato conferido na instância.
+  if (req.method === 'PUT' && pathname === '/midia/parte') {
+    const mid = url.searchParams.get('id')
+    const n = Number(url.searchParams.get('n'))
+    if (!idOk(mid) || !Number.isInteger(n)) return json({ erro: 'pedido inválido' }, 400)
+    if (!(await meu.passar('midia-parte', 120, 60_000))) return json({ erro: 'muitos pedidos' }, 429, { 'Retry-After': '60' })
+    if (Number(req.headers.get('Content-Length') ?? 0) > PARTE) return json({ erro: 'parte grande demais' }, 413)
+    const b = await lerCorpoBinario(req, PARTE)
+    if (b.status) return json({ erro: b.status === 413 ? 'parte grande demais' : 'pedido inválido' }, b.status)
+    const s = await midia(projeto, mid).parte(uid, n, b.dados)
+    return s === 200 ? json({ ok: true }) : json({ erro: 'parte recusada' }, s)
+  }
+
+  if (req.method !== 'POST') return json({ erro: 'não encontrado' }, 404)
+  const j = await lerJson(1024)
+  if (j instanceof Response) return j
+  const corpo = j.corpo as { id?: unknown } | null
+
+  if (pathname === '/midia/iniciar') {
+    const v = validarInicio(corpo)
+    if (!v) return json({ erro: 'pedido inválido' }, 400)
+    if (!(await meu.passar('midia', 20, DEZ_MIN))) return json({ erro: 'muitos envios' }, 429, { 'Retry-After': '600' })
+    // O documento midias/{id} já foi criado pelo app (as regras conferiram quem pode); aqui só confere que é dele.
+    const d = await lerMidia(projeto, v.id, token, fetch, appCheck)
+    if (d === null) return json({ erro: 'não foi possível verificar o vídeo' }, 503)
+    // 'pronto' também passa: a confirmação pode ter caído depois de o Firestore gravar, e o app repete sem reenviar.
+    if (!d || d.autor !== uid || (d.status !== 'enviando' && d.status !== 'pronto') || d.bytes !== v.bytes) return json({ erro: 'sem permissão' }, 403)
+    const r = await midia(projeto, v.id).iniciar({ projeto, id: v.id, autor: uid, alunoId: d.alunoId, tipo: d.tipo, bytes: v.bytes, mime: v.mime })
+    if (r === 'conflito') return json({ erro: 'vídeo já enviado' }, 409)
+    if (r === 'cheio') return json({ erro: 'espaço de vídeos cheio' }, 507)
+    await aluno(projeto, d.alunoId).anotarMidia(v.id)
+    return json({ ok: true, faltam: r.faltam })
+  }
+
+  if (!idOk(corpo?.id)) return json({ erro: 'pedido inválido' }, 400)
+  const mid = corpo.id
+
+  // Todas as partes chegaram: marca "pronto" no Firestore (token do autor) e avisa uma vez só.
+  if (pathname === '/midia/concluir') {
+    const inst = midia(projeto, mid)
+    const r = await inst.concluir(uid)
+    if (r === 'faltam') return json({ erro: 'faltam partes' }, 409)
+    if (r !== 'ok') return json({ erro: 'sem permissão' }, r)
+    // Repetir é seguro: se já está 'pronto' (a resposta anterior se perdeu), as regras recusam a escrita e a leitura confirma.
+    if (!(await marcarPronto(projeto, mid, token, fetch, appCheck)) && !(await jaPronto(projeto, mid, token, appCheck))) {
+      return json({ erro: 'não foi possível confirmar o vídeo' }, 503)
+    }
+    const m = (await inst.meta())!
+    if (await inst.primeiroAviso()) {
+      if (m.tipo === 'execucao') {
+        const lista = (await coaches(projeto).coaches()).filter((c) => c !== uid)
+        await Promise.all(lista.map((c) => aluno(projeto, c).avisar(VIDEO_COACH, 'video', false).catch(() => false)))
+      } else {
+        await aluno(projeto, m.alunoId).avisar(ORIENTACAO, 'orientacao', false).catch(() => false)
+      }
+    }
+    return json({ ok: true })
+  }
+
+  // Link curto para tocar. As regras do Firestore decidem: o aluno dono ou um coach da marca conseguem ler o documento.
+  if (pathname === '/midia/link') {
+    if (!(await meu.passar('midia-link', 60, 60_000))) return json({ erro: 'muitos pedidos' }, 429, { 'Retry-After': '60' })
+    const d = await lerMidia(projeto, mid, token, fetch, appCheck)
+    if (d === null) return json({ erro: 'não foi possível verificar o vídeo' }, 503)
+    if (!d) return json({ erro: 'sem permissão' }, 403)
+    const m = await midia(projeto, mid).meta()
+    if (d.status !== 'pronto' || !m?.completo) return json({ erro: 'vídeo indisponível' }, 404)
+    const exp = Date.now() + LINK_MS
+    const sig = await assinar(await chave(), projeto, mid, exp)
+    const ver = new URL('/midia/ver', req.url)
+    ver.search = new URLSearchParams({ p: projeto, id: mid, exp: String(exp), sig }).toString()
+    return json({ url: ver.toString(), expira: exp })
+  }
+
+  // Apagar o arquivo: o autor (cancelar envio) ou um coach. O app apaga o documento depois (regras).
+  if (pathname === '/midia/apagar') {
+    const d = await lerMidia(projeto, mid, token, fetch, appCheck)
+    if (d === null) return json({ erro: 'não foi possível verificar o vídeo' }, 503)
+    const pode = d ? podeApagar(d, uid, d.autor !== uid && (await ehCoach(projeto, uid, token, fetch, appCheck))) : 403
+    if (pode !== 200) return json({ erro: pode === 409 ? 'vídeo já enviado' : 'sem permissão' }, pode)
+    if (d && d.autor === uid) {
+      const r = await midia(projeto, mid).cancelar(uid)
+      if (r !== 'ok') return json({ erro: r === 'completo' ? 'vídeo já enviado' : 'sem permissão' }, r === 'completo' ? 409 : r)
+    } else await midia(projeto, mid).apagar()
+    return json({ ok: true })
+  }
+
+  return json({ erro: 'não encontrado' }, 404)
 }

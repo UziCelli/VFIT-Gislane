@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import catalogo from '../data/exercicios.json'
-import { contarVideos, dadosVideo, filtrarVideos, linhasVideos, linkValido } from './videos'
+import { contarVideos, dadosVideo, filtrarVideos, fonteDemo, idDoCatalogo, linhasVideos, linkValido } from './videos'
 
 const cat = [
   { grupo: 'Peito', exercicios: [{ id: 'supino-reto-barra', nome: 'Supino Reto Barra' }, { id: 'crucifixo-halter', nome: 'Crucifixo Halter' }] },
@@ -54,12 +54,38 @@ describe('dadosVideo', () => {
   it('No ar exige link https válido', () => {
     expect(dadosVideo('no-ar', '', '', 'G')).toHaveProperty('erro')
     expect(dadosVideo('no-ar', 'youtu.be/x', '', 'G')).toHaveProperty('erro')
-    expect(dadosVideo('no-ar', ' https://youtu.be/x ', 'regravar', 'G')).toEqual({ dados: { status: 'no-ar', por: 'G', link: 'https://youtu.be/x', nota: 'regravar' } })
+    expect(dadosVideo('no-ar', ' https://youtu.be/dQw4w9WgXcQ ', 'regravar', 'G')).toEqual({ dados: { status: 'no-ar', por: 'G', link: 'https://youtu.be/dQw4w9WgXcQ', nota: 'regravar' } })
+  })
+  it('No ar fora do YouTube não abre no app: recusa; Gravado aceita qualquer https', () => {
+    expect(dadosVideo('no-ar', 'https://drive.google.com/x', '', 'G')).toHaveProperty('erro')
+    expect(dadosVideo('gravado', 'https://drive.google.com/x', '', 'G')).toHaveProperty('dados')
   })
   it('linkValido barra espaço, http e link longo', () => {
     expect(linkValido('https://youtu.be/abc')).toBe(true)
     expect(linkValido('http://youtu.be/abc')).toBe(false)
     expect(linkValido('https://you tu.be')).toBe(false)
     expect(linkValido('https://' + 'a'.repeat(300))).toBe(false)
+  })
+})
+
+describe('demonstração no cartão', () => {
+  it('idDoCatalogo acha pelo nome sem acento/caixa/espaço; fora do catálogo = undefined', () => {
+    const e = catalogo[0].exercicios[0]
+    expect(idDoCatalogo(`  ${e.nome.toUpperCase()} `)).toBe(e.id)
+    expect(idDoCatalogo('Exercício inventado')).toBeUndefined()
+  })
+  it('fonteDemo aceita os formatos do YouTube e monta o embed mudo, em loop, sem cookies', () => {
+    const id = 'dQw4w9WgXcQ'
+    for (const l of [`https://youtu.be/${id}`, `https://www.youtube.com/watch?v=${id}&t=3`, `https://m.youtube.com/watch?feature=x&v=${id}`, `https://youtube.com/embed/${id}`]) {
+      const f = fonteDemo(l)!
+      expect(f.src.startsWith(`https://www.youtube-nocookie.com/embed/${id}?`)).toBe(true)
+      expect(f.src).toContain('mute=1')
+      expect(f.src).toContain(`playlist=${id}`)
+      expect(f.vertical).toBe(false)
+    }
+    expect(fonteDemo(`https://www.youtube.com/shorts/${id}`)?.vertical).toBe(true)
+  })
+  it('fonteDemo recusa outro site, http, id inválido e vazio', () => {
+    for (const l of ['https://vimeo.com/123', 'http://youtu.be/dQw4w9WgXcQ', 'https://youtu.be/curto', 'https://youtu.be.evil.com/dQw4w9WgXcQ', '', undefined]) expect(fonteDemo(l)).toBeNull()
   })
 })

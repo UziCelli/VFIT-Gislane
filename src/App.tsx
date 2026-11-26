@@ -29,6 +29,8 @@ import EditorMeso from './features/coach/meso/EditorMeso'
 import VisaoSemana from './features/coach/semana/VisaoSemana'
 import RankingAlunos from './features/coach/RankingAlunos'
 import Feedbacks, { useFeedbacks } from './features/coach/feedbacks/Feedbacks'
+import { FilaExecucoes, RevisarExecucao } from './features/videos/Execucoes'
+import { VIDEOS_PRIVADOS } from './lib/midias'
 import Grupo from './features/coach/presencial/Presencial'
 import RelatorioCoach from './features/relatorio/RelatorioCoach'
 import AvaliacoesCoach from './features/avaliacao/AvaliacoesCoach'
@@ -284,6 +286,8 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
   else if ((p = casar('/aluno/:uid/fisio', rota))) tela = <FisioCoach key={p.uid} uid={p.uid} />
   else if (rota === '/ranking') tela = <RankingAlunos />
   else if (rota === '/feedbacks') tela = <Feedbacks />
+  else if (VIDEOS_PRIVADOS && rota === '/execucoes') tela = <FilaExecucoes />
+  else if (VIDEOS_PRIVADOS && (p = casar('/execucao/:id', rota))) tela = <RevisarExecucao key={p.id} id={p.id} />
   else if ((p = casar('/meso/:id', rota))) tela = <EditorMeso id={p.id} />
   else if ((p = casar('/meso/:id/relatorio', rota))) tela = <RelatorioCoach key={p.id} mesoId={p.id} />
   else if ((p = casar('/meso/:id/semana/:n', rota))) tela = <VisaoSemana id={p.id} semana={Number(p.n) || 1} />

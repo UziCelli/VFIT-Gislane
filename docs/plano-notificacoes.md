@@ -112,3 +112,6 @@ Medido em 12 dias: o agendador do GitHub rodou o robô das 8h47 entre 13h19 e 18
 - **Vários aparelhos:** `fixas` no storage do DO = lista de até 3 `{ i: inscrição, d: tipos desligados, em }`. `/inscrever` atualiza o aparelho pelo `endpoint`; `/desinscrever` com `{ endpoint }` tira só aquele (sem `endpoint`, todos). O aviso vai a todos os aparelhos que não desligaram o tipo; 404/410 apaga só a inscrição morta.
 - **`/esquecer`:** JWT da conta de serviço (igual a `/aviso-pagamento`), corpo `{ projeto, uids }` (1 a 20). Apaga tudo o que o Worker guarda da pessoa e tira o uid da lista de coaches. Chamado pela Limpeza LGPD.
 
+
+# Vídeos (#253, 26/11/2026)
+Tipos novos: `video` (coach: "Execução para analisar", url `/#/execucoes`) e `orientacao` (aluno: "Orientação do coach · Chegou um vídeo com orientação. Ligue o som."). Disparados pelo próprio Worker no `/midia/concluir`, uma vez por vídeo. Contrato em `docs/plano-videos.md`.

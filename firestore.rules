@@ -300,9 +300,12 @@ service cloud.firestore {
 
     // Vídeos de demonstração do catálogo: videos/{exercicioId} = { status, link?, nota?, por, em }. Sem documento =
     // "A gravar" (voltar para "A gravar" apaga). O vídeo fica fora do app (YouTube não listado): aqui só o link.
-    // Só o coach com 2º fator lê e grava; o aluno ainda não vê. Limites iguais a src/lib/videos.ts.
+    // A nota também chega ao aluno quando está "No ar" (regras não escondem campo): o editor avisa.
+    // Só o coach com 2º fator grava e vê todos. O aluno liberado lê só o que está "No ar" (demonstração no cartão do
+    // exercício, #253): a consulta dele precisa filtrar status == 'no-ar'. Limites iguais a src/lib/videos.ts.
     match /videos/{exercicioId} {
       allow read, delete: if isCoach();
+      allow read: if liberado() && resource.data.status == 'no-ar';
       allow create, update: if isCoach()
         && exercicioId.matches('[a-z0-9-]{1,80}')
         && request.resource.data.keys().hasOnly(['status', 'link', 'nota', 'por', 'em'])
@@ -314,6 +317,62 @@ service cloud.firestore {
         && (!('nota' in request.resource.data) || (request.resource.data.nota is string && request.resource.data.nota.size() <= 140))
         && nomeValido(request.resource.data.por)
         && request.resource.data.em == request.time;
+    }
+
+    // Vídeos privados do treino (#253): midias/{id}. O arquivo fica no Worker (push/, docs/plano-videos.md); aqui só o
+    // registro. execucao = o aluno liberado envia o próprio (até 60 s); orientacao = o coach grava para um aluno (até 90 s,
+    // com áudio), em resposta (respondeA) ou por conta própria. Só o aluno dono e os coaches leem: o Worker decide quem
+    // toca o vídeo lendo este documento com o token de quem pede. Cada marca tem o próprio Firebase (isolamento).
+    function sessaoMidia(s) {
+      return s is map && s.keys().hasOnly(['mesoId', 'semana', 'treino']) && s.keys().hasAll(['mesoId', 'semana', 'treino'])
+        && s.mesoId is string && s.mesoId.size() >= 1 && s.mesoId.size() <= 128
+        && s.semana is int && s.semana >= 1 && s.semana <= 52 && s.treino is int && s.treino >= 1 && s.treino <= 14;
+    }
+    function midiaNova(d, maxS) {
+      return d.keys().hasOnly(['alunoId', 'autor', 'tipo', 'exercicioId', 'exercicio', 'sessao', 'status', 'bytes', 'mime', 'duracaoS', 'em', 'respondida', 'respondeA'])
+        && d.keys().hasAll(['alunoId', 'autor', 'tipo', 'exercicioId', 'exercicio', 'sessao', 'status', 'bytes', 'mime', 'duracaoS', 'em'])
+        && d.autor == request.auth.uid && d.alunoId is string && d.alunoId.matches('[A-Za-z0-9][A-Za-z0-9_-]{0,127}')
+        && d.exercicioId is string && d.exercicioId.matches('[a-z0-9-]{1,90}') && nomeValido(d.exercicio)
+        && sessaoMidia(d.sessao) && d.status == 'enviando'
+        && d.bytes is int && d.bytes >= 1 && d.bytes <= 52428800
+        && d.mime in ['video/mp4', 'video/webm', 'video/quicktime']
+        && d.duracaoS is number && d.duracaoS > 0 && d.duracaoS <= maxS
+        && d.em == request.time;
+    }
+    // Marcações do coach no vídeo do aluno (etapa 3): até 300 traços/pontos; tempo e coordenadas 0..1 conferidos no app.
+    function marcasValidas(d) {
+      return !('marcas' in d) || (d.marcas is list && d.marcas.size() <= 300);
+    }
+    match /midias/{id} {
+      allow read: if isCoach() || (liberado() && resource.data.alunoId == request.auth.uid);
+      allow create: if id.matches('[A-Za-z0-9]{20}') && (
+        (request.resource.data.tipo == 'execucao' && liberado() && request.resource.data.alunoId == request.auth.uid
+          && midiaNova(request.resource.data, 61) && request.resource.data.respondida == false
+          && !('respondeA' in request.resource.data))
+        || (request.resource.data.tipo == 'orientacao' && isCoach() && midiaNova(request.resource.data, 91)
+          && !('respondida' in request.resource.data)
+          && (!('respondeA' in request.resource.data) || request.resource.data.respondeA.matches('[A-Za-z0-9]{20}'))
+          && get(/databases/$(database)/documents/usuarios/$(request.resource.data.alunoId)).data.papel == 'aluno'));
+      // Autor: 'enviando' -> 'pronto' com a hora do servidor (o Worker faz isso depois de conferir o arquivo inteiro).
+      allow update: if signedIn() && resource.data.autor == request.auth.uid && resource.data.status == 'enviando'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'prontoEm'])
+        && request.resource.data.status == 'pronto' && request.resource.data.prontoEm == request.time;
+      // Coach: marcações e "respondida" na execução do aluno.
+      allow update: if isCoach() && resource.data.tipo == 'execucao'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['marcas', 'respondida', 'respondidaEm'])
+        && marcasValidas(request.resource.data) && request.resource.data.respondida is bool
+        && (!('respondidaEm' in request.resource.data) || request.resource.data.respondidaEm == request.time
+          || request.resource.data.respondidaEm == resource.data.get('respondidaEm', null));
+      // "Dar acesso ao app" do aluno presencial: o coach troca só o alunoId para a conta nova (migradoPara do perfil antigo).
+      allow update: if isCoach()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['alunoId'])
+        && get(/databases/$(database)/documents/usuarios/$(resource.data.alunoId)).data.get('migradoPara', '') == request.resource.data.alunoId;
+      // Aluno: "visto" na orientação dele.
+      allow update: if liberado() && resource.data.alunoId == request.auth.uid && resource.data.tipo == 'orientacao'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vistoEm'])
+        && request.resource.data.vistoEm == request.time;
+      // Coach apaga qualquer um; o autor cancela o próprio envio enquanto não terminou.
+      allow delete: if isCoach() || (signedIn() && resource.data.autor == request.auth.uid && resource.data.status == 'enviando');
     }
 
     // Relatório do fim do ciclo: relatorios/{mesoId}. Os números são calculados na hora (src/lib/relatorio.ts);

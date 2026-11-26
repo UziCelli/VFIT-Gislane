@@ -16,7 +16,7 @@ import { Botao, Cartao, classesBotao, cascata, Contar, item, Pagina } from '../.
 import { PIX } from '../../aluno/PagarPix'
 import { mediaTexto, useFeedbacks } from '../feedbacks/Feedbacks'
 import { resumoNotas } from '../../../lib/feedback'
-import { IcBalao, IcMais, IcPlay, IcQr } from '../../../icones'
+import { IcBalao, IcCamera, IcMais, IcPlay, IcQr } from '../../../icones'
 import QrCadastro from '../alunos/QrCadastro'
 import { EscolherAluno } from '../presencial/Presencial'
 import { anamnesesNovas, anamnesesPendentes, lerAnamnese, pausadoSaude, sinaisAtencao, type Anamnese } from '../../../lib/anamnese'
@@ -25,6 +25,8 @@ import { useDores } from '../../fisio/useDores'
 import { useOrientacoes } from '../../fisio/useOrientacoes'
 import { prioridadesTreino } from './prioridades'
 import { CONECTOR_URL } from '../../../lib/propostasMcp'
+import { VIDEOS_PRIVADOS } from '../../../lib/midias'
+import { useFilaExecucoes } from '../../videos/Execucoes'
 
 const saudacao = (d: Date) => {
   const h = Number(d.toLocaleString('pt-BR', { hour: 'numeric', hour12: false, timeZone: 'America/Sao_Paulo' }))
@@ -140,6 +142,7 @@ export default function Inicio({ nome }: { nome: string }) {
           ))}
         </section>
       )}
+      {VIDEOS_PRIVADOS && <CartaoExecucoes />}
       {fb.dados.length > 0 && (
         <a href="#/feedbacks" className="mb-3 flex items-center gap-3 rounded-3xl bg-white/10 p-4 ring-1 ring-white/20 lg:max-w-md">
           <IcBalao className="size-5 text-marca-400" />
@@ -284,5 +287,17 @@ export default function Inicio({ nome }: { nome: string }) {
         ))}
       </m.div>
     </Pagina>
+  )
+}
+
+// Vídeos de execução que os alunos enviaram e ainda esperam análise (#253). Some quando a fila zera.
+function CartaoExecucoes() {
+  const n = useFilaExecucoes().fila.length
+  if (!n) return null
+  return (
+    <a href="#/execucoes" className="mb-3 flex items-center gap-3 rounded-3xl bg-white/10 p-4 ring-1 ring-white/20 lg:max-w-md">
+      <IcCamera className="size-5 text-marca-400" />
+      <span className="flex-1 font-semibold">Execuções para analisar · <span className="font-display text-lg font-bold text-marca-300">{n}</span></span>
+    </a>
   )
 }

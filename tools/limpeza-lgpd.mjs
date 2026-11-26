@@ -1,5 +1,5 @@
 // Limpeza LGPD: para cada pedido em `exclusoes/{uid}` apaga o que o app não alcança
-// (registros, relatórios, mesos, cardios, feedbacks com nome, avaliações físicas, notas, foto, perfil, logs e o login do Auth). Roda no workflow "Limpeza LGPD".
+// (registros, relatórios, mesos, cardios, vídeos, feedbacks com nome, avaliações físicas, notas, foto, perfil, logs e o login do Auth). Roda no workflow "Limpeza LGPD".
 // O resumo só tem contagens: nunca nome, e-mail ou uid (o log do Actions não guarda dado pessoal).
 // Uso local: PROJETO=forca--app (ou gislane-personal-trainer) GOOGLE_APPLICATION_CREDENTIALS=sa.json node limpeza-lgpd.mjs
 import { appendFileSync, readFileSync } from 'node:fs'
@@ -24,15 +24,19 @@ const auth = getAuth()
 // O Worker de notificações (push/) guarda o endereço de push de cada aparelho da pessoa: também precisa esquecer.
 // No emulador (testes) não há Worker. Se o Worker falhar, o pedido fica e a limpeza tenta de novo amanhã.
 const PUSH_URL = process.env.PUSH_URL || 'https://vfit-descanso.vfitcoach-site.workers.dev'
-async function esquecerNoWorker(uid) {
+// `midias`: ids dos vídeos privados da pessoa (lidos aqui, no Firestore), para o Worker apagar os arquivos mesmo
+// quando foram registrados sob outro id (aluno presencial que ganhou acesso ao app). Até 500 por chamada.
+async function esquecerNoWorker(uid, midias) {
   if (emulador) return
   const sa = JSON.parse(readFileSync(process.env.GOOGLE_APPLICATION_CREDENTIALS, 'utf8'))
-  const res = await fetch(`${PUSH_URL}/esquecer`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${assinarJwt(sa, Math.floor(Date.now() / 1000))}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ projeto, uids: [uid] }),
-  })
-  if (!res.ok) throw new Error(`Worker de notificações respondeu HTTP ${res.status} ao esquecer um aluno.`)
+  for (let i = 0; i === 0 || i < midias.length; i += 500) {
+    const res = await fetch(`${PUSH_URL}/esquecer`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${assinarJwt(sa, Math.floor(Date.now() / 1000))}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projeto, uids: [uid], midias: midias.slice(i, i + 500) }),
+    })
+    if (!res.ok) throw new Error(`Worker de notificações respondeu HTTP ${res.status} ao esquecer um aluno.`)
+  }
 }
 
 const apagarLotes = async (refs) => {
@@ -55,6 +59,9 @@ for (const pedido of (await db.collection('exclusoes').get()).docs) {
     mantidos++
     continue
   }
+  // Arquivos dos vídeos primeiro (no Worker), enquanto os documentos ainda existem para dar os ids; repetir é seguro.
+  const midias = await refsDe('midias', 'alunoId', uid)
+  await esquecerNoWorker(uid, midias.map((r) => r.id))
   const refs = [
     ...(await refsDe('registros', 'alunoId', uid)),
     ...(await refsDe('relatorios', 'alunoId', uid)),
@@ -66,6 +73,7 @@ for (const pedido of (await db.collection('exclusoes').get()).docs) {
     ...(await refsDe('fisioOrientacoes', 'alunoId', uid)),
     ...(await refsDe('fisioDores', 'alunoId', uid)),
     ...(await refsDe('fisioCheckins', 'alunoId', uid)),
+    ...midias, // vídeos privados (#253); os arquivos já saíram no /esquecer do Worker
     ...(await refsDe('usuarios', 'migradoPara', uid)),
     ...(await refsDe('logs', 'uid', uid)),
     db.doc(`notas/${uid}`),
@@ -80,7 +88,6 @@ for (const pedido of (await db.collection('exclusoes').get()).docs) {
   } catch (e) {
     if (e?.code !== 'auth/user-not-found') throw e
   }
-  await esquecerNoWorker(uid)
   await pedido.ref.delete() // por último: se cair antes, roda de novo amanhã
   apagados++
 }

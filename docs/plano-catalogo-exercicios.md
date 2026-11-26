@@ -1,5 +1,7 @@
 # Catálogo de exercícios: proposta para validação do Celli
 
+> **Atualização (26/11/2026):** o Celli liberou a divisão em etapas, registrada no épico #255. Esta PR entrega as etapas 1 a 4 (#256 a #259). As etapas de máquinas e carga (#260 a #263) vão em PRs próprias. Os vídeos ficaram na PR #252. Inventário da etapa 1: [docs/catalogo/inventario.md](catalogo/inventario.md).
+
 ## Ponto de partida
 
 O app já tem um catálogo estático em `src/data/exercicios.json` e sugestões com texto livre no seletor do coach em `src/lib/busca.ts`. Há metadados de anatomia e de carga por lado separados; alguns consumidores reconhecem exercícios pelo nome, não só pelo ID. A proposta é evoluir o catálogo existente, sem criar uma lista desconectada da montagem do treino.

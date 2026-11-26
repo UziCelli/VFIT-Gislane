@@ -330,6 +330,17 @@ export class Midia extends DurableObject<Env> {
     return out
   }
 
+  // Cancelar do autor: só apaga se o arquivo ainda não está completo. Roda na mesma instância que `concluir`, então
+  // as duas não se cruzam: depois de `completo`, o cancelamento recusa; depois do cancelamento, `concluir` dá 404.
+  async cancelar(uid: string): Promise<'ok' | 'completo' | 403> {
+    const m = await this.meta()
+    if (!m) return 'ok'
+    if (m.autor !== uid) return 403
+    if (m.completo) return 'completo'
+    await this.apagar()
+    return 'ok'
+  }
+
   async apagar() {
     const m = await this.meta()
     await this.ctx.storage.deleteAlarm()
@@ -408,10 +419,12 @@ export default {
     // Limpeza LGPD (GitHub): mesmo JWT da conta de serviço. Apaga o que o Worker guarda de cada pessoa apagada.
     if (req.method === 'POST' && pathname === '/esquecer') {
       if (!token || !(await verificarAviso(token, (iss, kid) => chaveDaConta(iss, kid), agora))) return json({ erro: 'não autorizado' }, 401)
-      const j = await lerJson(4096)
+      const j = await lerJson(32_768)
       if (j instanceof Response) return j
       const dados = validarEsquecer((j as { corpo: unknown }).corpo)
       if (!dados) return json({ erro: 'pedido inválido' }, 400)
+      // Ids dos vídeos lidos no Firestore pela limpeza: cobre arquivos indexados sob outro id (aluno presencial migrado).
+      for (const id of dados.midias) await midia(dados.projeto, id).apagar()
       for (const uid of dados.uids) {
         for (const id of await aluno(dados.projeto, uid).midias()) await midia(dados.projeto, id).apagar()
         await aluno(dados.projeto, uid).esquecer()
@@ -642,7 +655,10 @@ async function atenderMidia(req: Request, env: Env, pathname: string, token: str
     if (d === null) return json({ erro: 'não foi possível verificar o vídeo' }, 503)
     const pode = d ? podeApagar(d, uid, d.autor !== uid && (await ehCoach(projeto, uid, token, fetch, appCheck))) : 403
     if (pode !== 200) return json({ erro: pode === 409 ? 'vídeo já enviado' : 'sem permissão' }, pode)
-    await midia(projeto, mid).apagar()
+    if (d && d.autor === uid) {
+      const r = await midia(projeto, mid).cancelar(uid)
+      if (r !== 'ok') return json({ erro: r === 'completo' ? 'vídeo já enviado' : 'sem permissão' }, r === 'completo' ? 409 : r)
+    } else await midia(projeto, mid).apagar()
     return json({ ok: true })
   }
 

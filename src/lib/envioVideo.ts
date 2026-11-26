@@ -145,7 +145,7 @@ async function subir(g: Guardado) {
     if (c.signal.aborted) return
     publicar({ ...base, progresso: estados.get(g.id)?.progresso ?? 0, fase: 'parado', erro: e instanceof Error && e.message ? e.message : 'Não deu para enviar.' })
   } finally {
-    controles.delete(g.id)
+    if (controles.get(g.id) === c) controles.delete(g.id)
   }
 }
 
@@ -175,17 +175,18 @@ export async function retomarEnvio(id: string) {
 }
 
 // Cancela: para o envio, apaga o arquivo no Worker e o registro (as regras só deixam enquanto 'enviando').
-// Se o Worker responde 409, a confirmação já tinha passado (a resposta se perdeu): o vídeo fica e o envio conta como feito.
+// 409 = o arquivo já chegou inteiro (ou já foi confirmado e a resposta se perdeu): não cancela mais; termina a
+// confirmação (repetível no Worker) para o registro não ficar sem vídeo nem preso em 'enviando'.
 export async function cancelarEnvio(id: string) {
   controles.get(id)?.abort()
-  publicar({ id, remover: true })
-  const g = await ler(id).catch(() => undefined)
-  await tirar(id)
+  const g = await ler(id)
   const r = await chamar('/midia/apagar', { json: { id } }).catch(() => null)
   if (r?.status === 409) {
-    if (g) await finalizar(g)
-    return
+    if (g) return subir(g)
+    return publicar({ id, remover: true })
   }
+  publicar({ id, remover: true })
+  await tirar(id)
   await deleteDoc(doc(db, 'midias', id)).catch(() => {})
 }
 

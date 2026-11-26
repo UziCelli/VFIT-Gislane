@@ -22,7 +22,9 @@ Demonstração geral no cartão, envio da execução pelo aluno, orientação fa
 | `GET /midia/ver?p&id&exp&sig` | link assinado | — | vídeo com `Range` (até 8 MiB por resposta) |
 | `POST /midia/apagar` | autor ou coach | `{ id }` | apaga o arquivo |
 
-Avisos sem nome, link ou miniatura. Tipos novos `video` (coach) e `orientacao` (aluno) ligam/desligam em Conta. `/esquecer` (Limpeza LGPD) apaga os arquivos do aluno; `tools/limpeza-lgpd.mjs` apaga os `midias`.
+Avisos sem nome, link ou miniatura. Tipos novos `video` (coach) e `orientacao` (aluno) ligam/desligam em Conta. `tools/limpeza-lgpd.mjs` lê os `midias` do aluno, manda os ids no `/esquecer` (o Worker apaga esses arquivos e os do índice do aluno) e só depois apaga os documentos.
+
+Cancelar x concluir: a instância `Midia` decide. Depois de `completo`, o cancelamento do autor responde 409 e o app termina a confirmação; depois do cancelamento, `concluir` responde 404.
 
 ## Privacidade
 - Nada privado vai para link público ou "não listado". O link de tocar é assinado, curto (10 min) e só sai depois de o Firestore confirmar que quem pede pode ler o registro.

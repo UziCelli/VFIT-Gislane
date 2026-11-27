@@ -1,5 +1,5 @@
 // Edição do treino do dia no presencial (só o coach). Cada toque grava na hora; o motor é `engine/editarSessao`.
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { adicionarExercicio, adicionarMetodo, alternarSerieDropset, iniciarEdicao, removerExercicio, escoposPara, mudarSeries, removerMetodo, serieDoDrop, totalCerto, trocarExercicio, trocarMaquina } from '../../../engine'
 import type { MaquinaTreino, Escopo, Meso, Metodo, SessaoEditada } from '../../../engine'
 import { COR_METODO } from '../../../data/metodos'
@@ -30,15 +30,15 @@ export function EditarExercicio({ meso, mesoId, semana, treino, pos, nome, n, te
   const [juntando, setJuntando] = useState<Metodo | null>(null)
   const [parceiros, setParceiros] = useState<number[]>([])
   // Enquanto a folha está aberta, o próximo toque parte do último ajuste gravado (o snapshot pode não ter chegado).
-  const ultimo = useRef<SessaoEditada | null>(null)
-  const s = ultimo.current ?? iniciarEdicao(meso, semana, treino)
+  const [ultimo, setUltimo] = useState<SessaoEditada | null>(null)
+  const s = ultimo ?? iniciarEdicao(meso, semana, treino)
   const atuais = s.metodos.filter((x) => x.exercicio === pos)
   const nomesAtuais = [...new Set(atuais.map((x) => x.metodo))]
-  const fechar = () => { setAberto(false); setSeriesDe(null); setJuntando(null); setParceiros([]); ultimo.current = null }
+  const fechar = () => { setAberto(false); setSeriesDe(null); setJuntando(null); setParceiros([]); setUltimo(null) }
   const aplicar = (novo: SessaoEditada, fecha = false) => {
     if (novo === s) return
     grava(mesoId, novo)
-    ultimo.current = novo
+    setUltimo(novo)
     if (fecha) fechar()
   }
   const tirar = () => {

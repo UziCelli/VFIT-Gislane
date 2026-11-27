@@ -5,7 +5,7 @@ import { FirebaseError } from 'firebase/app'
 import type { MultiFactorResolver } from 'firebase/auth'
 import { cadastrar, confirmarLoginTotp, entrar, resolverMfa } from '../../lib/acoes'
 import { codigoCompleto, limparCodigo, mensagemMfa } from '../../lib/mfa'
-import { Aviso, Botao, Msg, Painel } from '../../ui'
+import { Aviso, Botao, mexe, Msg, Painel } from '../../ui'
 import { Brilho } from '../../vidro'
 import { ir, useRota } from '../../rota'
 import EsqueciSenha, { campo, rotulo } from './EsqueciSenha'
@@ -86,8 +86,8 @@ export default function Entrar() {
   const tremer = useAnimationControls()
   useEffect(() => {
     if (!tremor) return
-    tremer.set({ x: -10 })
-    tremer.start({ x: 0, transition: elastico })
+    tremer.set(mexe('translateX(-10px)'))
+    tremer.start({ transform: 'translateX(0px)', transitionEnd: { transform: 'none' }, transition: elastico })
   }, [tremor, tremer])
   const falhou = (msg: string) => {
     setErro(msg)

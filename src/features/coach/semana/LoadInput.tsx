@@ -1,5 +1,5 @@
-import { AnimatePresence, m } from 'motion/react'
-import { agil, saida } from '../../../movimento'
+import { m } from 'motion/react'
+import { agil } from '../../../movimento'
 import { useEffect, useRef, useState } from 'react'
 import { IcCheck } from '../../../icones'
 import { cargaSuspeita } from '../../../lib/conferirCarga'
@@ -103,21 +103,18 @@ export default function LoadInput({
         </div>
       </div>
     )}
-    <AnimatePresence>
-      {salvo && (
-        <m.span
-          aria-label="Salvo"
-          role="status"
-          className="pointer-events-none absolute -right-1 -top-2 text-xs font-bold text-emerald-400"
-          initial={{ opacity: 0, ...mexe('scale(0.5)') }}
-          animate={{ opacity: 1, transform: 'scale(1)', transitionEnd: { transform: 'none' } }}
-          exit={{ opacity: 0, transition: saida }}
-          transition={agil}
-        >
-          <IcCheck className="inline size-3 align-[-1px]" />
-        </m.span>
-      )}
-    </AnimatePresence>
+    {salvo && (
+      <m.span
+        aria-label="Salvo"
+        role="status"
+        className="pointer-events-none absolute -right-1 -top-2 text-xs font-bold text-emerald-400"
+        initial={{ opacity: 0, ...mexe('scale(0.5)') }}
+        animate={{ opacity: 1, transform: 'scale(1)', transitionEnd: { transform: 'none' } }}
+        transition={agil}
+      >
+        <IcCheck className="inline size-3 align-[-1px]" />
+      </m.span>
+    )}
     </div>
   )
 }

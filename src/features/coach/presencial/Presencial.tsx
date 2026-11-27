@@ -1,5 +1,5 @@
 import { collection, doc, query, where } from 'firebase/firestore'
-import { m } from 'motion/react'
+import { m, useReducedMotion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Avatar } from '../../../avatar'
 import type { Usuario } from '../../../lib/acesso'
@@ -42,6 +42,7 @@ export default function Grupo({ rota }: { rota: string }) {
   const [grupo, setGrupo] = useState(lerGrupo)
   const [rotas, setRotas] = useState<Record<string, string>>({})
   const [folha, setFolha] = useState(false)
+  const quieto = useReducedMotion()
   const rolagem = useRef<Record<string, number>>({})
   const saiu = useRef('') // quem acabou de sair: enquanto for o ativo, o grupo já restante vale como está
   const abertos = useRef(new Set<string>()) // alunos que já abriram sozinhos no treino de hoje (só 1x por presencial)
@@ -92,14 +93,15 @@ export default function Grupo({ rota }: { rota: string }) {
           <div className="vidro !bg-slate-900/95 mx-auto max-w-[400px] rounded-full p-1">
             <div className="relative flex">
               {/* Pílula própria (x em %), não Bolha/layoutId: o layoutId mede pela página e, com alunos em
-                  rolagens diferentes, a pílula "caçava" a diferença de rolagem ao trocar. */}
+                  rolagens diferentes, a pílula "caçava" a diferença de rolagem ao trocar. Transform em texto
+                  (27/11/2026): x solto deslizava na linha principal, junto com a troca de aluno. */}
               <m.span
                 aria-hidden
                 className="lente absolute inset-y-0 left-0 rounded-full"
                 style={{ width: `${100 / membros.length}%` }}
                 initial={false}
-                animate={{ x: `${membros.indexOf(ativo) * 100}%` }}
-                transition={agil}
+                animate={{ transform: `translateX(${membros.indexOf(ativo) * 100}%)` }}
+                transition={quieto ? { duration: 0 } : agil}
               />
               {membros.map((u) => <Aluno key={u} uid={u} ativo={u === ativo} onClick={() => u !== ativo && trocar(u)} />)}
             </div>

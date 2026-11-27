@@ -665,6 +665,17 @@ export const apagarProprio = (id: string) => deleteDoc(doc(db, 'exerciciosPropri
 // Máquina do catálogo do coach (maquinas/{id}); dados de validarMaquina em maquinas.ts. Editar regrava o documento
 // inteiro (setDoc sem merge): campo que saiu do cadastro (ex.: trocou de kg para nível) não fica para trás.
 export const gravarMaquina = (id: string, dados: Record<string, unknown>) => setDoc(doc(db, 'maquinas', id), { ...dados, em: serverTimestamp() })
-// Cadastro antigo sem identidade opaca (#261): ganha uma. As regras recusam trocar uma ref que já existe.
-export const darRefMaquina = (id: string, ref: string) => updateDoc(doc(db, 'maquinas', id), { ref, em: serverTimestamp() })
+// Cadastro antigo sem identidade opaca (#261): ganha uma só quando o coach o escolhe para um treino (ação explícita,
+// nunca ao abrir a tela). Transação: se outra tela já deu uma ref, usa aquela; as regras recusam trocar uma que existe.
+// Sem internet a transação falha e nada é escolhido.
+export const garantirRefMaquina = (id: string, nova: string) =>
+  runTransaction(db, async (tx) => {
+    const r = doc(db, 'maquinas', id)
+    const d = await tx.get(r)
+    if (!d.exists()) throw new Error('máquina removida')
+    const atual = d.data().ref
+    if (typeof atual === 'string' && atual) return atual
+    tx.update(r, { ref: nova, em: serverTimestamp() })
+    return nova
+  })
 export const apagarMaquina = (id: string) => deleteDoc(doc(db, 'maquinas', id))

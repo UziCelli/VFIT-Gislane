@@ -7,7 +7,8 @@
 // Identidade: `ref` ('mq-' + 20 letras/números sorteados) é a da máquina física; é a única que vai para o treino do
 // aluno. Nunca vem do nome nem do local, não muda ao editar (as regras proíbem) e não se reaproveita: apagar A e
 // cadastrar B igual sorteia outra. O id do documento também é sorteado ('m-' + 20); cadastros antigos (id com o nome do
-// local) mantêm o id, que fica só no catálogo do coach, e ganham `ref` na primeira leitura (garantirRefs).
+// local) mantêm o id, que fica só no catálogo do coach, e só ganham `ref` numa ação explícita do coach: salvar a
+// edição (validarMaquina) ou escolher a máquina para um treino (SeletorMaquina → garantirRefMaquina). Abrir a tela não grava.
 // Local, observação, fabricante e modelo são do coach: o treino recebe só a projeção de paraSlot.
 // `exercicios` guarda ids do catálogo base (ex.: 'cadeira-extensora') ou de exerciciosProprios ('p-...').
 import { exercicioPorId, resolverExercicio } from '../data/catalogo'

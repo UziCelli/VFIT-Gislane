@@ -15,7 +15,7 @@ export function Chave({ ligada, rotulo, onChange }: { ligada: boolean; rotulo: s
       onClick={() => onChange(!ligada)}
       className={`relative flex h-8 w-14 shrink-0 items-center rounded-full p-1 transition-colors after:absolute after:-inset-2 ${ligada ? 'bg-marca-500' : 'bg-white/15'}`}
     >
-      <m.span initial={false} animate={{ x: ligada ? 24 : 0 }} transition={agil} className="size-6 rounded-full bg-white shadow" />
+      <m.span initial={false} animate={{ transform: ligada ? 'translateX(24px)' : 'translateX(0px)' }} transition={agil} className="size-6 rounded-full bg-white shadow" />
     </button>
   )
 }

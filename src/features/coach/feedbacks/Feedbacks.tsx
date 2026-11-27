@@ -1,6 +1,6 @@
 import marca from '@marca/marca.json'
 import { collection, limit, orderBy, query, where, type Timestamp } from 'firebase/firestore'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { coroaAtiva, type Usuario } from '../../../lib/acesso'
 import { apagarFeedback, darCoroa, marcarFeedbackLido } from '../../../lib/acoes'
 import { filtrar, porSemana, rotuloAssunto, rotuloTipo, resumoNotas, textoDepoimento, textoParaCopiar, type Feedback, type Filtro } from '../../../lib/feedback'
@@ -84,6 +84,13 @@ export default function Feedbacks() {
   const semInternet = useSemInternet()
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [msg, setMsg] = useState('')
+  const timerMsg = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(timerMsg.current), [])
+  const avisar = (t: string) => {
+    clearTimeout(timerMsg.current)
+    setMsg(t)
+    timerMsg.current = setTimeout(() => setMsg(''), 2500)
+  }
   const nomes = useMemo(() => new Map(alunos.dados.map((a) => [a.id, a.nome])), [alunos.dados])
   const perfis = useMemo(() => new Map(alunos.dados.map((a) => [a.id, a])), [alunos.dados])
   const { media, total, porNota } = resumoNotas(fb.dados)
@@ -135,13 +142,16 @@ export default function Feedbacks() {
           </button>
         ))}
       </div>
-      <Msg>{msg && <p role="status" className="mb-2 text-sm text-emerald-400">{msg}</p>}</Msg>
+      {/* Fora do fluxo: o aviso não empurra os cartões. */}
+      <div className="relative h-0">
+        <Msg className="pointer-events-none absolute inset-x-0 top-0 z-10 text-center">{msg && <p role="status" className="inline-block rounded-lg bg-slate-900/95 px-3 py-1.5 text-sm text-emerald-400">{msg}</p>}</Msg>
+      </div>
       {lista.length === 0 ? (
         <p className="py-6 text-center text-slate-400">{fb.carregando ? 'Carregando…' : semInternet ? TEXTO_SEM_INTERNET : 'Nenhum feedback aqui.'}</p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
           {lista.map((f) => (
-            <Cartao key={f.id} f={f} nome={f.alunoId ? (nomes.get(f.alunoId) ?? null) : 'Anônimo'} aluno={f.alunoId ? perfis.get(f.alunoId) : undefined} aviso={(t) => { setMsg(t); setTimeout(() => setMsg(''), 2500) }} />
+            <Cartao key={f.id} f={f} nome={f.alunoId ? (nomes.get(f.alunoId) ?? null) : 'Anônimo'} aluno={f.alunoId ? perfis.get(f.alunoId) : undefined} aviso={avisar} />
           ))}
         </div>
       )}

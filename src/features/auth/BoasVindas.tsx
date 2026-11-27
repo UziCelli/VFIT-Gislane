@@ -3,7 +3,7 @@ import { saida, suave } from '../../movimento'
 import { useState } from 'react'
 import Logo from '@marca/Logo'
 import { Brilho, IconeQuadrado } from '../../vidro'
-import { Botao } from '../../ui'
+import { Botao, mexe } from '../../ui'
 import { IcBaixar, IcCompartilhar, IcGrafico, IcHaltere, IcMais, IcNuvem, IcPontos, IcSeta } from '../../icones'
 import { eAndroid, eIOS, navegadorEmbutido, useEventoInstalar } from '../instalar/Instalar'
 
@@ -55,9 +55,9 @@ function FolhaIPhone({ onFechar }: { onFechar: () => void }) {
       <m.section
         role="dialog"
         aria-label="Instalar no iPhone"
-        initial={{ y: 80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 80, opacity: 0, transition: saida }}
+        initial={{ ...mexe('translateY(80px)'), opacity: 0 }}
+        animate={{ transform: 'translateY(0px)', opacity: 1, transitionEnd: { transform: 'none' } }}
+        exit={{ ...mexe('translateY(80px)'), opacity: 0, transition: saida }}
         transition={suave}
         className="fixed inset-x-3 bottom-[148px] z-40 mx-auto max-w-[406px] rounded-3xl bg-slate-900 p-5 text-left ring-1 ring-white/15 shadow-[inset_0_1px_0_rgb(255_255_255/0.2),0_20px_50px_rgb(0_0_0/0.6)]"
       >

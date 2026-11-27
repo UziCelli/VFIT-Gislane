@@ -44,7 +44,7 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
     const el = document.querySelector(`[data-treino="${primeiro}"]`)
     if (!el) return
     rolou.current = semana
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    el.scrollIntoView({ behavior: 'auto', block: 'center' })
   }, [semana, primeiro, carregando])
 
   if (carregando) return <Centro>Carregando…</Centro>

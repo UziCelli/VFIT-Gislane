@@ -79,7 +79,9 @@ export function aplicarAlteracoes(base: Meso, alteracoes: Alteracao[]): Meso {
     }
     if (a.tipo === 'substituir') {
       if (!nomes.has(a.nome)) erro('Use um exercício do catálogo.')
-      const novo = { ...slot, nome: a.nome, slotId: crypto.randomUUID() }
+      // A máquina é do exercício antigo (#261): o substituto começa sem ela.
+      const { maquina: _maquina, ...resto } = slot
+      const novo = { ...resto, nome: a.nome, slotId: crypto.randomUUID() }
       m.divisao[t][p] = novo
       for (const [ref, atual] of referencias) if (atual === slot.slotId) referencias.set(ref, novo.slotId)
       referencias.set(slot.slotId, novo.slotId)

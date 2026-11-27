@@ -22,6 +22,14 @@ describe('edição completa pelo MCP', () => {
     expect(ex.reps).toEqual(ex.repsBase)
     expect(r.metodos[0]).toEqual({ ativo: true, semana: 1, treino: 1, exercicio: 1, metodo: 'Clusterset', escopo: 'Todas as séries', pausaInternaS: 20, blocos: 3 })
   })
+  it('substituir tira a máquina do exercício antigo; prescrição mantém', () => {
+    const maquina = { ref: 'mq-aaaaaaaaaaaaaaaaaaa1', nome: 'Extensora', tipo: 'maquina' as const, unidade: 'nivel' as const, niveis: 12, porLado: false }
+    const base = { ...mesoPadrao(), divisao: [[{ slotId: 'ext', nome: 'Cadeira Extensora Tradicional', maquina }], [], []] }
+    expect(aplicarAlteracoes(base, [{ tipo: 'prescricao', slotId: 'ext', semanas: [1], reps: [12, 12] }]).divisao[0][0].maquina).toEqual(maquina)
+    const r = aplicarAlteracoes(base, [{ tipo: 'substituir', slotId: 'ext', nome: 'Leg Press 45' }])
+    expect(r.divisao[0][0]).toMatchObject({ nome: 'Leg Press 45' })
+    expect(r.divisao[0][0]).not.toHaveProperty('maquina')
+  })
   it('mantém referências no lote após substituir repetidamente um exercício', () => {
     const r = aplicarAlteracoes(mesoPadrao(), [
       { tipo: 'adicionar', treino: 1, nome: 'Supino Reto Barra', referencia: 'novo' },

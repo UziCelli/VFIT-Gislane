@@ -4,8 +4,9 @@ Fonte única do assunto. Código: `src/engine/aparelho.ts` (contas) e `src/data/
 
 ## Estado (24/11/2026)
 
-- **Feito (base):** modelo de aparelho, contas de nível/kg e lista do catálogo, com testes. Nada é gravado no Firestore e nenhuma tela usa ainda.
-- **Próximo passo:** tela para o coach cadastrar aparelhos no app e o aluno anotar o nível (mexe no banco e nas regras).
+- **Feito (base):** modelo de aparelho, contas de nível/kg e lista do catálogo, com testes.
+- **Feito (#260, 27/11/2026):** tela Guias → Catálogo → Máquinas (`#/maquinas`). O coach cadastra cada máquina por local (tipo, marca/modelo, kg ou nível, degraus, plaquinhas, polia, por lado) e liga aos exercícios. Firestore `maquinas/{id}` (ver `docs/mapa.md`); conferência em `src/lib/maquinas.ts`. O catálogo de exercícios mostra as máquinas de cada um.
+- **Próximo passo:** a série grava a máquina (#261) e a carga sugerida passa a ser por máquina (#262). Até lá, nada do treino usa as máquinas.
 
 ## Modelo
 
@@ -32,9 +33,9 @@ Fonte única do assunto. Código: `src/engine/aparelho.ts` (contas) e `src/data/
 - Polia 2:1 divide por 2 exato (o atrito real tira um pouco mais).
 - Etiqueta em kg (sem libras).
 
-## Como cadastrar um aparelho (até a tela existir)
+## Como cadastrar um aparelho
 
-Peça ao Claude: "cadastra a extensora do condomínio X, 12 níveis, nível 1 ≈ 5 kg". O item entra em `src/data/aparelhos.ts` e o teste confere.
+No app: Guias → Catálogo de exercícios → Máquinas → Adicionar máquina. Pilha com placas desiguais: a tela só faz topo + placa fixa (`kgDaPilha`); para outra, peça ao Claude.
 
 ## Pesquisa de fabricantes (24/11/2026)
 

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { AnimatePresence, m } from 'motion/react'
 import marca from '@marca/marca.json'
 import { agil, suave } from '../../movimento'
-import { Contar } from '../../ui'
+import { Contar, mexe, sobe } from '../../ui'
 import { Bolha } from '../../vidro'
 import { PIX } from '../aluno/PagarPix'
 import { IcGrupo, IcHaltere, IcMais, IcSino, IcTrofeu } from '../../icones'
@@ -112,9 +112,9 @@ function Notificacao() {
         <AnimatePresence>
           {mostra && (
             <m.div
-              initial={{ y: -12, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -12, opacity: 0 }}
+              initial={{ ...mexe('translateY(-12px)'), opacity: 0 }}
+              animate={sobe}
+              exit={{ ...mexe('translateY(-12px)'), opacity: 0 }}
               transition={suave}
               className="flex items-center gap-3 rounded-2xl bg-white/90 p-2.5 text-slate-900 shadow-lg"
             >
@@ -140,7 +140,7 @@ function Acompanhar() {
       </div>
       <ul className="space-y-1.5 text-sm">
         {['Reps abaixo da meta · Supino', 'Treino acima do tempo · Treino B', 'Sumido há 8 dias · João'].map((t, k) => (
-          <m.li key={t} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + k * 0.1 }} className="rounded-xl bg-white/5 px-3 py-2 text-slate-200 ring-1 ring-white/10">
+          <m.li key={t} initial={{ opacity: 0, ...mexe('translateX(-10px)') }} animate={{ opacity: 1, transform: 'translateX(0px)', transitionEnd: { transform: 'none' } }} transition={{ delay: 0.1 + k * 0.1 }} className="rounded-xl bg-white/5 px-3 py-2 text-slate-200 ring-1 ring-white/10">
             {t}
           </m.li>
         ))}

@@ -90,6 +90,20 @@ describe('cópia gravada', () => {
 })
 
 describe('presencial e montagem', () => {
+  it('máquina escolhida no presencial vale para o dia, mesmo trocada depois do início', () => {
+    const m = comMaquina(mesoPadrao(), A)
+    const iniciado = comPrescricoesRegistradas(m, [iniciar(m, 1)])
+    // salvarSessaoEditada grava a sessão e anula a cópia do dia (prescricoesRegistradas[chave] = null).
+    const ajustado = { ...iniciado, sessoes: { '1-1': trocarMaquina(iniciarEdicao(iniciado, 1, 1), 1, B) }, prescricoesRegistradas: { ...iniciado.prescricoesRegistradas, '1-1': null } }
+    const comRegistros = comPrescricoesRegistradas(ajustado, [iniciar(m, 1)])
+    expect(maquinaUsada(comRegistros, 1, 1, 'ext')).toEqual({ maquina: B })
+    expect(maquinaDesconhecida(comRegistros, 1, 1, { inicioEm: 1, cargas: { ext: { s1: 4 } } })).toBe(false)
+    expect(prescreverSessao(comRegistros, 1, 1)?.exercicios[0].slot.maquina).toEqual(B)
+    // "Voltar ao planejado" (sem sessão, cópia anulada): o dia segue o plano, que pode mudar; fica desconhecido.
+    const voltou = { ...comRegistros, sessoes: {} }
+    expect(maquinaUsada(voltou, 1, 1, 'ext')).toBe('legado')
+  })
+
   it('máquina só de hoje; trocar o exercício tira a máquina', () => {
     const m = comMaquina(mesoPadrao(), A)
     const s = trocarMaquina(iniciarEdicao(m, 1, 1), 1, B)

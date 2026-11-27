@@ -202,11 +202,19 @@ const ordenar = (o: object) => Object.fromEntries(Object.entries(o).filter(([, v
 // - { maquina }: a escala daquele dia; null = treino registrado sem máquina nesse exercício.
 // - 'legado': sem cópia gravada (treino antigo, de antes desta etapa, ou cópia reconstruída): NÃO se atribui
 //   máquina por inferência (nem pela máquina atual do plano).
-export function maquinaUsada(meso: Pick<Meso, 'prescricoesRegistradas'>, semana: number, treino: number, slotId: string): { maquina: Aparelho | null } | 'legado' {
-  const p = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
-  if (!p || p.referenciaHistorica) return 'legado'
-  const e = p.sessao.exercicios.find((x) => x.slot.slotId === slotId)
-  return e ? { maquina: e.slot.maquina ?? null } : 'legado'
+// Ajuste presencial do dia (sessoes[chave], gravado com prescricoesRegistradas[chave] = null): é a escolha explícita
+// do coach para aquele treino e vale como fonte confiável, também se a máquina foi trocada depois do início.
+export function maquinaUsada(meso: Pick<Meso, 'prescricoesRegistradas' | 'sessoes'>, semana: number, treino: number, slotId: string): { maquina: Aparelho | null } | 'legado' {
+  const slots = slotsConfiaveis(meso, semana, treino)
+  const s = slots?.find((x) => x.slotId === slotId)
+  return s ? { maquina: s.maquina ?? null } : 'legado'
+}
+
+function slotsConfiaveis(meso: Pick<Meso, 'prescricoesRegistradas' | 'sessoes'>, semana: number, treino: number) {
+  const chave = `${semana}-${treino}`
+  const p = meso.prescricoesRegistradas?.[chave]
+  if (p === null && meso.sessoes?.[chave]) return meso.sessoes[chave].exercicios
+  return p && !p.referenciaHistorica ? p.sessao.exercicios.map((e) => e.slot) : null
 }
 
 // Linha curta para o aluno e o coach: "Cadeira Extensora · Academia Centro". Ainda não pede para anotar o nível:
@@ -215,8 +223,7 @@ export const textoMaquina = (m: Aparelho) => `${m.nome} · ${m.local}`
 
 // Treino já registrado (com carga, reps, início ou feito) sem cópia confiável: a máquina daquele dia é desconhecida.
 // A tela não mostra a máquina do plano atual nele (seria atribuir por inferência). Sem registro, vale o plano.
-export function maquinaDesconhecida(meso: Pick<Meso, 'prescricoesRegistradas'>, semana: number, treino: number, registro?: { cargas?: object; reps?: object; realizado?: boolean; inicioEm?: unknown } | null): boolean {
+export function maquinaDesconhecida(meso: Pick<Meso, 'prescricoesRegistradas' | 'sessoes'>, semana: number, treino: number, registro?: { cargas?: object; reps?: object; realizado?: boolean; inicioEm?: unknown } | null): boolean {
   const registrada = !!registro && (!!registro.realizado || registro.inicioEm != null || Object.keys(registro.cargas ?? {}).length > 0 || Object.keys(registro.reps ?? {}).length > 0)
-  const p = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
-  return registrada && (!p || !!p.referenciaHistorica)
+  return registrada && !slotsConfiaveis(meso, semana, treino)
 }

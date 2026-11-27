@@ -70,7 +70,7 @@ jobs:
       - name: MCP completo com OAuth, RPC, Firestore e navegador
         run: npx firebase emulators:exec --only auth,firestore --project demo-forca 'npm --prefix conector run test:runtime'
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: e2e-test-results

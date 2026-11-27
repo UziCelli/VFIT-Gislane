@@ -32,9 +32,11 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
   // cartão também leva o e-mail, e a engrenagem se chama "Configurações de <nome>".
   const cartao = (nome: string) => page.getByText(nome, { exact: true }).filter({ visible: true })
   const nomesNaTela = page.getByText(/^[A-Z][a-z]+ Busca$/).filter({ visible: true })
+  // Altura na página, não na janela: com a lista curta a página encolhe e a rolagem volta sozinha.
+  const altura = (nome: string) => cartao(nome).evaluate((el) => Math.round(el.getBoundingClientRect().top + window.scrollY))
   for (const nome of NOMES) await expect(cartao(nome)).toBeVisible({ timeout: 10_000 })
-  const topoDaLista = (await cartao(NOMES[0]).boundingBox())!.y
-  expect((await cartao('Zeca Busca').boundingBox())!.y).toBeGreaterThan(topoDaLista + 300)
+  const topoDaLista = await altura(NOMES[0])
+  expect(await altura('Zeca Busca')).toBeGreaterThan(topoDaLista + 300)
 
   const cdp = await context.newCDPSession(page)
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 })
@@ -61,7 +63,7 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
   // Só o Zeca fica, e ele termina no topo da lista, parado (sem transform sobrando do deslize).
   await expect(cartao('Ana Busca')).toHaveCount(0)
   await expect(nomesNaTela).toHaveCount(1)
-  await expect.poll(async () => Math.round((await cartao('Zeca Busca').boundingBox())!.y), { timeout: 5_000 }).toBe(Math.round(topoDaLista))
+  await expect.poll(() => altura('Zeca Busca'), { timeout: 5_000 }).toBe(topoDaLista)
   const parado = () => cartao('Zeca Busca').evaluate((el) => {
     for (let p: Element | null = el; p && p.tagName !== 'MAIN'; p = p.parentElement) {
       const t = getComputedStyle(p).transform
@@ -74,7 +76,7 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
   // Apagar a busca traz todos de volta, na mesma ordem.
   await campo.fill('')
   await expect(nomesNaTela).toHaveCount(NOMES.length)
-  await expect.poll(async () => Math.round((await cartao(NOMES[0]).boundingBox())!.y), { timeout: 5_000 }).toBe(Math.round(topoDaLista))
+  await expect.poll(() => altura(NOMES[0]), { timeout: 5_000 }).toBe(topoDaLista)
 
   const resultado = await page.evaluate(() => {
     const diag = (window as unknown as { diagnosticoBusca: { frames: number[]; longas: number[]; ativo: boolean } }).diagnosticoBusca

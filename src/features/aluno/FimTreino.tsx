@@ -122,8 +122,9 @@ export default function FimTreino({
               aria-hidden
               className="absolute left-1/2 top-24 h-2 w-2 rounded-sm"
               style={{ backgroundColor: cor }}
-              initial={{ x: 0, y: 0, opacity: 1 }}
-              animate={{ x: (i - 2.5) * 52, y: i % 2 ? 90 : -40, rotate: i * 120, opacity: 0 }}
+              // Transform em texto (27/11/2026): x/y/rotate soltos voavam na linha principal, junto com a montagem da tela.
+              initial={{ transform: 'translate(0px, 0px) rotate(0deg)', opacity: 1 }}
+              animate={{ transform: `translate(${(i - 2.5) * 52}px, ${i % 2 ? 90 : -40}px) rotate(${i * 120}deg)`, opacity: 0 }}
               transition={confete}
             />
           ))}

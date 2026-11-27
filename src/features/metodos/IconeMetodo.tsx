@@ -1,5 +1,5 @@
-import { m, useReducedMotion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { m, useInView, useReducedMotion } from 'motion/react'
+import { useRef, type ReactNode } from 'react'
 import type { Metodo } from '../../engine'
 
 const loop = (duration: number, extra = {}) => ({ duration, repeat: Infinity, ease: 'easeInOut' as const, ...extra })
@@ -69,10 +69,14 @@ const desenhos = (parado: boolean): Record<Metodo, ReactNode> => ({
 
 export default function IconeMetodo({ metodo, tamanho = 24 }: { metodo: Metodo; tamanho?: number }) {
   // Pequeno (lista do treino, um por exercício) fica parado: laço de SVG roda na linha principal o tempo todo.
-  const parado = !!useReducedMotion() || tamanho < 40
+  // Fora da tela também (27/11/2026): no Guia, os 7 laços rodavam juntos o tempo todo, mesmo rolados para longe.
+  // A chave do <g> troca junto: o desenho volta do zero, sem ficar parado no meio do laço.
+  const ref = useRef<SVGSVGElement>(null)
+  const naTela = useInView(ref)
+  const parado = !!useReducedMotion() || tamanho < 40 || !naTela
   return (
-    <svg aria-hidden viewBox="0 0 24 24" width={tamanho} height={tamanho} className="shrink-0">
-      {desenhos(parado)[metodo]}
+    <svg ref={ref} aria-hidden viewBox="0 0 24 24" width={tamanho} height={tamanho} className="shrink-0">
+      <g key={parado ? 'parado' : 'laco'}>{desenhos(parado)[metodo]}</g>
     </svg>
   )
 }

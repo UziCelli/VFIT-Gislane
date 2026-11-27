@@ -885,6 +885,11 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const [festa, setFesta] = useState<Festa | null>(null)
   const fecharFesta = useCallback(() => setFesta(null), [])
   const [verResumo, setVerResumo] = useState(false)
+  // A tela do treino fica montada (escondida) sob o resumo: vídeo ou áudio que estava tocando nela para ao abrir o resumo.
+  const paginaTreino = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (verResumo) paginaTreino.current?.querySelectorAll<HTMLMediaElement>('video, audio').forEach((v) => v.pause())
+  }, [verResumo])
   const [fimLocal, setFimLocal] = useState<number | null>(null) // hora do "Concluir", até o servidor confirmar
   const [confirmarFim, setConfirmarFim] = useState(false) // 2º toque no "Concluir": aluno pediu, concluía sem querer
   const historicoResumo = useMemo(
@@ -1085,7 +1090,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         // Check-in só para treino concluído há pouco (até 12 h): resumo de treino antigo não pergunta (a hora gravada seria a de agora).
         checkin={fimMs == null || Date.now() - fimMs > 12 * 3600_000 ? undefined : { uid, sessao: { mesoId, semana, treino }, exercicios: [...new Set(sessao.exercicios.map((e) => e.slot.nome.trim()))], slots: Object.fromEntries(sessao.exercicios.map((e) => [e.slot.nome.trim(), e.slot.slotId])) }}
       />}
-    <div className="treino-pagina min-h-lvh" hidden={verResumo} inert={verResumo}>
+    <div ref={paginaTreino} className="treino-pagina min-h-lvh" hidden={verResumo} inert={verResumo}>
     <main className="mx-auto max-w-md px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-4">
       <AvisoNotificacoes />
       {meso.historicoIncerto?.includes(chave) && <p role="status" className="p-3 text-sm text-amber-200">Este registro antigo chegou sem versão da prescrição. A prescrição anterior é uma referência; confira as cargas e repetições registradas.</p>}

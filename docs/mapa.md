@@ -334,7 +334,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 
 ### `mesos/{mesoId}`
 - `alunoId`, `nome`, `frequencia`, `semanas`
-- `divisao`: `{ s1: [slots], s2: … }` (slotId → exercício, método, série/rep)
+- `divisao`: `{ s1: [slots], s2: … }` (slotId → exercício, método, série/rep). Slot pode ter `maquina` (#261): projeção `MaquinaTreino` (`paraSlot`): `ref` opaca, `nome` = rótulo do aluno, tipo e escala; **sem** `local`, `obs`, marca, modelo nem id do catálogo (o contrato estrito recusa). Escolhida na montagem (`SeletorMaquina`) ou só no dia (presencial, `trocarMaquina`). O aluno lê só essa cópia.
 - `progressao`: `{ principais, auxiliares, padrao? }` (linhas por semana); `progressaoExercicio`: `{ [slotId]: linhas }`; `adaptadoEm` (marcarAdaptado)
 - `criadoEm`, `atualizadoEm`
 
@@ -344,6 +344,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 - `cargas`: `{ slotId: { s1: 100, s2: 95, … } }` (peso ou reps absolutas)
 - `reps`: idem (reps feitas, opcional)
 - `realizado`: bool, `realizadoEm`, `atualizadoEm`
+- `prescricaoRegistrada`: cópia do treino gravada ao iniciar; inclui `slot.maquina` = a máquina usada naquele dia (#261). `maquinaUsada()` (`src/lib/maquinas.ts`): sem cópia = "legado" (nunca se infere a máquina pelo plano atual).
 
 ### `notas/{alunoId}`
 - `alunoId`, `exercicios`: `{ [nome do exercício]: texto (até 300) }`, `datas`: `{ [nome]: Timestamp }` (opcional; nota antiga = "sem data"), `atualizadoEm`
@@ -361,7 +362,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 - `id` = `p-<nome>`; `base` (3–60), `grupo`, `equipamento` (lista de `EQUIPAMENTOS`), `sufixo`, `lateralidade`, `modo` (só `excentrico`), `carga` (`total` | `por_lado` | `corporal`), `por`, `em`. Exercício cadastrado pelo coach; só cria e apaga (sem renomear). Só o coach com 2º fator. Regras puras em `src/lib/catalogoProprio.ts`.
 
 ### `maquinas/{id}` (#260)
-- `id` = `m-<local>-<nome>` (fixo: editar não troca). Modelo = `Aparelho` (`src/engine/aparelho.ts`): `nome` (2–60), `local` (≤ 60), `tipo` (`maquina` seletora | `articulada` | `polia` | `duasPolias`), `fabricante?`/`modelo?` (≤ 40, só rótulo), `unidade` `kg` (`incremento` ≤ 50, `minimo?`/`maximo?` ≤ 500, `complementos?` ≤ 4) ou `nivel` (`niveis` 1–40, `kgNivel?` ≤ níveis), `polia?` (`1:1`/`2:1`, só polias), `porLado`, `obs?` (≤ 200), `exercicios` (ids do catálogo ou `p-…`, ≤ 40), `por`, `em`. Só o coach com 2º fator lê, cria, edita (setDoc inteiro) e apaga. Regras puras em `src/lib/maquinas.ts` (`validarMaquina` usa `problemasAparelho`).
+- `id` = `m-` + 20 sorteados (cadastro antigo mantém o id com o local, que fica só no catálogo). `ref` = identidade opaca da máquina física (`mq-` + 20 sorteados): obrigatória ao criar, não muda ao editar (regras), nunca reaproveitada; cadastro antigo sem `ref` fica como está e só ganha uma numa ação explícita do coach: salvar a edição ou escolher a máquina para um treino (`garantirRefMaquina`, transação). Abrir a tela não grava nada. `rotuloAluno?` (≤ 40) = como o aluno vê; vazio = `nome`. Modelo = `Aparelho` (`src/engine/aparelho.ts`): `nome` (2–60), `local` (≤ 60), `tipo` (`maquina` seletora | `articulada` | `polia` | `duasPolias`), `fabricante?`/`modelo?` (≤ 40, só rótulo), `unidade` `kg` (`incremento` ≤ 50, `minimo?`/`maximo?` ≤ 500, `complementos?` ≤ 4) ou `nivel` (`niveis` 1–40, `kgNivel?` ≤ níveis), `polia?` (`1:1`/`2:1`, só polias), `porLado`, `obs?` (≤ 200), `exercicios` (ids do catálogo ou `p-…`, ≤ 40), `por`, `em`. Só o coach com 2º fator lê, cria, edita (setDoc inteiro) e apaga. Regras puras em `src/lib/maquinas.ts` (`validarMaquina` usa `problemasAparelho`).
 
 ### `midias/{id}` (#253)
 - `alunoId`, `autor`, `tipo` (`execucao` | `orientacao`), `exercicioId` (catálogo ou `x-<nome>`), `exercicio`, `sessao` `{ mesoId, semana, treino }`, `status` (`enviando` → `pronto`, com `prontoEm`, feito pelo Worker), `bytes` (≤ 50 MB), `mime`, `duracaoS` (aluno ≤ 60, coach ≤ 90), `em`; execução: `respondida`, `respondidaEm?`, `marcas?` (≤ 300: `{ t, k: 'caneta'|'ponto', p: [x,y,...] }` de 0 a 1); orientação: `respondeA?`, `vistoEm?`. Lê: aluno dono liberado e coach. Arquivo no Worker `push/` (`docs/plano-videos.md`).

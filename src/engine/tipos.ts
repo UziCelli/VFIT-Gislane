@@ -1,3 +1,5 @@
+import type { MaquinaTreino } from './aparelho'
+
 export type Metodo = 'Dropset' | 'Biset' | 'Triset' | 'Superset' | 'Circuito' | 'Rest-pause' | 'Clusterset'
 
 export type Escopo =
@@ -35,6 +37,10 @@ export interface Slot {
   nome: string
   pausaS?: number // pausa deste exercício; sem valor = pausa da posição (principais/auxiliares)
   doisLados?: boolean // carga por lado (2 halteres/articulado); sem valor = padrão do catálogo (src/lib/lados.ts)
+  // Máquina que o aluno usa neste exercício (#261): projeção da escala no momento da escolha (o aluno não lê
+  // `maquinas`; local e observação ficam só no catálogo). Vai junto na cópia do treino gravada no registro ao iniciar:
+  // trocar depois não muda o treino já feito.
+  maquina?: MaquinaTreino
 }
 
 // Exercício de uma sessão editada na hora. `de` = posição do treino planejado cuja progressão (séries/reps)

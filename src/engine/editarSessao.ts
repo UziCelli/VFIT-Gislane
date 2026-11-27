@@ -2,6 +2,7 @@
 // nova, gravada em `meso.sessoes[`${semana}-${treino}`]`. Cargas nunca são apagadas: ficam no slotId antigo.
 import { copiaDoDia, metodosDaSessao, slotsDaSessao } from './sessao'
 import { isometrico } from './isometria'
+import type { MaquinaTreino } from './aparelho'
 import type { AplicacaoMetodo, Escopo, Meso, Metodo, SessaoEditada } from './tipos'
 
 const SEQUENCIA: Metodo[] = ['Biset', 'Triset', 'Superset', 'Circuito']
@@ -56,7 +57,17 @@ export function iniciarEdicao(meso: Meso, semana: number, treino: number): Sessa
 export function trocarExercicio(s: SessaoEditada, pos: number, nome: string, slotId: string): SessaoEditada {
   const atual = s.exercicios[pos - 1]
   if (!atual || !nome.trim() || nome.trim() === atual.nome.trim()) return s
-  return { ...s, exercicios: s.exercicios.map((e, i) => (i === pos - 1 ? { ...e, slotId, nome: nome.trim() } : e)) }
+  // A máquina é do exercício antigo: não passa para o novo.
+  return { ...s, exercicios: s.exercicios.map((e, i) => (i === pos - 1 ? { ...semMaquina(e), slotId, nome: nome.trim() } : e)) }
+}
+
+const semMaquina = <T extends { maquina?: unknown }>({ maquina: _m, ...resto }: T) => resto
+
+// Máquina do exercício só nesta sessão (#261); null tira.
+export function trocarMaquina(s: SessaoEditada, pos: number, maquina: MaquinaTreino | null): SessaoEditada {
+  const atual = s.exercicios[pos - 1]
+  if (!atual) return s
+  return { ...s, exercicios: s.exercicios.map((e, i) => (i === pos - 1 ? (maquina ? { ...e, maquina } : semMaquina(e)) : e)) }
 }
 
 export function adicionarExercicio(s: SessaoEditada, nome: string, slotId: string): SessaoEditada {

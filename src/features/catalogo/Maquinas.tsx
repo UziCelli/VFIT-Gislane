@@ -121,6 +121,10 @@ function Formulario({ inicial, existentes, nome, confirmado, fechar, aviso }: {
       <Campo rotulo="Nome" placeholder="Ex.: Cadeira Extensora" maxLength={LIMITES.nome} value={f.nome} onChange={(e) => mudar({ nome: e.target.value })} />
       <Campo rotulo="Onde fica" placeholder="Ex.: Academia Centro" maxLength={LIMITES.local} list="locais-maquinas" value={f.local} onChange={(e) => mudar({ local: e.target.value })} />
       <datalist id="locais-maquinas">{sugestoes.map((l) => <option key={l} value={l} />)}</datalist>
+      <div>
+        <Campo rotulo="Nome para o aluno (opcional)" placeholder={f.nome.trim() || 'Ex.: Extensora 2'} maxLength={LIMITES.rotulo} value={f.rotuloAluno ?? ''} onChange={(e) => mudar({ rotuloAluno: e.target.value })} />
+        <p className="mt-1 text-xs text-slate-400">O aluno vê só este nome no treino. O local e a observação ficam só com você.</p>
+      </div>
       <Opcoes rotulo="Tipo" valor={f.tipo} opcoes={TIPOS_MAQUINA} mudar={(tipo: TipoMaquina) => mudar({ tipo })} cols="grid-cols-4" />
       <div className="grid grid-cols-2 gap-2">
         <Campo rotulo="Marca (opcional)" placeholder="Ex.: Movement" maxLength={LIMITES.rotulo} value={f.fabricante ?? ''} onChange={(e) => mudar({ fabricante: e.target.value })} />
@@ -221,6 +225,7 @@ export default function Maquinas({ nome }: { nome: string }) {
                         {[TIPOS_MAQUINA.find((t) => t.id === m.tipo)?.rotulo, m.fabricante, m.modelo].filter(Boolean).join(' · ')}
                       </p>
                       <p className="mt-1 text-xs text-slate-300">{resumoEscala(m)}</p>
+                      {m.rotuloAluno && <p className="mt-1 text-xs text-slate-400">O aluno vê: {m.rotuloAluno}</p>}
                       <p className="mt-1 text-xs text-slate-400">
                         {m.exercicios.length ? m.exercicios.map((id) => nomeDoExercicio(id) ?? 'Exercício removido').join(' · ') : 'Sem exercício ligado'}
                       </p>

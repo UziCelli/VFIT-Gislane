@@ -6,7 +6,8 @@ Fonte única do assunto. Código: `src/engine/aparelho.ts` (contas) e `src/data/
 
 - **Feito (base):** modelo de aparelho, contas de nível/kg e lista do catálogo, com testes.
 - **Feito (#260, 27/11/2026):** tela Guias → Catálogo → Máquinas (`#/maquinas`). O coach cadastra cada máquina por local (tipo, marca/modelo, kg ou nível, degraus, plaquinhas, polia, por lado) e liga aos exercícios. Firestore `maquinas/{id}` (ver `docs/mapa.md`); conferência em `src/lib/maquinas.ts`. O catálogo de exercícios mostra as máquinas de cada um.
-- **Próximo passo:** a série grava a máquina (#261) e a carga sugerida passa a ser por máquina (#262). Até lá, nada do treino usa as máquinas.
+- **Feito (#261):** o coach escolhe a máquina de cada exercício na montagem (Divisão) ou só no dia (presencial). O aluno vê só o rótulo da máquina (nome ou "Nome para o aluno"); local, observação e marca ficam no catálogo do coach. O treino guarda a identidade opaca (`ref`), nunca o id do catálogo: apagar A e cadastrar B igual dá outra identidade, e o histórico de A continua em A. Ao iniciar, a cópia do treino no registro guarda a escala daquele dia: trocar ou editar a máquina depois não muda o passado. Treino antigo sem cópia = "legado": as telas não mostram a máquina do plano nele (`maquinaDesconhecida`). O campo continua em kg: anotar o nível (e as métricas em nível) fica para a #262.
+- **Próximo passo:** carga sugerida por máquina (#262), usando `maquinaUsada`.
 
 ## Modelo
 

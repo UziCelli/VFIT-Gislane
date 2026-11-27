@@ -2,6 +2,9 @@ import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } fr
 import type { Meso, Registros, Slot } from '../../../engine'
 import { Aviso, Botao, campoBase, Cartao, Msg } from '../../../ui'
 import CampoExercicio from './CampoExercicio'
+import SeletorMaquina from '../../catalogo/SeletorMaquina'
+import { useMaquinas } from '../../catalogo/useMaquinas'
+import type { MaquinaTreino } from '../../../engine/aparelho'
 import { ladosDoCadastro } from '../../../lib/catalogoProprio'
 import { doisLados, doisLadosPadrao } from '../../../lib/lados'
 import { comProgressaoIsometrica, agruparTrocas, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, moverExercicio, removerExercicio, removerGrupo, semanasComHistorico, trocarExercicio, type GrupoTroca } from './util'
@@ -16,6 +19,7 @@ export default function TabDivisao({
   registros: Registros
   onAtualizar: (patch: Partial<Meso>) => void
 }) {
+  const maquinas = useMaquinas().lista
   const [aviso, setAviso] = useState<string | null>(null)
   const [hint, setHint] = useState<string | null>(null)
   const [treinoSel, setTreinoSel] = useState(1)
@@ -164,6 +168,17 @@ export default function TabDivisao({
     onAtualizar({ divisao })
   }
 
+  // Máquina do exercício (#261): vale para as próximas vezes que o aluno abrir o treino. Treino já iniciado guarda a
+  // própria cópia (prescricaoRegistrada), então trocar aqui não muda o histórico.
+  function mudarMaquina(t: number, p: number, m: MaquinaTreino | null) {
+    const slot = meso.divisao[t - 1]?.[p - 1]
+    if (!slot) return
+    const { maquina: _, ...resto } = slot
+    const divisao = [...meso.divisao]
+    divisao[t - 1] = meso.divisao[t - 1].map((x, i) => (i === p - 1 ? (m ? { ...resto, maquina: m } : resto) : x))
+    onAtualizar({ divisao })
+  }
+
   const treinos = Array.from({ length: meso.frequencia }, (_, i) => i + 1)
   const posicoes = Array.from({ length: 10 }, (_, i) => i + 1)
 
@@ -238,6 +253,7 @@ export default function TabDivisao({
                     className={`${campoBase} w-20 shrink-0 px-2 py-2 text-center outline-none focus:border-marca-500`}
                   />
                 )}
+                {slot && <SeletorMaquina nome={slot.nome} atual={slot.maquina} maquinas={maquinas} mudar={(m) => mudarMaquina(t, p, m)} className="basis-full pl-[3.5rem]" />}
                 {slot && (
                   <div className="flex basis-full items-center justify-between gap-2 pl-[3.5rem]">
                     <label className="flex min-h-11 items-center gap-2 text-xs text-slate-400">

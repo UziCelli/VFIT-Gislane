@@ -1,12 +1,12 @@
 import type { AplicacaoMetodo, Meso, Sessao } from '../engine/tipos'
 import { z } from 'zod'
 import { copiaVazia, prescreverSessao } from '../engine/sessao'
-import { metodoSchema } from './prescricaoSchema'
+import { maquinaSlotSchema, metodoSchema } from './prescricaoSchema'
 
 const numero = z.number().finite()
 const snapshotSchema = z.object({
   versao: z.literal(1), referenciaHistorica: z.boolean().optional(),
-  sessao: z.object({ semana: z.number().int().min(1).max(12), treino: z.number().int().min(1).max(7), inicioSemana: z.iso.date(), pausaS: numero.min(0).max(3600), series: z.number().int().min(0).max(6), tempoMin: numero.min(0), exercicios: z.array(z.object({ pos: z.number().int().min(1).max(10), slot: z.object({ slotId: z.string().min(1).max(128), nome: z.string().min(1).max(120), pausaS: numero.min(0).max(3600).optional(), doisLados: z.boolean().optional() }), n: z.number().int().min(0).max(6), polimento: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(), folgaPolimento: z.number().int().min(1).max(5).optional(), reps: z.array(numero).max(42), repsBase: z.array(numero.min(0).max(600)).max(6).optional(), rotulo: z.string().max(2000), cargaSugerida: z.array(numero.nullable()).max(42), pausaS: numero.min(0).max(3600), drops: z.array(z.object({ serie: z.number().int().min(1).max(6), etapa: z.number().int().min(1).max(6) })).max(36) })).max(10) }),
+  sessao: z.object({ semana: z.number().int().min(1).max(12), treino: z.number().int().min(1).max(7), inicioSemana: z.iso.date(), pausaS: numero.min(0).max(3600), series: z.number().int().min(0).max(6), tempoMin: numero.min(0), exercicios: z.array(z.object({ pos: z.number().int().min(1).max(10), slot: z.object({ slotId: z.string().min(1).max(128), nome: z.string().min(1).max(120), pausaS: numero.min(0).max(3600).optional(), doisLados: z.boolean().optional(), maquina: maquinaSlotSchema.optional() }), n: z.number().int().min(0).max(6), polimento: z.union([z.literal(0), z.literal(1), z.literal(2)]).optional(), folgaPolimento: z.number().int().min(1).max(5).optional(), reps: z.array(numero).max(42), repsBase: z.array(numero.min(0).max(600)).max(6).optional(), rotulo: z.string().max(2000), cargaSugerida: z.array(numero.nullable()).max(42), pausaS: numero.min(0).max(3600), drops: z.array(z.object({ serie: z.number().int().min(1).max(6), etapa: z.number().int().min(1).max(6) })).max(36) })).max(10) }),
   metodos: z.array(metodoSchema).max(120),
 }).superRefine((p, c) => { if (p.sessao.exercicios.some((e) => e.repsBase && e.repsBase.length !== e.n)) c.addIssue({ code: 'custom', message: 'Séries-base incompatíveis.' }); if (p.metodos.some((m) => m.semana !== p.sessao.semana || m.treino !== p.sessao.treino || m.exercicio > p.sessao.exercicios.length)) c.addIssue({ code: 'custom', message: 'Método fora da sessão.' }) })
 

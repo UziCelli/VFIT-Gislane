@@ -1,13 +1,15 @@
 // Edição do treino do dia no presencial (só o coach). Cada toque grava na hora; o motor é `engine/editarSessao`.
 import { useRef, useState } from 'react'
-import { adicionarExercicio, adicionarMetodo, alternarSerieDropset, iniciarEdicao, removerExercicio, escoposPara, mudarSeries, removerMetodo, serieDoDrop, totalCerto, trocarExercicio } from '../../../engine'
-import type { Escopo, Meso, Metodo, SessaoEditada } from '../../../engine'
+import { adicionarExercicio, adicionarMetodo, alternarSerieDropset, iniciarEdicao, removerExercicio, escoposPara, mudarSeries, removerMetodo, serieDoDrop, totalCerto, trocarExercicio, trocarMaquina } from '../../../engine'
+import type { MaquinaTreino, Escopo, Meso, Metodo, SessaoEditada } from '../../../engine'
 import { COR_METODO } from '../../../data/metodos'
 import { salvarSessaoEditada, voltarAoPlanejado } from '../../../lib/acoes'
 import { IcLapis } from '../../../icones'
 import { Botao, Folha } from '../../../ui'
 import IconeMetodo from '../../metodos/IconeMetodo'
 import CampoExercicio from '../meso/CampoExercicio'
+import SeletorMaquina from '../../catalogo/SeletorMaquina'
+import { useMaquinas } from '../../catalogo/useMaquinas'
 
 export const MAX_EXERCICIOS = 10
 export const DIRETOS: Metodo[] = ['Dropset', 'Rest-pause', 'Clusterset']
@@ -58,6 +60,9 @@ export function EditarExercicio({ meso, mesoId, semana, treino, pos, nome, n, te
             <div className="mb-1 text-sm font-semibold text-slate-300">Trocar exercício</div>
             <CampoExercicio placeholder="Novo exercício" onConfirmar={(t) => aplicar(trocarExercicio(s, pos, t, crypto.randomUUID()), true)} />
           </div>
+          {s.exercicios[pos - 1] && (
+            <MaquinaDeHoje nome={s.exercicios[pos - 1].nome} atual={s.exercicios[pos - 1].maquina} mudar={(m) => aplicar(trocarMaquina(s, pos, m))} />
+          )}
           <div>
             <div className="mb-1 text-sm font-semibold text-slate-300">Métodos</div>
             {nomesAtuais.length > 0 && (
@@ -113,6 +118,12 @@ export function EditarExercicio({ meso, mesoId, semana, treino, pos, nome, n, te
       )}
     </>
   )
+}
+
+// Só com a folha aberta: lê as máquinas do coach uma vez, não em cada cartão do treino.
+function MaquinaDeHoje({ nome, atual, mudar }: { nome: string; atual?: MaquinaTreino; mudar: (m: MaquinaTreino | null) => void }) {
+  const maquinas = useMaquinas().lista
+  return <SeletorMaquina nome={nome} atual={atual} maquinas={maquinas} mudar={mudar} rotulo="Máquina de hoje" />
 }
 
 export function AdicionarExercicio({ meso, mesoId, semana, treino }: Base) {

@@ -2,11 +2,18 @@
 // Firestore: maquinas/{id} = Aparelho (src/engine/aparelho.ts, sem `id`) + { exercicios, por, em }.
 // Não é um segundo catálogo: o modelo e as contas são os de aparelho.ts; aqui só o cadastro, a conferência e o vínculo.
 // Identidade física (tipo + escala: degraus, níveis, plaquinhas, polia, por lado) fica separada de fabricante/modelo,
-// que são só rótulos: duas seletoras do mesmo modelo em academias diferentes são máquinas diferentes (cada uma com o
-// próprio id e, na etapa 7, a própria progressão). O id não muda ao editar: a série gravada (etapa 6) aponta para ele.
+// que são só rótulos: duas seletoras do mesmo modelo em academias diferentes são máquinas diferentes (cada uma com a
+// própria identidade e, na etapa 7, a própria progressão).
+// Identidade: `ref` ('mq-' + 20 letras/números sorteados) é a da máquina física; é a única que vai para o treino do
+// aluno. Nunca vem do nome nem do local, não muda ao editar (as regras proíbem) e não se reaproveita: apagar A e
+// cadastrar B igual sorteia outra. O id do documento também é sorteado ('m-' + 20); cadastros antigos (id com o nome do
+// local) mantêm o id, que fica só no catálogo do coach, e só ganham `ref` numa ação explícita do coach: salvar a
+// edição (validarMaquina) ou escolher a máquina para um treino (SeletorMaquina → garantirRefMaquina). Abrir a tela não grava.
+// Local, observação, fabricante e modelo são do coach: o treino recebe só a projeção de paraSlot.
 // `exercicios` guarda ids do catálogo base (ex.: 'cadeira-extensora') ou de exerciciosProprios ('p-...').
 import { exercicioPorId, resolverExercicio } from '../data/catalogo'
-import { kgDaPilha, problemasAparelho, type Aparelho, type RazaoPolia, type TipoAparelho, type Unidade } from '../engine/aparelho'
+import { kgDaPilha, problemasAparelho, type Aparelho, type MaquinaTreino, type RazaoPolia, type TipoAparelho, type Unidade } from '../engine/aparelho'
+import type { Meso } from '../engine/tipos'
 import { proprioPorNome, proprios } from './catalogoProprio'
 
 export type TipoMaquina = Extract<TipoAparelho, 'maquina' | 'articulada' | 'polia' | 'duasPolias'>
@@ -18,7 +25,8 @@ export const TIPOS_MAQUINA: readonly { id: TipoMaquina; rotulo: string; apoio: s
 ]
 export const LIMITES = { nome: 60, local: 60, rotulo: 40, obs: 200, exercicios: 40, niveis: 40, kg: 500, incremento: 50 } as const
 
-export type Maquina = Aparelho & { exercicios: string[] }
+// `ref` falta só em cadastro antigo ainda não lido pelo coach; `rotuloAluno` = como o aluno vê (vazio = o nome).
+export type Maquina = Aparelho & { exercicios: string[]; ref?: string; rotuloAluno?: string }
 export type DocMaquina = Omit<Maquina, 'id'> & { por?: string }
 
 // O que a tela entrega (números já lidos; vazio = undefined).
@@ -39,12 +47,12 @@ export interface EntradaMaquina {
   polia?: RazaoPolia
   porLado: boolean
   obs?: string
+  rotuloAluno?: string
   exercicios: string[]
 }
 
 const chave = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim()
 const limpar = (s = '') => s.replace(/\s+/g, ' ').trim()
-const slug = (s: string) => chave(s).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 
 // "2,5" ou "2.5" → 2.5; vazio ou inválido → undefined.
 export const lerNumero = (t: string): number | undefined => {
@@ -60,19 +68,22 @@ export const lerPlaquinhas = (t: string): number[] | null => {
   return nums.every((n): n is number => n != null) ? nums : null
 }
 
-export const idDaMaquina = (local: string, nome: string, ocupados: ReadonlySet<string>) => {
-  const raiz = `m-${slug(`${local} ${nome}`).slice(0, 70).replace(/-+$/, '') || 'maquina'}`
-  let id = raiz
-  for (let n = 2; ocupados.has(id); n++) id = `${raiz}-${n}`
-  return id
+// 20 letras/números sorteados (~103 bits): sem relação com nome, local ou ordem de cadastro.
+export function sorteio(n = 20): string {
+  const b = new Uint8Array(n)
+  crypto.getRandomValues(b)
+  return Array.from(b, (x) => '0123456789abcdefghijklmnopqrstuvwxyz'[x % 36]).join('')
 }
+export const novaRef = () => `mq-${sorteio()}`
+export const novoIdMaquina = () => `m-${sorteio()}`
 
 // Id do exercício para o vínculo: catálogo base ou cadastrado pelo coach. Texto livre: null (não vincula).
 export const idDoExercicio = (nome: string) => resolverExercicio(nome)?.id ?? proprioPorNome(nome)?.id ?? null
 export const nomeDoExercicio = (id: string) => exercicioPorId(id)?.nome ?? proprios().find((p) => p.id === id)?.nome ?? null
 
-// Confere e monta o documento. `idAtual` = editando (o id não muda). Recusa a mesma máquina (nome + local) duas vezes.
-export function validarMaquina(e: EntradaMaquina, existentes: readonly Maquina[], por: string, idAtual?: string) {
+// Confere e monta o documento. `idAtual` = editando (id e ref não mudam). Recusa a mesma máquina (nome + local) duas
+// vezes entre as cadastradas; uma apagada não conta e a nova recebe outra identidade.
+export function validarMaquina(e: EntradaMaquina, existentes: readonly Maquina[], por: string, idAtual?: string, gerar = { id: novoIdMaquina, ref: novaRef }) {
   const nome = limpar(e.nome)
   const local = limpar(e.local)
   if (nome.length < 2) return { erro: 'Escreva o nome da máquina (ex.: Cadeira Extensora).' } as const
@@ -94,6 +105,7 @@ export function validarMaquina(e: EntradaMaquina, existentes: readonly Maquina[]
   opcional('fabricante', e.fabricante, LIMITES.rotulo)
   opcional('modelo', e.modelo, LIMITES.rotulo)
   opcional('obs', e.obs, LIMITES.obs)
+  opcional('rotuloAluno', e.rotuloAluno, LIMITES.rotulo)
   if (e.tipo === 'polia' || e.tipo === 'duasPolias') dados.polia = e.polia ?? '1:1'
 
   if (e.unidade === 'kg') {
@@ -120,8 +132,11 @@ export function validarMaquina(e: EntradaMaquina, existentes: readonly Maquina[]
   // A mesma conferência do motor (problemasAparelho): o que passar aqui as contas sabem usar.
   const problemas = problemasAparelho({ id: idAtual ?? 'novo', ...dados })
   if (problemas.length) return { erro: `Confira: ${problemas.join(', ')}.` } as const
-  const id = idAtual ?? idDaMaquina(local, nome, new Set(existentes.map((m) => m.id)))
-  return { id, dados: { ...dados, por: limpar(por).slice(0, 80) || 'Coach' } as DocMaquina } as const
+  const ocupados = new Set(existentes.map((m) => m.id))
+  let id = idAtual
+  while (!id || (!idAtual && ocupados.has(id))) id = gerar.id()
+  const ref = (idAtual && existentes.find((m) => m.id === idAtual)?.ref) || gerar.ref()
+  return { id, dados: { ...dados, ref, por: limpar(por).slice(0, 80) || 'Coach' } as DocMaquina } as const
 }
 
 // Documento lido → máquina. Campos fora do modelo ficam de fora.
@@ -134,7 +149,7 @@ export const deDoc = (d: DocMaquina & { id: string }): Maquina => {
 export function paraEntrada(m: Maquina): EntradaMaquina & { pilhaIrregular: boolean } {
   const base = {
     nome: m.nome, local: m.local, tipo: m.tipo as TipoMaquina, fabricante: m.fabricante, modelo: m.modelo, unidade: m.unidade,
-    polia: m.polia, porLado: !!m.porLado, obs: m.obs, exercicios: m.exercicios,
+    polia: m.polia, porLado: !!m.porLado, obs: m.obs, rotuloAluno: m.rotuloAluno, exercicios: m.exercicios,
   }
   if (m.unidade === 'kg') return { ...base, incremento: m.incremento, minimo: m.minimo, maximo: m.maximo, complementos: m.complementos, pilhaIrregular: false }
   const kg = m.kgNivel ?? []
@@ -182,4 +197,62 @@ export function locais(lista: readonly Maquina[]): string[] {
   const n = new Map<string, number>()
   for (const m of lista) n.set(m.local, (n.get(m.local) ?? 0) + 1)
   return [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR')).map(([l]) => l)
+}
+
+// ---- Máquina no treino (#261) ----
+
+// Projeção que vai para o exercício do treino: identidade opaca, rótulo do aluno e a escala daquele momento. Lista
+// explícita (não "tudo menos"): local, obs, fabricante, modelo, id do catálogo e exercícios nunca entram, nem se um
+// campo novo for criado no catálogo. O aluno lê só esta cópia (não lê `maquinas`); editar depois não muda o treino.
+// Sem `ref` (cadastro antigo ainda não atualizado): null, não vai para o treino.
+export function paraSlot(m: Maquina): MaquinaTreino | null {
+  if (!m.ref) return null
+  const p: Record<string, unknown> = { ref: m.ref, nome: m.rotuloAluno || m.nome, tipo: m.tipo, unidade: m.unidade }
+  const campos = m.unidade === 'kg' ? (['incremento', 'minimo', 'maximo', 'complementos'] as const) : (['niveis', 'kgNivel'] as const)
+  for (const k of [...campos, 'polia', 'porLado'] as const) {
+    const v = (m as unknown as Record<string, unknown>)[k]
+    if (v !== undefined) p[k] = Array.isArray(v) ? [...v] : v
+  }
+  return p as MaquinaTreino
+}
+
+// A cópia do exercício ainda é igual à máquina do catálogo? (false = escala ou rótulo mudou; escolher de novo atualiza.)
+export const mesmaEscala = (copia: MaquinaTreino, atual: Maquina) => {
+  const p = paraSlot(atual)
+  return !!p && JSON.stringify(ordenar(copia)) === JSON.stringify(ordenar(p))
+}
+// Máquina do catálogo que corresponde à cópia (pela identidade opaca).
+export const daCopia = (lista: readonly Maquina[], copia?: MaquinaTreino) => (copia ? lista.find((m) => m.ref === copia.ref) : undefined)
+const ordenar = (o: object) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)))
+
+// Máquina usada num treino já registrado, só pela cópia gravada no registro ao iniciar (prescricaoRegistrada).
+// - { maquina }: a escala daquele dia; null = treino registrado sem máquina nesse exercício.
+// - 'legado': sem cópia gravada (treino antigo, de antes desta etapa, ou cópia reconstruída): NÃO se atribui
+//   máquina por inferência (nem pela máquina atual do plano).
+// Ajuste presencial do dia (sessoes[chave], gravado com prescricoesRegistradas[chave] = null): é a escolha explícita
+// do coach para aquele treino e vale como fonte confiável, também se a máquina foi trocada depois do início.
+export function maquinaUsada(meso: Pick<Meso, 'prescricoesRegistradas' | 'sessoes'>, semana: number, treino: number, slotId: string): { maquina: MaquinaTreino | null } | 'legado' {
+  const slots = slotsConfiaveis(meso, semana, treino)
+  const s = slots?.find((x) => x.slotId === slotId)
+  return s ? { maquina: s.maquina ?? null } : 'legado'
+}
+
+function slotsConfiaveis(meso: Pick<Meso, 'prescricoesRegistradas' | 'sessoes'>, semana: number, treino: number) {
+  const chave = `${semana}-${treino}`
+  const p = meso.prescricoesRegistradas?.[chave]
+  if (p === null && meso.sessoes?.[chave]) return meso.sessoes[chave].exercicios
+  return p && !p.referenciaHistorica ? p.sessao.exercicios.map((e) => e.slot) : null
+}
+
+// Linha curta no treino (aluno e coach): só o rótulo da projeção, sem local. Ainda não pede para anotar o nível:
+// o treino, as métricas e a carga anterior só entendem kg; a anotação em nível vem com a carga por máquina (#262).
+export const textoMaquina = (m: MaquinaTreino) => m.nome
+// Só no catálogo do coach (seletor): "Cadeira Extensora · Academia Centro".
+export const textoCatalogo = (m: Maquina) => `${m.nome} · ${m.local}`
+
+// Treino já registrado (com carga, reps, início ou feito) sem cópia confiável: a máquina daquele dia é desconhecida.
+// A tela não mostra a máquina do plano atual nele (seria atribuir por inferência). Sem registro, vale o plano.
+export function maquinaDesconhecida(meso: Pick<Meso, 'prescricoesRegistradas' | 'sessoes'>, semana: number, treino: number, registro?: { cargas?: object; reps?: object; realizado?: boolean; inicioEm?: unknown } | null): boolean {
+  const registrada = !!registro && (!!registro.realizado || registro.inicioEm != null || Object.keys(registro.cargas ?? {}).length > 0 || Object.keys(registro.reps ?? {}).length > 0)
+  return registrada && !slotsConfiaveis(meso, semana, treino)
 }

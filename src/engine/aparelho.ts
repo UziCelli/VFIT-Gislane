@@ -41,6 +41,11 @@ export interface AparelhoNivel extends AparelhoBase {
 
 export type Aparelho = AparelhoKg | AparelhoNivel
 
+// O que vai para o treino do aluno (#261): só a escala e um rótulo. Sem `local`, `obs`, fabricante/modelo nem o id do
+// catálogo (que é do coach). `ref` = identidade opaca da máquina física, nunca reaproveitada; `nome` = rótulo do aluno.
+type SemPrivado<T> = T extends unknown ? Omit<T, 'id' | 'local' | 'obs' | 'fabricante' | 'modelo'> : never
+export type MaquinaTreino = SemPrivado<Aparelho> & { ref: string }
+
 const TIPOS: readonly TipoAparelho[] = ['halter', 'barra', 'maquina', 'articulada', 'polia', 'duasPolias']
 const arred = (x: number) => Math.round(x * 1000) / 1000
 const positivo = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x) && x > 0

@@ -341,8 +341,10 @@ service cloud.firestore {
         && request.resource.data.em == request.time;
     }
 
-    // Máquinas do coach (catálogo, #260): maquinas/{id}. Só o coach com 2º fator lê, cria, edita e apaga. O id não muda
-    // ao editar (a série vai apontar para ele, #261). Modelo = Aparelho de src/engine/aparelho.ts; conferência completa
+    // Máquinas do coach (catálogo, #260): maquinas/{id}. Só o coach com 2º fator lê, cria, edita e apaga. Local e obs
+    // ficam só aqui: o treino do aluno recebe uma projeção sem eles (#261). `ref` = identidade opaca da máquina física
+    // ('mq-' + 20 sorteados): obrigatória ao criar; numa edição, a que já existe não muda (cadastro antigo sem ref pode
+    // ganhar uma). Modelo = Aparelho de src/engine/aparelho.ts; conferência completa
     // em src/lib/maquinas.ts (validarMaquina + problemasAparelho). Aqui: formato, tipos e limites (iguais a LIMITES).
     function textoAte(v, min, max) {
       return v is string && v.size() >= min && v.size() <= max;
@@ -366,11 +368,13 @@ service cloud.firestore {
     }
     function maquinaValida(d) {
       return d.keys().hasOnly(['nome', 'local', 'tipo', 'fabricante', 'modelo', 'unidade', 'incremento', 'minimo', 'maximo',
-          'complementos', 'niveis', 'kgNivel', 'polia', 'porLado', 'obs', 'exercicios', 'por', 'em'])
+          'complementos', 'niveis', 'kgNivel', 'polia', 'porLado', 'obs', 'rotuloAluno', 'ref', 'exercicios', 'por', 'em'])
         && d.keys().hasAll(['nome', 'local', 'tipo', 'unidade', 'porLado', 'exercicios', 'por', 'em'])
         && textoAte(d.nome, 2, 60) && textoAte(d.local, 1, 60)
         && d.tipo in ['maquina', 'articulada', 'polia', 'duasPolias']
         && opcionalTexto(d, 'fabricante', 40) && opcionalTexto(d, 'modelo', 40) && opcionalTexto(d, 'obs', 200)
+        && opcionalTexto(d, 'rotuloAluno', 40)
+        && d.ref is string && d.ref.matches('mq-[a-z0-9]{20}')
         && (!('polia' in d) || (d.polia in ['1:1', '2:1'] && d.tipo in ['polia', 'duasPolias']))
         && (maquinaKg(d) || maquinaNivel(d))
         && d.porLado is bool
@@ -380,7 +384,9 @@ service cloud.firestore {
     }
     match /maquinas/{id} {
       allow read, delete: if isCoach();
-      allow create, update: if isCoach() && id.matches('m-[a-z0-9-]{1,78}') && maquinaValida(request.resource.data);
+      allow create: if isCoach() && id.matches('m-[a-z0-9-]{1,78}') && maquinaValida(request.resource.data);
+      allow update: if isCoach() && maquinaValida(request.resource.data)
+        && (!('ref' in resource.data) || request.resource.data.ref == resource.data.ref);
     }
 
     // Vídeos privados do treino (#253): midias/{id}. O arquivo fica no Worker (push/, docs/plano-videos.md); aqui só o

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { problemasAparelho, sugestaoNoAparelho, type AparelhoNivel } from '../engine/aparelho'
 import { definirProprios } from './catalogoProprio'
 import {
-  deDoc, idDaMaquina, idDoExercicio, lerNumero, lerPlaquinhas, locais, maquinasDoExercicio, paraEntrada, porExercicio,
+  deDoc, idDoExercicio, lerNumero, lerPlaquinhas, locais, maquinasDoExercicio, paraEntrada, porExercicio,
   resumoEscala, validarMaquina, type EntradaMaquina, type Maquina,
 } from './maquinas'
 
@@ -24,7 +24,8 @@ const comoLida = (r: ReturnType<typeof ok>) => deDoc({ ...r.dados, id: r.id })
 describe('validarMaquina', () => {
   it('nível com pilha: gera o kg de cada nível e passa na conferência do motor', () => {
     const r = ok(nivel)
-    expect(r.id).toBe('m-academia-centro-cadeira-extensora')
+    expect(r.id).toMatch(/^m-[a-z0-9]{20}$/)
+    expect(r.dados.ref).toMatch(/^mq-[a-z0-9]{20}$/)
     expect(r.dados).toMatchObject({ nome: 'Cadeira Extensora', unidade: 'nivel', niveis: 12, por: 'Gislane' })
     expect((r.dados as unknown as { kgNivel: number[] }).kgNivel).toEqual([5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60])
     const m = comoLida(r)
@@ -39,8 +40,8 @@ describe('validarMaquina', () => {
   })
 
   it('kg: degrau, plaquinhas, polia 2:1 e por lado; sem campos vazios no documento', () => {
-    const r = ok({ ...kg, obs: '  ', minimo: undefined })
-    expect(r.dados).toEqual({
+    const r = ok({ ...kg, obs: '  ', rotuloAluno: ' ', minimo: undefined })
+    expect(r.dados).toEqual({ ref: r.dados.ref,
       nome: 'Crossover', local: 'Academia Centro', tipo: 'duasPolias', unidade: 'kg', incremento: 5, maximo: 100,
       complementos: [0.625, 0.625], polia: '2:1', porLado: true, fabricante: 'Life Fitness', modelo: 'G7', exercicios: [], por: 'Gislane',
     })
@@ -68,14 +69,17 @@ describe('validarMaquina', () => {
   it('mesma máquina no mesmo local: recusa; em outro local ou editando a própria: aceita', () => {
     const lista = [comoLida(ok(nivel))]
     expect(validarMaquina({ ...nivel, nome: 'cadeira extensora' }, lista, 'G')).toEqual({ erro: 'Já existe: Cadeira Extensora em Academia Centro.' })
-    expect(ok({ ...nivel, local: 'Condomínio X' }, lista).id).toBe('m-condominio-x-cadeira-extensora')
-    expect(ok({ ...nivel, niveis: 10 }, lista, lista[0].id).id).toBe(lista[0].id) // editar não troca o id
+    expect(ok({ ...nivel, local: 'Condomínio X' }, lista).id).not.toBe(lista[0].id)
+    const editada = ok({ ...nivel, niveis: 10 }, lista, lista[0].id)
+    expect([editada.id, editada.dados.ref]).toEqual([lista[0].id, lista[0].ref]) // editar não troca id nem ref
   })
 
-  it('id que já existe ganha número (pontuação diferente, mesmo id)', () => {
-    expect(idDaMaquina('Academia', 'Remada (Alta)', new Set(['m-academia-remada-alta']))).toBe('m-academia-remada-alta-2')
-    expect(idDaMaquina('', '!!', new Set())).toBe('m-maquina')
-    expect(idDaMaquina('a'.repeat(60), 'b'.repeat(60), new Set())).toMatch(/^m-[a-z0-9-]{1,78}$/)
+  it('id sorteado que já existe é sorteado de novo; rótulo do aluno é opcional e limitado', () => {
+    const fila = ['m-ocupado', 'm-livre']
+    const r = validarMaquina(nivel, [{ ...comoLida(ok(nivel)), id: 'm-ocupado', nome: 'Outra' }], 'G', undefined, { id: () => fila.shift()!, ref: () => 'mq-' + 'c'.repeat(20) })
+    expect('erro' in r ? r : r.id).toBe('m-livre')
+    expect(ok({ ...nivel, rotuloAluno: '  Extensora  2 ' }).dados.rotuloAluno).toBe('Extensora 2')
+    expect(ok({ ...nivel, rotuloAluno: 'x'.repeat(50) }).dados.rotuloAluno).toHaveLength(40)
   })
 })
 

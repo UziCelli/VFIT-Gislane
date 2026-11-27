@@ -4,7 +4,7 @@ import { Aviso, Botao, campoBase, Cartao, Msg } from '../../../ui'
 import CampoExercicio from './CampoExercicio'
 import SeletorMaquina from '../../catalogo/SeletorMaquina'
 import { useMaquinas } from '../../catalogo/useMaquinas'
-import type { Aparelho } from '../../../engine/aparelho'
+import type { MaquinaTreino } from '../../../engine/aparelho'
 import { ladosDoCadastro } from '../../../lib/catalogoProprio'
 import { doisLados, doisLadosPadrao } from '../../../lib/lados'
 import { comProgressaoIsometrica, agruparTrocas, aplicarAdicao, aplicarTroca, copiarTreino, grupoTemCarga, moverExercicio, removerExercicio, removerGrupo, semanasComHistorico, trocarExercicio, type GrupoTroca } from './util'
@@ -170,7 +170,7 @@ export default function TabDivisao({
 
   // Máquina do exercício (#261): vale para as próximas vezes que o aluno abrir o treino. Treino já iniciado guarda a
   // própria cópia (prescricaoRegistrada), então trocar aqui não muda o histórico.
-  function mudarMaquina(t: number, p: number, m: Aparelho | null) {
+  function mudarMaquina(t: number, p: number, m: MaquinaTreino | null) {
     const slot = meso.divisao[t - 1]?.[p - 1]
     if (!slot) return
     const { maquina: _, ...resto } = slot

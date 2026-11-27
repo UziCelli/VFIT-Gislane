@@ -1,11 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
-import { criarCoach, lerDoc, limparEmuladores } from './seed'
+import { criarCoach, lerDoc, limparEmuladores, listarDocs } from './seed'
 
 // Máquinas (#260), com dados sintéticos no emulador e tela de celular (390 × 844):
 // Catálogo → Máquinas → cadastrar seletora em nível ligada a um exercício → editar → o catálogo mostra a máquina.
 // PRINT_CATALOGO=<pasta> salva as capturas.
 const COACH = { nome: 'Gislane', email: 'gislane.maquinas@teste.com', senha: 'senha123' }
-const ID = 'm-academia-teste-cadeira-extensora'
+let ID = '' // sorteado ao cadastrar (não vem do nome nem do local)
+let REF = ''
 
 // lerDoc devolve o formato REST: { fields: { campo: { integerValue | arrayValue ... } } }.
 const campo = (d: Record<string, unknown> | null, k: string) => (d?.fields as Record<string, any> | undefined)?.[k]
@@ -34,7 +35,7 @@ test('máquinas: cadastro em nível, vínculo com exercício e edição sem troc
 
   await test.step('cadastro: seletora em nível, pilha 5 + 5 kg, ligada à Cadeira Extensora', async () => {
     await page.getByRole('button', { name: 'Adicionar máquina' }).click()
-    await page.getByLabel('Nome').fill('Cadeira Extensora')
+    await page.getByLabel('Nome', { exact: true }).fill('Cadeira Extensora')
     await page.getByLabel('Onde fica').fill('Academia Teste')
     await page.getByLabel('Marca (opcional)').fill('Movement')
     await page.getByLabel('Níveis').fill('12')
@@ -47,12 +48,18 @@ test('máquinas: cadastro em nível, vínculo com exercício e edição sem troc
     await page.getByRole('button', { name: 'Salvar' }).click()
     await expect(page.getByText('Cadastrada: Cadeira Extensora')).toBeVisible()
     await expect(page.getByText('12 níveis · nível 1 ≈ 5 kg, +5 por nível')).toBeVisible()
+    await expect.poll(async () => (await listarDocs('maquinas')).length, { timeout: 10_000 }).toBe(1)
+    const [d] = await listarDocs('maquinas') as { name: string; fields: Record<string, any> }[]
+    ID = d.name.split('/').pop()!
+    REF = d.fields.ref?.stringValue
+    expect(ID).toMatch(/^m-[a-z0-9]{20}$/)
+    expect(REF).toMatch(/^mq-[a-z0-9]{20}$/)
     await expect.poll(async () => campo(await lerDoc(`maquinas/${ID}`), 'kgNivel')?.arrayValue?.values?.length, { timeout: 10_000 }).toBe(12)
   })
 
   await test.step('duplicata no mesmo local é recusada', async () => {
     await page.getByRole('button', { name: 'Adicionar máquina' }).click()
-    await page.getByLabel('Nome').fill('cadeira extensora')
+    await page.getByLabel('Nome', { exact: true }).fill('cadeira extensora')
     await page.getByLabel('Onde fica').fill('Academia Teste')
     await page.getByLabel('Níveis').fill('10')
     await page.getByRole('button', { name: 'Salvar' }).click()
@@ -66,6 +73,7 @@ test('máquinas: cadastro em nível, vínculo com exercício e edição sem troc
     await page.getByRole('button', { name: 'Salvar' }).click()
     await expect(page.getByText('15 níveis · nível 1 ≈ 5 kg, +5 por nível')).toBeVisible()
     await expect.poll(async () => campo(await lerDoc(`maquinas/${ID}`), 'niveis')?.integerValue, { timeout: 10_000 }).toBe('15')
+    expect(campo(await lerDoc(`maquinas/${ID}`), 'ref')?.stringValue).toBe(REF)
     await print(page, '6-maquinas-lista')
   })
 

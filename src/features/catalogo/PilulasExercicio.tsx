@@ -1,7 +1,7 @@
 // Pílulas embaixo do nome do exercício: equipamento, lados e modo (src/lib/pilulas.ts).
 // Neutras (sem cor de método): só apoio visual; o texto vai junto do ícone.
 import { IcAlternado, IcAnilha, IcArticulada, IcBarra, IcBola, IcDuasPolias, IcElastico, IcExcentrico, IcHaltere, IcHalteres, IcKettlebell, IcPessoa, IcPolia, IcRelogio, IcSeletora, IcSmith, IcUnilateral, type Icone } from '../../icones'
-import type { Aparelho } from '../../engine/aparelho'
+import type { Aparelho, MaquinaTreino } from '../../engine/aparelho'
 import { textoMaquina } from '../../lib/maquinas'
 import { pilulasDo, type IdPilula, type Pilula } from '../../lib/pilulas'
 
@@ -36,9 +36,9 @@ export function ListaPilulas({ pilulas: ps, className = '' }: { pilulas: Pilula[
   )
 }
 
-// Máquina do exercício neste treino (#261): nome, local e, em nível, o lembrete de anotar o nível.
+// Máquina do exercício neste treino (#261): só o rótulo da projeção (sem local).
 const ICONE_MAQUINA: Record<Aparelho['tipo'], Icone> = { maquina: IcSeletora, articulada: IcArticulada, polia: IcPolia, duasPolias: IcDuasPolias, halter: IcHaltere, barra: IcBarra }
-export function LinhaMaquina({ maquina, className = '' }: { maquina?: Aparelho; className?: string }) {
+export function LinhaMaquina({ maquina, className = '' }: { maquina?: MaquinaTreino; className?: string }) {
   if (!maquina) return null
   const Ic = ICONE_MAQUINA[maquina.tipo]
   return (

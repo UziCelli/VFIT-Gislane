@@ -2000,14 +2000,16 @@ describe('exerciciosProprios', () => {
 
 // Máquinas do coach (catálogo, #260): maquinas/{id}. Só o coach com 2º fator; edita mantendo o id.
 describe('maquinas', () => {
+  const REF_A = 'mq-aaaaaaaaaaaaaaaaaaa1';
+  const REF_B = 'mq-bbbbbbbbbbbbbbbbbbb2';
   const maq = (uid: string | undefined, id = 'm-academia-cadeira-extensora') => doc(db(uid), 'maquinas', id);
   const nivel = (extra: object = {}) => ({
     nome: 'Cadeira Extensora', local: 'Academia', tipo: 'maquina', unidade: 'nivel', niveis: 12, kgNivel: [5, 10, 15],
-    porLado: false, exercicios: ['cadeira-extensora-tradicional'], por: 'Gislane', em: serverTimestamp(), ...extra,
+    porLado: false, exercicios: ['cadeira-extensora-tradicional'], ref: REF_A, por: 'Gislane', em: serverTimestamp(), ...extra,
   });
   const kg = (extra: object = {}) => ({
     nome: 'Crossover', local: 'Academia', tipo: 'duasPolias', unidade: 'kg', incremento: 5, maximo: 100, complementos: [0.625, 0.625],
-    polia: '2:1', porLado: true, fabricante: 'Life Fitness', modelo: 'G7', obs: 'Torre da esquerda', exercicios: [], por: 'Gislane',
+    polia: '2:1', porLado: true, fabricante: 'Life Fitness', modelo: 'G7', obs: 'Torre da esquerda', exercicios: [], ref: REF_B, por: 'Gislane',
     em: serverTimestamp(), ...extra,
   });
 
@@ -2018,7 +2020,7 @@ describe('maquinas', () => {
     await assertSucceeds(getDocs(collection(db('coach'), 'maquinas')));
     await assertSucceeds(setDoc(maq('coach'), nivel({ niveis: 15 })));
     // Troca de nível para kg: setDoc inteiro, sem sobrar campo do modo anterior.
-    const { polia: _p, ...seletoraKg } = kg({ nome: 'Cadeira Extensora', tipo: 'maquina' }) as Record<string, unknown>;
+    const { polia: _p, ...seletoraKg } = kg({ nome: 'Cadeira Extensora', tipo: 'maquina', ref: REF_A }) as Record<string, unknown>;
     await assertSucceeds(setDoc(maq('coach'), seletoraKg));
     await assertSucceeds(deleteDoc(maq('coach')));
   });
@@ -2045,6 +2047,31 @@ describe('maquinas', () => {
     await assertFails(setDoc(maq('coach'), nivel({ exercicios: Array.from({ length: 41 }, (_, i) => `e${i}`) })));
     await assertFails(setDoc(maq('coach'), nivel({ alunoId: 'ana' })));
     await assertFails(setDoc(maq('coach'), nivel({ em: passado })));
+    await assertFails(setDoc(maq('coach'), nivel({ rotuloAluno: '' })));
+    await assertFails(setDoc(maq('coach'), nivel({ rotuloAluno: 'x'.repeat(41) })));
+    await assertSucceeds(setDoc(maq('coach'), nivel({ rotuloAluno: 'Extensora 2' })));
+  });
+
+  it('ref opaca: obrigatória ao criar, com formato, e não muda ao editar', async () => {
+    const { ref: _r, ...semRef } = nivel() as Record<string, unknown>;
+    await assertFails(setDoc(maq('coach', 'm-nova'), semRef));
+    await assertFails(setDoc(maq('coach', 'm-nova'), nivel({ ref: 'mq-curta' })));
+    await assertFails(setDoc(maq('coach', 'm-nova'), nivel({ ref: 'm-academia-cadeira-extensora' })));
+    await assertSucceeds(setDoc(maq('coach', 'm-nova'), nivel()));
+    await assertFails(setDoc(maq('coach', 'm-nova'), nivel({ ref: REF_B })));
+    await assertFails(updateDoc(maq('coach', 'm-nova'), { ref: REF_B, em: serverTimestamp() }));
+    await assertFails(updateDoc(maq('coach', 'm-nova'), { ref: deleteField(), em: serverTimestamp() }));
+    await assertSucceeds(setDoc(maq('coach', 'm-nova'), nivel({ niveis: 15 })));
+  });
+
+  it('cadastro antigo sem ref ganha uma (uma vez)', async () => {
+    const { ref: _r, ...antigo } = nivel() as Record<string, unknown>;
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore() as unknown as Firestore, 'maquinas', 'm-academia-antiga'), { ...antigo, em: Timestamp.now() }),
+    );
+    await assertFails(updateDoc(maq('coach', 'm-academia-antiga'), { niveis: 13, em: serverTimestamp() })); // edição sem ref
+    await assertSucceeds(updateDoc(maq('coach', 'm-academia-antiga'), { ref: REF_A, em: serverTimestamp() }));
+    await assertFails(updateDoc(maq('coach', 'm-academia-antiga'), { ref: REF_B, em: serverTimestamp() }));
   });
 
   it('coach sem 2º fator, aluno e anônimo: nada', async () => {

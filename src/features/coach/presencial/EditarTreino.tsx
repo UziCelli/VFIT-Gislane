@@ -1,7 +1,7 @@
 // Edição do treino do dia no presencial (só o coach). Cada toque grava na hora; o motor é `engine/editarSessao`.
 import { useRef, useState } from 'react'
 import { adicionarExercicio, adicionarMetodo, alternarSerieDropset, iniciarEdicao, removerExercicio, escoposPara, mudarSeries, removerMetodo, serieDoDrop, totalCerto, trocarExercicio, trocarMaquina } from '../../../engine'
-import type { Aparelho, Escopo, Meso, Metodo, SessaoEditada } from '../../../engine'
+import type { MaquinaTreino, Escopo, Meso, Metodo, SessaoEditada } from '../../../engine'
 import { COR_METODO } from '../../../data/metodos'
 import { salvarSessaoEditada, voltarAoPlanejado } from '../../../lib/acoes'
 import { IcLapis } from '../../../icones'
@@ -121,7 +121,7 @@ export function EditarExercicio({ meso, mesoId, semana, treino, pos, nome, n, te
 }
 
 // Só com a folha aberta: lê as máquinas do coach uma vez, não em cada cartão do treino.
-function MaquinaDeHoje({ nome, atual, mudar }: { nome: string; atual?: Aparelho; mudar: (m: Aparelho | null) => void }) {
+function MaquinaDeHoje({ nome, atual, mudar }: { nome: string; atual?: MaquinaTreino; mudar: (m: MaquinaTreino | null) => void }) {
   const maquinas = useMaquinas().lista
   return <SeletorMaquina nome={nome} atual={atual} maquinas={maquinas} mudar={mudar} rotulo="Máquina de hoje" />
 }

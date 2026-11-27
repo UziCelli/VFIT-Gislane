@@ -6,9 +6,9 @@ import type { Usuario } from '../../../lib/acesso'
 import { db } from '../../../lib/firebase'
 import { useDoc, useLista } from '../../../lib/hooks'
 import { IcMais, IcSair } from '../../../icones'
-import { Botao, Campo } from '../../../ui'
+import { Botao, Campo, mexe, sobe } from '../../../ui'
 import { casar, ir, posicaoNaPilha, rotaAnterior, trocarRota, voltarAte } from '../../../rota'
-import { agil } from '../../../movimento'
+import { agil, suave } from '../../../movimento'
 import Hoje from '../../aluno/Hoje'
 import Treino from '../../aluno/Treino'
 
@@ -175,7 +175,7 @@ export function EscolherAluno({ titulo = 'Adicionar aluno', excluir = [], onEsco
   )
   return (
     <div className="fixed inset-0 z-40 flex items-end bg-black/60" onClick={onFechar}>
-      <div role="dialog" aria-label="Escolher aluno" className="mx-auto max-h-[80dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-slate-900 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+      <m.div initial={{ opacity: 0, ...mexe('translateY(48px)') }} animate={sobe} transition={suave} role="dialog" aria-label="Escolher aluno" className="mx-auto max-h-[80dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-slate-900 p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
         <h2 className="mb-2 text-base font-bold">{titulo}</h2>
         {dados.length > 5 && <Campo rotulo="Buscar" placeholder="Nome do aluno" value={busca} onChange={(e) => setBusca(e.target.value)} />}
         {topo.length > 0 && (
@@ -187,7 +187,7 @@ export function EscolherAluno({ titulo = 'Adicionar aluno', excluir = [], onEsco
         )}
         {lista.length === 0 && <p className="py-4 text-sm text-slate-400">{termo ? 'Nenhum aluno com esse nome.' : 'Nenhum outro aluno.'}</p>}
         {lista.map(linha)}
-      </div>
+      </m.div>
     </div>
   )
 }

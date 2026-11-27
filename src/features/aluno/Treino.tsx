@@ -448,7 +448,9 @@ function FestaRecorde({ festa, quieto, fechar }: { festa: Festa; quieto: boolean
       style={topo == null ? undefined : { top: topo }}
       initial={{ opacity: 0, ...mexe('translateY(24px) scale(0.92)') }}
       animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
-      exit={{ opacity: 0, ...mexe('translateY(-32px) scale(1)'), transition: suave }}
+      // `custom` = n do aviso em cena: se já é outro (recorde seguido), o antigo some na hora, sem sobrepor o novo.
+      variants={{ sai: (n?: number) => (n != null && n !== festa.n ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, ...mexe('translateY(-32px) scale(1)'), transition: suave }) }}
+      exit="sai"
       transition={elastico}
       className="pointer-events-none fixed inset-x-4 top-[calc(env(safe-area-inset-top)+25vh)] z-40 mx-auto max-w-sm text-center [text-shadow:0_2px_16px_rgb(2_6_23/0.9)]"
     >
@@ -1110,7 +1112,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         ? <p className="mb-3 text-sm text-slate-400">Sem iniciar: as cargas ficam salvas, mas o treino não conta como feito.</p>
         : <p className="mb-3 text-sm text-amber-300">{pedirAnamnese ? 'Responda a anamnese para liberar o treino.' : 'Toque em Iniciar treino para anotar as cargas.'}</p>)}
       {coach && an.travar && <p role="status" className="mb-3 text-sm text-amber-300">{t.anamnesePendente} <a href={`#/aluno/${uid}/anamnese`} className="font-semibold underline">Ver anamnese</a></p>}
-      <AnimatePresence>{festa && <FestaRecorde key={festa.n} festa={festa} quieto={quieto} fechar={fecharFesta} />}</AnimatePresence>
+      <AnimatePresence custom={festa?.n}>{festa && <FestaRecorde key={festa.n} festa={festa} quieto={quieto} fechar={fecharFesta} />}</AnimatePresence>
       <NotaMetodos metodos={notaInicial} />
       <AnimatePresence>{explicar && <ExplicacaoMetodo metodo={explicar} fechar={() => setExplicar(null)} />}</AnimatePresence>
       <AnimatePresence>{fisioAberto && metodoFisio(fisioAberto.metodoId) && (

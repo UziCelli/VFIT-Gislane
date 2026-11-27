@@ -5,9 +5,13 @@ import { IcSeta } from '../../icones'
 import { dataBR, fmtDeltaUn, fmtMedida, nomeFonte, type Grupo, type Linha, type RelatorioAvaliacao, type ResultadoSegmento, type Seta, type Tom } from '../../lib/avaliacao'
 import { textoCarga } from '../../lib/segmentos'
 import { cascata, item, Painel } from '../../ui'
+import { suave } from '../../movimento'
 import BotaoCompartilhar from '../evolucao/BotaoCompartilhar'
 import CorpoSvg from './CorpoSvg'
 import { gerarPdfAvaliacao } from './pdfAvaliacao'
+
+// Linhas dentro do Painel: o Painel já faz o fade de entrada, então a cascata só desliza (transform curto), sem refazer a opacidade.
+const itemLista = { hidden: { transform: 'translateY(6px)' }, show: { transform: 'translateY(0px)', transitionEnd: { transform: 'none' }, transition: suave } }
 
 const COR: Record<Tom, string> = {
   bom: 'bg-emerald-500/15 text-emerald-300',
@@ -33,7 +37,7 @@ const Chipe = ({ tom, seta, fraca, children }: { tom: Tom; seta?: Seta | null; f
 
 function LinhaMedida({ l }: { l: Linha }) {
   return (
-    <m.li variants={item} className="border-t border-slate-800 py-2">
+    <m.li variants={itemLista} className="border-t border-slate-800 py-2">
       <div className="flex items-center justify-between gap-2">
         <span className="min-w-0 break-words text-sm">{l.rotulo}</span>
         <div className="flex min-w-0 shrink-0 flex-col items-end gap-1">

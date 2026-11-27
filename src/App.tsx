@@ -82,9 +82,10 @@ function Principal() {
   const precisaSenha = !!perfil && !adiouSenha && (senha === 'fraca' || (senha !== 'ok' && !senhaJaConferida(perfil)))
   let estagio = 'app'
   let tela: ReactNode
+  // Mesma <Abertura> nos dois casos (só muda o texto/filhos): trocar de componente remontaria e reiniciaria logo, barra e texto.
   if (carregando) [estagio, tela] = ['abertura', <Abertura />]
   else if (!user) [estagio, tela] = ['entrar', <Entrar />]
-  else if (!perfil) [estagio, tela] = ['abertura', <PerfilDemora />]
+  else if (!perfil) [estagio, tela] = ['abertura', <Abertura texto="Preparando sua conta…"><PerfilDemora /></Abertura>]
   else if (perfil.papel === 'coach') tela = <Coach uid={user.uid} email={perfil.email} nome={perfil.nome} />
   else if (!liberado(perfil, new Date())) [estagio, tela] = ['sem-acesso', <SemAcesso uid={user.uid} perfil={perfil} />]
   else if (precisaSenha)
@@ -152,7 +153,7 @@ function PerfilDemora() {
     })
   }
   return (
-    <Abertura texto="Preparando sua conta…">
+    <>
       {demora && (
         <div className="max-w-xs space-y-3 text-center text-sm text-slate-300">
           {pode ? (
@@ -177,7 +178,7 @@ function PerfilDemora() {
           <Botao disabled={saindo} onClick={sairAgora}>{saindo ? 'Saindo…' : 'Sair'}</Botao>
         </div>
       )}
-    </Abertura>
+    </>
   )
 }
 
@@ -213,7 +214,13 @@ function Menu({ rota, propostas }: { rota: string; propostas: number }) {
   // Mesma consulta do Início (o Firestore junta, sem leitura extra).
   const naoLidos = useFeedbacks().dados.filter((f) => !f.lido).length
   const fisio = useSugestoesFisio(alunos.dados as AlunoComId[], arquivados.chaves).visiveis.length
-  const selo = calcularAlertas(alunos.dados as AlunoComId[], mesos.dados, registros.dados, agora, arquivados.chaves).total + fisio
+  // Memo: o Coach re-renderiza a cada rota; sem isto recalculava os alertas toda vez. recalcula quando os dados mudam ou o dia vira.
+  const alertas = useMemo(
+    () => calcularAlertas(alunos.dados as AlunoComId[], mesos.dados, registros.dados, new Date(), arquivados.chaves).total,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [alunos.dados, mesos.dados, registros.dados, arquivados.chaves, agora.toDateString()],
+  )
+  const selo = alertas + fisio
   const itens = [
     { id: 'inicio', rotulo: 'Início', href: '#/', Icone: IcCasa },
     { id: 'alunos', rotulo: 'Alunos', href: '#/alunos', Icone: IcGrupo },

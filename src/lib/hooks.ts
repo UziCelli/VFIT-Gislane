@@ -103,3 +103,14 @@ export function useHoje(): Date {
   }, [])
   return new Date()
 }
+
+// Valor que só muda depois de `ms` sem novas mudanças (ex.: busca enquanto digita). O campo responde na hora;
+// a lista filtra e anima uma vez quando a pessoa para de digitar, em vez de recomeçar a animação a cada letra.
+export function useValorAtrasado<T>(valor: T, ms: number): T {
+  const [atrasado, setAtrasado] = useState(valor)
+  useEffect(() => {
+    const t = setTimeout(() => setAtrasado(valor), ms)
+    return () => clearTimeout(t)
+  }, [valor, ms])
+  return atrasado
+}

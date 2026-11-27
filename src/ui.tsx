@@ -1,5 +1,5 @@
 import { AnimatePresence, m, useIsPresent, useReducedMotion, type Variants } from 'motion/react'
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react'
 import Logo from '@marca/Logo'
 import { agil, ESPERA_ENTRADA_MS, saida, suave } from './movimento'
 
@@ -145,16 +145,22 @@ export function CampoNumero({
   )
 }
 
-export const Aviso = ({ children }: { children: ReactNode }) => (
-  <m.div
-    initial={{ opacity: 0, y: -6 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={agil}
-    className="rounded-lg border border-amber-700 bg-amber-950/50 px-3 py-2 text-sm text-amber-200"
-  >
-    {children}
-  </m.div>
-)
+// Dentro de <Msg>, quem anima é a Msg: o Aviso entra parado (sem fade dobrado, 27/11/2026). Sozinho, entra com
+// transform em texto (GPU), não com y solto.
+const DentroDaMsg = createContext(false)
+export const Aviso = ({ children }: { children: ReactNode }) => {
+  const naMsg = useContext(DentroDaMsg)
+  return (
+    <m.div
+      initial={naMsg ? false : { opacity: 0, ...mexe('translateY(-6px)') }}
+      animate={sobe}
+      transition={agil}
+      className="rounded-lg border border-amber-700 bg-amber-950/50 px-3 py-2 text-sm text-amber-200"
+    >
+      {children}
+    </m.div>
+  )
+}
 
 // Leve de propósito: só `transform` (string) e `opacity`, que o Motion passa para a GPU (WAAPI). `x`/`y`/`scale`
 // soltos rodam quadro a quadro na linha principal e engasgam no Android ao abrir as telas (11/11/2026).
@@ -177,7 +183,7 @@ export const Msg = ({ children, className = '' }: { children?: ReactNode; classN
       transition={agil}
       className={className}
     >
-      {children}
+      <DentroDaMsg.Provider value>{children}</DentroDaMsg.Provider>
     </m.div>
   ) : null
 }

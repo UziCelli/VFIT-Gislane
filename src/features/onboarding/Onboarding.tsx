@@ -7,6 +7,13 @@ import { IcSeta } from '../../icones'
 import { Botao } from '../../ui'
 import type { Icone } from '../../icones'
 
+// Passo do tour: entra do lado da troca e sai pelo outro (d = 1 avançando, -1 voltando).
+const passoAnima = (desloca: number) => ({
+  entra: (d: number) => ({ opacity: 0, x: d * desloca }),
+  fica: { opacity: 1, x: 0 },
+  sai: (d: number) => ({ opacity: 0, x: -d * desloca, transition: saida }),
+})
+
 // Onboarding em tela cheia (aluno e coach, as duas marcas): passos curtos, barra de progresso estilo story,
 // arrastar para os lados, setas do teclado e Esc. Abre 1x por aparelho (chave no localStorage).
 
@@ -128,9 +135,13 @@ export default function Onboarding({
           <m.div
             key={i}
             custom={dir}
-            initial={{ opacity: 0, x: dir * desloca }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -dir * desloca, transition: saida }}
+            // Variantes com `custom` (27/11/2026): quem sai lê a direção da troca nova pelo AnimatePresence. Com o
+            // exit fixo, o passo que saía guardava a direção de quando entrou, e "Voltar" o mandava para o lado errado.
+            // Fica em x (não transform em texto) porque o arrasto do passo usa o mesmo x.
+            variants={passoAnima(desloca)}
+            initial="entra"
+            animate="fica"
+            exit="sai"
             transition={suave}
             drag={quieto ? false : 'x'}
             dragConstraints={{ left: 0, right: 0 }}

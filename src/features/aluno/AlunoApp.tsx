@@ -81,7 +81,7 @@ export default function AlunoApp({ uid, perfil }: { uid: string; perfil: Usuario
       </AnimatePresence>
       <div className="pt-topo">
         <AvisoIOS />
-        <Tela chave={rota} abrir={interna}>{tela}</Tela>
+        <Tela chave={rota} abrir={interna} dentro>{tela}</Tela>
       </div>
       {comBarra && <BarraAbas abas={abas} />}
     </div>

@@ -661,3 +661,8 @@ export function sair() {
 // Só cria (o nome é a identidade no histórico: não se renomeia) ou apaga. Sem await (offline).
 export const gravarProprio = (id: string, dados: Record<string, unknown>) => setDoc(doc(db, 'exerciciosProprios', id), { ...dados, em: serverTimestamp() })
 export const apagarProprio = (id: string) => deleteDoc(doc(db, 'exerciciosProprios', id))
+
+// Máquina do catálogo do coach (maquinas/{id}); dados de validarMaquina em maquinas.ts. Editar regrava o documento
+// inteiro (setDoc sem merge): campo que saiu do cadastro (ex.: trocou de kg para nível) não fica para trás.
+export const gravarMaquina = (id: string, dados: Record<string, unknown>) => setDoc(doc(db, 'maquinas', id), { ...dados, em: serverTimestamp() })
+export const apagarMaquina = (id: string) => deleteDoc(doc(db, 'maquinas', id))

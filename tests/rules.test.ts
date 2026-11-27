@@ -1997,3 +1997,69 @@ describe('exerciciosProprios', () => {
     }
   });
 });
+
+// Máquinas do coach (catálogo, #260): maquinas/{id}. Só o coach com 2º fator; edita mantendo o id.
+describe('maquinas', () => {
+  const maq = (uid: string | undefined, id = 'm-academia-cadeira-extensora') => doc(db(uid), 'maquinas', id);
+  const nivel = (extra: object = {}) => ({
+    nome: 'Cadeira Extensora', local: 'Academia', tipo: 'maquina', unidade: 'nivel', niveis: 12, kgNivel: [5, 10, 15],
+    porLado: false, exercicios: ['cadeira-extensora-tradicional'], por: 'Gislane', em: serverTimestamp(), ...extra,
+  });
+  const kg = (extra: object = {}) => ({
+    nome: 'Crossover', local: 'Academia', tipo: 'duasPolias', unidade: 'kg', incremento: 5, maximo: 100, complementos: [0.625, 0.625],
+    polia: '2:1', porLado: true, fabricante: 'Life Fitness', modelo: 'G7', obs: 'Torre da esquerda', exercicios: [], por: 'Gislane',
+    em: serverTimestamp(), ...extra,
+  });
+
+  it('coach com 2º fator cria, lê, lista, edita e apaga', async () => {
+    await assertSucceeds(setDoc(maq('coach'), nivel()));
+    await assertSucceeds(setDoc(maq('coach', 'm-academia-crossover'), kg()));
+    await assertSucceeds(getDoc(maq('coach')));
+    await assertSucceeds(getDocs(collection(db('coach'), 'maquinas')));
+    await assertSucceeds(setDoc(maq('coach'), nivel({ niveis: 15 })));
+    // Troca de nível para kg: setDoc inteiro, sem sobrar campo do modo anterior.
+    const { polia: _p, ...seletoraKg } = kg({ nome: 'Cadeira Extensora', tipo: 'maquina' }) as Record<string, unknown>;
+    await assertSucceeds(setDoc(maq('coach'), seletoraKg));
+    await assertSucceeds(deleteDoc(maq('coach')));
+  });
+
+  it('coach: nega id, tipo, unidade misturada, polia fora de polia, limites e campos extras', async () => {
+    await assertFails(setDoc(maq('coach', 'extensora'), nivel()));
+    await assertFails(setDoc(maq('coach'), nivel({ tipo: 'halter' })));
+    await assertFails(setDoc(maq('coach'), nivel({ unidade: 'libras' })));
+    await assertFails(setDoc(maq('coach'), nivel({ incremento: 5 })));
+    await assertFails(setDoc(maq('coach'), nivel({ niveis: 0 })));
+    await assertFails(setDoc(maq('coach'), nivel({ niveis: 41 })));
+    await assertFails(setDoc(maq('coach'), nivel({ niveis: 2.5 })));
+    await assertFails(setDoc(maq('coach'), nivel({ niveis: 2 }))); // kgNivel com 3 itens
+    await assertFails(setDoc(maq('coach'), nivel({ polia: '2:1' })));
+    await assertFails(setDoc(maq('coach'), kg({ polia: '3:1' })));
+    await assertFails(setDoc(maq('coach'), kg({ incremento: 0 })));
+    await assertFails(setDoc(maq('coach'), kg({ maximo: 501 })));
+    await assertFails(setDoc(maq('coach'), kg({ niveis: 10 })));
+    await assertFails(setDoc(maq('coach'), kg({ complementos: [1, 1, 1, 1, 1] })));
+    await assertFails(setDoc(maq('coach'), kg({ fabricante: '' })));
+    await assertFails(setDoc(maq('coach'), nivel({ nome: 'x' })));
+    await assertFails(setDoc(maq('coach'), nivel({ local: 'x'.repeat(61) })));
+    await assertFails(setDoc(maq('coach'), nivel({ porLado: 'sim' })));
+    await assertFails(setDoc(maq('coach'), nivel({ exercicios: Array.from({ length: 41 }, (_, i) => `e${i}`) })));
+    await assertFails(setDoc(maq('coach'), nivel({ alunoId: 'ana' })));
+    await assertFails(setDoc(maq('coach'), nivel({ em: passado })));
+  });
+
+  it('coach sem 2º fator, aluno e anônimo: nada', async () => {
+    await env.withSecurityRulesDisabled((ctx) =>
+      setDoc(doc(ctx.firestore() as unknown as Firestore, 'maquinas', 'm-academia-cadeira-extensora'), { ...nivel(), em: Timestamp.now() }),
+    );
+    const semFator = contexto('coach', SEM_FATOR).firestore() as unknown as Firestore;
+    await assertFails(getDoc(doc(semFator, 'maquinas', 'm-academia-cadeira-extensora')));
+    await assertFails(setDoc(doc(semFator, 'maquinas', 'm-outra'), nivel()));
+    for (const uid of ['ana', undefined]) {
+      await assertFails(getDoc(maq(uid)));
+      await assertFails(getDocs(collection(db(uid), 'maquinas')));
+      await assertFails(setDoc(maq(uid, 'm-outra'), nivel()));
+      await assertFails(setDoc(maq(uid), nivel({ niveis: 3 })));
+      await assertFails(deleteDoc(maq(uid)));
+    }
+  });
+});

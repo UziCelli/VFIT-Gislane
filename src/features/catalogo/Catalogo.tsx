@@ -10,6 +10,8 @@ import { Botao, Campo, campoBase, Cartao, classesOpcao, Msg } from '../../ui'
 import { BotaoVoltar } from '../../voltar'
 import PilulasExercicio, { ListaPilulas } from './PilulasExercicio'
 import { useExerciciosProprios } from './useProprios'
+import { useMaquinas } from './useMaquinas'
+import { porExercicio } from '../../lib/maquinas'
 
 // Catálogo de exercícios (épico #255, etapa 4 #259), só coach: consultar o catálogo (nome novo, nome antigo, pílulas)
 // e cadastrar exercícios próprios. O catálogo base não é editado aqui; o cadastro vale só para esta marca.
@@ -119,6 +121,8 @@ type Linha = { id: string; nome: string; grupo: string; equipamento: Equipamento
 
 export default function Catalogo({ nome }: { nome: string }) {
   const r = useExerciciosProprios()
+  const maquinas = useMaquinas().lista
+  const maquinasDe = useMemo(() => porExercicio(maquinas), [maquinas])
   const semInternet = useSemInternet()
   const [novo, setNovo] = useState(false)
   const [busca, setBusca] = useState('')
@@ -158,6 +162,9 @@ export default function Catalogo({ nome }: { nome: string }) {
       <p className="mb-3 text-xs text-slate-400">
         {EXERCICIOS_ATIVOS.length} do catálogo · {r.lista.length} cadastrados por você
       </p>
+      <a href="#/maquinas" className="mb-3 flex min-h-11 items-center justify-between rounded-xl border border-slate-700 px-3 text-sm font-semibold text-slate-200 hover:text-white">
+        Máquinas {maquinas.length > 0 && `· ${maquinas.length}`} <span aria-hidden className="text-slate-400">›</span>
+      </a>
       {novo ? (
         <Novo existentes={r.lista} nome={nome} confirmado={!r.cache} fechar={() => setNovo(false)} aviso={setMsg} />
       ) : (
@@ -199,6 +206,11 @@ export default function Catalogo({ nome }: { nome: string }) {
                       {l.antigo ? ` · antes: ${l.antigo}` : ''}
                     </p>
                     <PilulasExercicio nome={l.nome} className="mt-1.5" />
+                    {maquinasDe.has(l.id) && (
+                      <p className="mt-1.5 text-xs text-slate-300">
+                        Máquinas: {maquinasDe.get(l.id)!.map((m) => `${m.nome} (${m.local})`).join(' · ')}
+                      </p>
+                    )}
                   </div>
                   {l.proprio && (
                     <button type="button" onClick={() => apagar(l.proprio!)} className={`min-h-11 shrink-0 px-2 text-sm ${apagando === l.id ? 'font-semibold text-red-300' : 'text-slate-400'}`}>

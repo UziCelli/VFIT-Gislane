@@ -341,6 +341,48 @@ service cloud.firestore {
         && request.resource.data.em == request.time;
     }
 
+    // Máquinas do coach (catálogo, #260): maquinas/{id}. Só o coach com 2º fator lê, cria, edita e apaga. O id não muda
+    // ao editar (a série vai apontar para ele, #261). Modelo = Aparelho de src/engine/aparelho.ts; conferência completa
+    // em src/lib/maquinas.ts (validarMaquina + problemasAparelho). Aqui: formato, tipos e limites (iguais a LIMITES).
+    function textoAte(v, min, max) {
+      return v is string && v.size() >= min && v.size() <= max;
+    }
+    function opcionalTexto(d, k, max) {
+      return !(k in d) || textoAte(d[k], 1, max);
+    }
+    function opcionalKg(d, k) {
+      return !(k in d) || (d[k] is number && d[k] > 0 && d[k] <= 500);
+    }
+    function maquinaKg(d) {
+      return d.unidade == 'kg' && !('niveis' in d) && !('kgNivel' in d)
+        && d.incremento is number && d.incremento > 0 && d.incremento <= 50
+        && opcionalKg(d, 'minimo') && opcionalKg(d, 'maximo')
+        && (!('complementos' in d) || (d.complementos is list && d.complementos.size() >= 1 && d.complementos.size() <= 4));
+    }
+    function maquinaNivel(d) {
+      return d.unidade == 'nivel' && !('incremento' in d) && !('minimo' in d) && !('maximo' in d) && !('complementos' in d)
+        && d.niveis is int && d.niveis >= 1 && d.niveis <= 40
+        && (!('kgNivel' in d) || (d.kgNivel is list && d.kgNivel.size() >= 1 && d.kgNivel.size() <= d.niveis));
+    }
+    function maquinaValida(d) {
+      return d.keys().hasOnly(['nome', 'local', 'tipo', 'fabricante', 'modelo', 'unidade', 'incremento', 'minimo', 'maximo',
+          'complementos', 'niveis', 'kgNivel', 'polia', 'porLado', 'obs', 'exercicios', 'por', 'em'])
+        && d.keys().hasAll(['nome', 'local', 'tipo', 'unidade', 'porLado', 'exercicios', 'por', 'em'])
+        && textoAte(d.nome, 2, 60) && textoAte(d.local, 1, 60)
+        && d.tipo in ['maquina', 'articulada', 'polia', 'duasPolias']
+        && opcionalTexto(d, 'fabricante', 40) && opcionalTexto(d, 'modelo', 40) && opcionalTexto(d, 'obs', 200)
+        && (!('polia' in d) || (d.polia in ['1:1', '2:1'] && d.tipo in ['polia', 'duasPolias']))
+        && (maquinaKg(d) || maquinaNivel(d))
+        && d.porLado is bool
+        && d.exercicios is list && d.exercicios.size() <= 40
+        && nomeValido(d.por)
+        && d.em == request.time;
+    }
+    match /maquinas/{id} {
+      allow read, delete: if isCoach();
+      allow create, update: if isCoach() && id.matches('m-[a-z0-9-]{1,78}') && maquinaValida(request.resource.data);
+    }
+
     // Vídeos privados do treino (#253): midias/{id}. O arquivo fica no Worker (push/, docs/plano-videos.md); aqui só o
     // registro. execucao = o aluno liberado envia o próprio (até 60 s); orientacao = o coach grava para um aluno (até 90 s,
     // com áudio), em resposta (respondeA) ou por conta própria. Só o aluno dono e os coaches leem: o Worker decide quem

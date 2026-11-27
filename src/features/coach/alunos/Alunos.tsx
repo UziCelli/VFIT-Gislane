@@ -6,7 +6,7 @@ import { coroaAtiva, diasParaVencer, hojeMaisDias, type Usuario } from '../../..
 import { apagarAluno, concluirAjustePrioritario, confirmarPagamento, definirAcesso, salvarMensalidade } from '../../../lib/acoes'
 import { registrarErro } from '../../../lib/log'
 import { db } from '../../../lib/firebase'
-import { TEXTO_SEM_INTERNET, useLista, useSemInternet } from '../../../lib/hooks'
+import { TEXTO_SEM_INTERNET, useLista, useSemInternet, useValorAtrasado } from '../../../lib/hooks'
 import { ir } from '../../../rota'
 import { Avatar } from '../../../avatar'
 import type { Foto } from '../../../lib/acesso'
@@ -46,15 +46,25 @@ function textoVencimento(a: Aluno) {
   return `${data} · vencido há ${-dias} dia${-dias === 1 ? '' : 's'}`
 }
 
-// Entrada em cascata (máx. 8 passos) e saída deslizando. Quando um cartão cresce (engrenagem),
-// os de baixo deslizam por transform (layout) em vez de animar altura: sem trepidar no iPhone.
-const linha = (i: number) => ({
-  layout: 'position' as const,
-  transition: suave,
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0, transition: { ...suave, delay: Math.min(i, 8) * 0.04 } },
-  exit: { opacity: 0, x: 60, transition: saida },
+// Lista que filtra (busca, arquivar, Arquivados). Duas camadas, para o Motion levar tudo à GPU:
+// - por fora (`linha`): só `layout="position"`. Quando um cartão cresce (engrenagem) ou outro sai, os de baixo
+//   deslizam por transform em vez de animar altura: sem trepidar no iPhone.
+// - por dentro (`conteudo`): entrada em cascata (máx. 8 passos) e saída deslizando, com `transform` em string
+//   (`x`/`y` soltos rodam na linha principal e engasgavam ao digitar na busca). Separado porque o `layout` reescreve
+//   o transform do próprio elemento enquanto anima.
+// No celular a lista usa `popLayout`: quem sai deixa o espaço na hora e os nomes de baixo já sobem; antes eles
+// esperavam a saída terminar e cada letra digitada recomeçava a fila.
+const linha = { layout: 'position' as const, transition: suave }
+const conteudo = (i: number) => ({
+  initial: { opacity: 0, ...mexe('translateY(8px)') },
+  animate: { ...sobe, transition: { ...suave, delay: Math.min(i, 8) * 0.04 } },
+  exit: { opacity: 0, ...mexe('translateX(60px)'), transition: saida },
 })
+// Linha da tabela (computador): `tr` não sai do fluxo (sem `popLayout`) e não leva transform próprio: só opacidade.
+const linhaTabela = { ...linha, initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0, transition: saida } }
+
+// Espera entre a última letra digitada e a lista filtrar (o campo mostra a letra na hora).
+const ESPERA_BUSCA_MS = 150
 
 const ordem = { aguardando: 0, ativo: 1, bloqueado: 2, arquivado: 3 }
 
@@ -80,10 +90,11 @@ export default function Alunos() {
   const [confirmando, setConfirmando] = useState<{ id: string; tipo: 'arquivar' | 'apagar' } | null>(null)
   const [avisando, setAvisando] = useState<string | null>(null) // id do aluno, ou 'todos'
   const nArquivados = alunos.filter((a) => a.status === 'arquivado').length
+  const termo = useValorAtrasado(busca, ESPERA_BUSCA_MS).trim().toLowerCase()
 
   const filtrados = alunos
     .filter((a) => (a.status === 'arquivado') === arquivados)
-    .filter((a) => a.nome.toLowerCase().includes(busca.toLowerCase()) || a.email.toLowerCase().includes(busca.toLowerCase()))
+    .filter((a) => !termo || a.nome.toLowerCase().includes(termo) || a.email.toLowerCase().includes(termo))
     .sort(comparar)
 
   async function liberar(uid: string, pagoAte: string) {
@@ -253,12 +264,13 @@ export default function Alunos() {
         <Cartao className="text-slate-400">Nenhum aluno encontrado.</Cartao>
       ) : (
         <>
-        <div className="space-y-3 md:hidden">
-          <AnimatePresence initial={false}>
+        <div className="relative space-y-3 md:hidden">
+          <AnimatePresence initial={false} mode="popLayout">
           {filtrados.map((a, i) => {
             const s = statusAluno(a)
             return (
-              <m.div key={a.id} {...linha(i)}>
+              <m.div key={a.id} {...linha}>
+              <m.div {...conteudo(i)}>
               <Cartao className="space-y-2">
                 <button className="flex w-full min-w-0 items-center gap-3 text-left" onClick={() => ir('/aluno/' + a.id)}>
                   {avatar(a)}
@@ -273,6 +285,7 @@ export default function Alunos() {
                 </div>
                 {acoes(a)}
               </Cartao>
+              </m.div>
               </m.div>
             )
           })}
@@ -290,10 +303,10 @@ export default function Alunos() {
             </thead>
             <tbody>
               <AnimatePresence initial={false}>
-              {filtrados.map((a, i) => {
+              {filtrados.map((a) => {
                 const s = statusAluno(a)
                 return (
-                  <m.tr key={a.id} {...linha(i)} className="border-b border-slate-800 last:border-0">
+                  <m.tr key={a.id} {...linhaTabela} className="border-b border-slate-800 last:border-0">
                     <td className="p-3">
                       <button className="flex items-center gap-3 text-left hover:underline" onClick={() => ir('/aluno/' + a.id)}>
                         {avatar(a)}

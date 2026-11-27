@@ -19,16 +19,19 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
   const page = await context.newPage()
   const erros: string[] = []
   page.on('pageerror', (e) => erros.push(e.message))
+  await page.addInitScript(() => localStorage.setItem('forca-tutorial-coach-visto', '1'))
   await page.goto('/')
-  await page.getByLabel('E-mail').fill(COACH.email)
-  await page.getByLabel('Senha').fill(COACH.senha)
+  await page.getByLabel('E-mail', { exact: true }).fill(COACH.email)
+  await page.getByLabel('Senha', { exact: true }).fill(COACH.senha)
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible()
-  await page.getByRole('link', { name: 'Alunos', exact: true }).click()
+  await page.getByRole('navigation', { name: 'Menu', exact: true }).getByRole('link', { name: 'Alunos', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Alunos' })).toBeVisible()
 
-  // Cartões do celular (a tabela do computador fica no DOM, escondida).
-  const cartao = (nome: string) => page.getByRole('button', { name: new RegExp(nome) }).filter({ visible: true })
+  // Nome no cartão do celular (a tabela do computador fica no DOM, escondida). Pelo texto exato: o botão do
+  // cartão também leva o e-mail, e a engrenagem se chama "Configurações de <nome>".
+  const cartao = (nome: string) => page.getByText(nome, { exact: true }).filter({ visible: true })
+  const nomesNaTela = page.getByText(/^[A-Z][a-z]+ Busca$/).filter({ visible: true })
   for (const nome of NOMES) await expect(cartao(nome)).toBeVisible({ timeout: 10_000 })
   const topoDaLista = (await cartao(NOMES[0]).boundingBox())!.y
   expect((await cartao('Zeca Busca').boundingBox())!.y).toBeGreaterThan(topoDaLista + 300)
@@ -50,14 +53,14 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
     requestAnimationFrame(frame)
   })
 
-  const campo = page.getByLabel('Buscar')
+  const campo = page.getByLabel('Buscar', { exact: true })
   // Digita como gente (uma letra a cada 80 ms): o campo mostra cada letra na hora.
   await campo.pressSequentially('zeca', { delay: 80 })
   await expect(campo).toHaveValue('zeca')
 
   // Só o Zeca fica, e ele termina no topo da lista, parado (sem transform sobrando do deslize).
   await expect(cartao('Ana Busca')).toHaveCount(0)
-  await expect(page.getByRole('button', { name: /Busca/ }).filter({ visible: true })).toHaveCount(1)
+  await expect(nomesNaTela).toHaveCount(1)
   await expect.poll(async () => Math.round((await cartao('Zeca Busca').boundingBox())!.y), { timeout: 5_000 }).toBe(Math.round(topoDaLista))
   const parado = () => cartao('Zeca Busca').evaluate((el) => {
     for (let p: Element | null = el; p && p.tagName !== 'MAIN'; p = p.parentElement) {
@@ -70,7 +73,7 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
 
   // Apagar a busca traz todos de volta, na mesma ordem.
   await campo.fill('')
-  for (const nome of NOMES) await expect(cartao(nome)).toBeVisible()
+  await expect(nomesNaTela).toHaveCount(NOMES.length)
   await expect.poll(async () => Math.round((await cartao(NOMES[0]).boundingBox())!.y), { timeout: 5_000 }).toBe(Math.round(topoDaLista))
 
   const resultado = await page.evaluate(() => {

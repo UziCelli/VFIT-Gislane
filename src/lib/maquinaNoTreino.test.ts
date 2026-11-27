@@ -5,7 +5,7 @@ import type { Aparelho, AparelhoKg, AparelhoNivel } from '../engine/aparelho'
 import { iniciarEdicao, trocarExercicio, trocarMaquina } from '../engine/editarSessao'
 import { metodosDaSessao, prescreverSessao } from '../engine/sessao'
 import type { Meso } from '../engine/tipos'
-import { maquinaUsada, mesmaEscala, paraSlot, textoMaquina, type Maquina } from './maquinas'
+import { maquinaDesconhecida, maquinaUsada, mesmaEscala, paraSlot, textoMaquina, type Maquina } from './maquinas'
 import { comPrescricoesRegistradas, lerPrescricaoRegistrada } from './prescricaoRegistrada'
 import { mesoSchema } from './prescricaoSchema'
 
@@ -56,6 +56,17 @@ describe('legado', () => {
     expect(maquinaUsada({ prescricoesRegistradas: { '1-1': { ...JSON.parse(iniciar(m, 1).prescricaoRegistrada), referenciaHistorica: true } } }, 1, 1, 'ext')).toBe('legado')
   })
 
+  it('tela: treino registrado sem cópia esconde a máquina do plano; sem registro, mostra o plano', () => {
+    const m = comMaquina(mesoPadrao(), A)
+    const antigo = comPrescricoesRegistradas(m, [{ semana: 1, treino: 1, cargas: { ext: { s1: 3 } } }])
+    expect(maquinaDesconhecida(antigo, 1, 1, { cargas: { ext: { s1: 3 } } })).toBe(true)
+    expect(maquinaDesconhecida(antigo, 1, 1, { realizado: true })).toBe(true)
+    expect(maquinaDesconhecida(antigo, 2, 1, undefined)).toBe(false) // ainda não treinou: vale o plano
+    expect(maquinaDesconhecida(antigo, 2, 1, { cargas: {}, realizado: false })).toBe(false)
+    const novo = comPrescricoesRegistradas(m, [iniciar(m, 1)])
+    expect(maquinaDesconhecida(novo, 1, 1, { inicioEm: null })).toBe(false) // cópia confiável (início pendente offline)
+  })
+
   it('treino registrado sem máquina no exercício: null (sabido), não legado', () => {
     const meso = comPrescricoesRegistradas(comMaquina(mesoPadrao(), A), [iniciar(comMaquina(mesoPadrao(), null), 1)])
     expect(maquinaUsada(meso, 1, 1, 'ext')).toEqual({ maquina: null })
@@ -95,8 +106,8 @@ describe('presencial e montagem', () => {
     expect(mesmaEscala(A, { ...cat, niveis: 14 })).toBe(false)
   })
 
-  it('textoMaquina: em nível lembra de anotar o nível', () => {
-    expect(textoMaquina(A)).toBe('Extensora · Academia · anote o nível (1 a 12)')
+  it('textoMaquina: só nome e local (anotar em nível só com a carga por máquina, #262)', () => {
+    expect(textoMaquina(A)).toBe('Extensora · Academia')
     expect(textoMaquina(B)).toBe('Extensora · Condomínio')
   })
 })

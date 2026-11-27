@@ -16,6 +16,7 @@ import EvolucaoCoach from './EvolucaoCoach'
 import { fmtData } from './format'
 import Monitoramento from './Monitoramento'
 import SessaoCard from './SessaoCard'
+import { maquinaDesconhecida } from '../../../lib/maquinas'
 
 type RegistroDocCompleto = RegistroDoc & { realizado?: boolean; pc?: Record<string, number>; inicioEm?: Timestamp | null; realizadoEm?: Timestamp | null; atualizadoEm?: Timestamp | null }
 
@@ -110,6 +111,7 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
               realizadoEm={tempos[chave]?.realizadoEm}
               limite={meso.tempoLimiteMin}
               hoje={deHoje[treino]}
+              maquinaOculta={maquinaDesconhecida(meso, semanaAtual, treino, tempos[chave])}
               onRealizado={(v) => marcarRealizado(id, dados.alunoId, semanaAtual, treino, v, !!tempos[chave]?.realizadoEm)}
             />
             </div>

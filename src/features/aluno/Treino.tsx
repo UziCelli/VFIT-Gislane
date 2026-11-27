@@ -28,6 +28,7 @@ import { db } from '../../lib/firebase'
 import { useAnamnese } from '../anamnese/useAnamnese'
 import { TEXTO_SEM_INTERNET, useDoc, useLista, useSemInternet, useUsuarioAtual } from '../../lib/hooks'
 import PilulasExercicio, { LinhaMaquina } from '../catalogo/PilulasExercicio'
+import { maquinaDesconhecida } from '../../lib/maquinas'
 import { historicoExercicios, recordeAnterior, resumoTreino, type RegistroEvolucao } from '../../lib/evolucao'
 import { ehRecorde } from '../../lib/recorde'
 import { cargaAnterior, semanaAtual, type Fonte } from '../../lib/treino'
@@ -510,6 +511,7 @@ type Vivo = {
 
 type PropsCartao = {
   e: ExercicioPrescrito
+  maquinaOculta: boolean // treino antigo sem cópia: máquina do dia desconhecida (#261)
   grupo: { metodo: Metodo; letra: string; ordem: number; total: number } | null
   colunasCargas: (number | null)[]
   colunasReps: (number | null)[]
@@ -548,7 +550,7 @@ type PropsCartao = {
 // Cartão de um exercício. Só redesenha quando os dados DELE mudam (#237): anotar a carga de um exercício não refaz os
 // outros nove. Tudo que aparece na tela vem por prop (comparada por valor); o que só vale no toque vem de `vivo`.
 const CartaoExercicio = memo(function CartaoExercicio({
-  e, grupo, colunasCargas, colunasReps, colunasLados, anterior, corpo, auto, pol, discretoPol, edAberto, trocandoPc, travado, volta, coach,
+  e, maquinaOculta, grupo, colunasCargas, colunasReps, colunasLados, anterior, corpo, auto, pol, discretoPol, edAberto, trocandoPc, travado, volta, coach,
   meso, mesoId, uid, semana, treino, som, contagem, rodando, isoAtivo, notaTexto, notaEm, notaOutras, fisio, rir, dropsAbertos, pesoKg, demo, videos, vivo,
 }: PropsCartao) {
   const t = useTextosVoz()
@@ -596,7 +598,7 @@ const CartaoExercicio = memo(function CartaoExercicio({
         <div>
           <div className="break-words text-base font-semibold leading-snug tracking-tight" data-treino-nome>{e.slot.nome}</div>
           <PilulasExercicio nome={e.slot.nome} className="mt-1.5" />
-          <LinhaMaquina maquina={e.slot.maquina} className="mt-1.5" />
+          {!maquinaOculta && <LinhaMaquina maquina={e.slot.maquina} className="mt-1.5" />}
           {demo && <Demonstracao nome={e.slot.nome.trim()} fonte={demo} />}
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -939,6 +941,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
   const cs = cargas[chave] ?? {}
   const rs = repsFeitas[chave] ?? {}
   const docAtual = docsRegistros.find((r) => r.semana === semana && r.treino === treino)
+  const maquinaOculta = maquinaDesconhecida(meso, semana, treino, docAtual)
   const pcs = lerPc(docAtual?.pc)
   const cargasCruas = docParaCargas(docAtual?.cargas) // o que está gravado de fato (para decidir o que gravar)
   const pcsPorRegistro = Object.fromEntries(docsRegistros.map((r) => [`${r.semana}-${r.treino}`, lerPc(r.pc)]))
@@ -1136,6 +1139,7 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
             <CartaoExercicio
               key={slot}
               e={e}
+              maquinaOculta={maquinaOculta}
               grupo={gk ? { metodo: gk.split('|')[0] as Metodo, letra: String.fromCharCode(65 + ordemGrupos.indexOf(gk)), ordem: membros.indexOf(e), total: membros.length } : null}
               colunasCargas={cs[slot] ?? SEM}
               colunasReps={rs[slot] ?? SEM}

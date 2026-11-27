@@ -209,8 +209,14 @@ export function maquinaUsada(meso: Pick<Meso, 'prescricoesRegistradas'>, semana:
   return e ? { maquina: e.slot.maquina ?? null } : 'legado'
 }
 
-// Linha curta para o aluno e o coach: "Cadeira Extensora · Academia Centro · anote o nível (1 a 12)".
-export function textoMaquina(m: Aparelho): string {
-  // Em kg o aluno já anota como sempre; em nível o número do campo é o nível, não kg.
-  return [m.nome, m.local, ...(m.unidade === 'nivel' ? [`anote o nível (1 a ${m.niveis})`] : [])].join(' · ')
+// Linha curta para o aluno e o coach: "Cadeira Extensora · Academia Centro". Ainda não pede para anotar o nível:
+// o treino, as métricas e a carga anterior só entendem kg; a anotação em nível vem com a carga por máquina (#262).
+export const textoMaquina = (m: Aparelho) => `${m.nome} · ${m.local}`
+
+// Treino já registrado (com carga, reps, início ou feito) sem cópia confiável: a máquina daquele dia é desconhecida.
+// A tela não mostra a máquina do plano atual nele (seria atribuir por inferência). Sem registro, vale o plano.
+export function maquinaDesconhecida(meso: Pick<Meso, 'prescricoesRegistradas'>, semana: number, treino: number, registro?: { cargas?: object; reps?: object; realizado?: boolean; inicioEm?: unknown } | null): boolean {
+  const registrada = !!registro && (!!registro.realizado || registro.inicioEm != null || Object.keys(registro.cargas ?? {}).length > 0 || Object.keys(registro.reps ?? {}).length > 0)
+  const p = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
+  return registrada && (!p || !!p.referenciaHistorica)
 }

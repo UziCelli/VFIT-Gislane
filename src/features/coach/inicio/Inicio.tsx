@@ -82,26 +82,29 @@ export default function Inicio({ nome }: { nome: string }) {
   const pausados = alunos.dados.filter((a) => nomeDe.has(a.id) && pausadoSaude(docsAnam.filter((d) => d.alunoId === a.id)))
   const pendentesAnam = anamnesesPendentes(alunos.dados.map((a) => ({ id: a.id, nome: a.nome, status: a.status, presencial: a.presencial })), docsAnam, mesosAtivos, agora)
   const avisosPix = alunos.dados.filter((a) => a.pagamentoInformadoEm && a.status === 'ativo' && !a.presencial).length
-  const blocos: [string, AlunoComId[], string][] = [
+  const blocos: [string, AlunoComId[], string, boolean?][] = [
     ['Aguardando aprovação', r.aguardando, 'Ninguém aguardando.'],
     ['Vencendo em 7 dias', r.vencendo, 'Ninguém vencendo.'],
     ['Vencidos', r.vencidos, 'Nenhum vencido.'],
-    ['Treinaram hoje', r.treinaramHoje, 'Ninguém treinou hoje ainda.'],
-    ['Sumidos (7+ dias sem treinar)', r.sumidos, 'Ninguém sumido.'],
-    ['Frequência caindo (14 dias)', r.frequenciaCaindo, 'Ninguém com frequência caindo.'],
+    ['Treinaram hoje', r.treinaramHoje, 'Ninguém treinou hoje ainda.', true],
+    ['Sumidos (7+ dias sem treinar)', r.sumidos, 'Ninguém sumido.', true],
+    ['Frequência caindo (14 dias)', r.frequenciaCaindo, 'Ninguém com frequência caindo.', true],
   ]
-  const kpis: [number, string, string][] = [
-    [alunos.dados.filter((a) => a.status === 'ativo').length, 'Alunos ativos', 'text-white'],
-    [r.treinaramHoje.length, 'Treinaram hoje', 'text-emerald-400'],
-    [alertas.total, 'Alertas', 'text-rose-400'],
-    [r.vencendo.length, 'Vencem em 7 dias', 'text-amber-300'],
+  // Enquanto os dados chegam, número e lista mostram "–" e "Carregando…", não 0 e "Ninguém…" (27/11/2026): antes a
+  // tela piscava vazia e os números saltavam quando o Firestore respondia.
+  const semRegistros = alunos.carregando || registros.carregando
+  const kpis: [number, string, string, boolean][] = [
+    [alunos.dados.filter((a) => a.status === 'ativo').length, 'Alunos ativos', 'text-white', alunos.carregando],
+    [r.treinaramHoje.length, 'Treinaram hoje', 'text-emerald-400', semRegistros],
+    [alertas.total, 'Alertas', 'text-rose-400', semRegistros || mesos.carregando || arquivados.carregando],
+    [r.vencendo.length, 'Vencem em 7 dias', 'text-amber-300', alunos.carregando],
   ]
   return (
     <Pagina titulo={<><span className="sr-only">Início</span><span className="block text-[15px] font-normal text-slate-300">{agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'America/Sao_Paulo' })}</span>{saudacao(agora)}, {nome.split(' ')[0]}</>}>
       <div className="mb-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {kpis.map(([n, rotulo, cor]) => (
+        {kpis.map(([n, rotulo, cor, esperando]) => (
           <Quadro key={rotulo} className="!p-3">
-            <p className={`font-display text-3xl font-extrabold leading-none lg:text-5xl ${cor}`}><Contar n={n} /></p>
+            <p className={`font-display text-3xl font-extrabold leading-none lg:text-5xl ${esperando ? 'text-slate-600' : cor}`}>{esperando ? '–' : <Contar n={n} />}</p>
             <p className="mt-1.5 text-[15px] leading-tight text-slate-300 lg:text-base">{rotulo}</p>
           </Quadro>
         ))}
@@ -250,13 +253,17 @@ export default function Inicio({ nome }: { nome: string }) {
         </a>
       )}
       <m.div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" variants={cascata} initial="hidden" animate="show">
-        {blocos.map(([titulo, lista, vazio]) => (
+        {blocos.map(([titulo, lista, vazio, dosRegistros]) => {
+          const esperando = alunos.carregando || (!!dosRegistros && registros.carregando)
+          return (
           <m.div key={titulo} variants={item} className="min-w-0">
           <Quadro className="h-full space-y-2 !p-3.5">
             <h2 className="font-semibold">
-              {titulo} <span className="font-display text-lg font-bold text-marca-300"><Contar n={lista.length} /></span>
+              {titulo} <span className="font-display text-lg font-bold text-marca-300">{esperando ? '' : <Contar n={lista.length} />}</span>
             </h2>
-            {lista.length === 0 ? (
+            {esperando ? (
+              <p className="text-sm text-slate-500">Carregando…</p>
+            ) : lista.length === 0 ? (
               <p className="text-sm text-slate-500">{vazio}</p>
             ) : (
               <ul className="flex flex-wrap gap-2">
@@ -284,7 +291,8 @@ export default function Inicio({ nome }: { nome: string }) {
             )}
           </Quadro>
           </m.div>
-        ))}
+          )
+        })}
       </m.div>
     </Pagina>
   )

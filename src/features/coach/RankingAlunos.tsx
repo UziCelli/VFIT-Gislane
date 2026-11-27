@@ -24,6 +24,8 @@ export default function RankingAlunos() {
   const semInternet = useSemInternet()
   const [aba, setAba] = useState<Aba>('evoluiu')
   const [registros, setRegistros] = useState<RegistroEvolucao[]>([])
+  // Chave dos mesos cujos registros já chegaram todos: antes disso a lista mostrava 0% e reordenava (27/11/2026).
+  const [chegou, setChegou] = useState<string | null>(null)
   const agora = new Date()
   const hoje = new Date(agora.getTime() - 3 * 3600_000).toISOString().slice(0, 10)
 
@@ -44,11 +46,16 @@ export default function RankingAlunos() {
     const ids = chave ? chave.split(',') : []
     const partes: RegistroEvolucao[][] = []
     setRegistros([])
-    const fins = Array.from({ length: Math.ceil(ids.length / 30) }, (_, i) =>
+    const n = Math.ceil(ids.length / 30)
+    if (!n) setChegou(chave)
+    // Erro (offline sem cache, negado) também conta como chegou: mostra o que há em vez de "Carregando…" para sempre.
+    const pronto = () => { if (partes.filter(Boolean).length === n) setChegou(chave) }
+    const fins = Array.from({ length: n }, (_, i) =>
       onSnapshot(query(collection(db, 'registros'), where('mesoId', 'in', ids.slice(i * 30, i * 30 + 30))), (s) => {
         partes[i] = s.docs.map((d) => d.data() as RegistroEvolucao)
         setRegistros(partes.flat())
-      }),
+        pronto()
+      }, () => { partes[i] ??= []; pronto() }),
     )
     return () => fins.forEach((f) => f())
   }, [chave])
@@ -70,6 +77,7 @@ export default function RankingAlunos() {
     return linhas.filter((l) => l.previstos4s > 0).sort((a, b) => freq(a) - freq(b))
   }, [aba, linhas])
 
+  const carregando = alunos.carregando || mesos.carregando || chegou !== chave
   const vazio = aba === 'risco' ? 'Nenhum aluno com treino previsto.' : 'Nenhum aluno ainda.'
   return (
     <Pagina titulo="Ranking de evolução" voltar={<BotaoVoltar para="/" />}>
@@ -87,8 +95,8 @@ export default function RankingAlunos() {
         ))}
       </div>
       <Cartao>
-        {lista.length === 0 ? (
-          <p className="text-sm text-slate-500">{alunos.carregando ? 'Carregando…' : semInternet ? TEXTO_SEM_INTERNET : vazio}</p>
+        {carregando || lista.length === 0 ? (
+          <p className="text-sm text-slate-500">{carregando ? 'Carregando…' : semInternet ? TEXTO_SEM_INTERNET : vazio}</p>
         ) : (
           <ol className="divide-y divide-slate-800">
             {lista.map((l, i) => (

@@ -324,7 +324,7 @@ function Coach({ uid, email, nome }: { uid: string; email: string; nome: string 
           </div>
         )}
         {!presencial && !rota.startsWith('/confirmar-treino-mcp') && <AvisoPropostaMcp propostas={propostasMcp} />}
-        <Tela chave={presencial ? 'presencial' : guia ? '/guias' : rota} abrir={/^\/(aluno|meso)\/|^\/alunos\/novo/.test(rota)}>{tela}</Tela>
+        <Tela chave={presencial ? 'presencial' : guia ? '/guias' : rota} abrir={/^\/(aluno|meso)\/|^\/alunos\/novo/.test(rota)} dentro>{tela}</Tela>
       </div>
     </div>
   )

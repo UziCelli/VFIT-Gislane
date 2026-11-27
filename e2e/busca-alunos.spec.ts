@@ -60,7 +60,7 @@ test('busca de aluno no celular: filtra, o nome sobe e nada fica no meio da anim
   await expect(page.getByRole('button', { name: /Busca/ }).filter({ visible: true })).toHaveCount(1)
   await expect.poll(async () => Math.round((await cartao('Zeca Busca').boundingBox())!.y), { timeout: 5_000 }).toBe(Math.round(topoDaLista))
   const parado = () => cartao('Zeca Busca').evaluate((el) => {
-    for (let p: HTMLElement | null = el; p && p.tagName !== 'MAIN'; p = p.parentElement) {
+    for (let p: Element | null = el; p && p.tagName !== 'MAIN'; p = p.parentElement) {
       const t = getComputedStyle(p).transform
       if (t !== 'none' && t !== 'matrix(1, 0, 0, 1, 0, 0)') return false
     }

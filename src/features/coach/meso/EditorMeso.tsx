@@ -15,7 +15,7 @@ import { DIAS_AUTO } from '../../../lib/agenda'
 import { fimISO } from '../../../lib/relatorio'
 import { dataSP, diaCurto } from '../../aluno/mesoAtual'
 import { fmtData } from '../semana/format'
-import { Aviso, Botao, Campo, CampoNumero, Msg, Pagina } from '../../../ui'
+import { Aviso, Botao, Campo, CampoNumero, mexe, Msg, Pagina } from '../../../ui'
 import { BotaoVoltar } from '../../../voltar'
 import Preview, { BarraTempo } from './Preview'
 import { LinhaAcima, treinosAcima } from './SugestaoTempo'
@@ -289,8 +289,8 @@ export default function EditorMeso({ id }: { id: string }) {
       <AnimatePresence mode="wait" initial={false}>
         <m.div
           key={aba}
-          initial={{ opacity: 0, x: 12 }}
-          animate={{ opacity: 1, x: 0, transition: suave }}
+          initial={{ opacity: 0, ...mexe('translateX(12px)') }}
+          animate={{ opacity: 1, transform: 'translateX(0px)', transitionEnd: { transform: 'none' }, transition: suave }}
           exit={{ opacity: 0, transition: saida }}
         >
       {aba === 'config' && (

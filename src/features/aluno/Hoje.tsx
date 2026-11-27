@@ -91,8 +91,9 @@ function SemanaCarregada({ base, coach, abrirHoje, meso, mesoId, nome, registros
   const bloqueado = (w: number) => {
     setAviso(w)
     if (!quieto) {
-      tremer.set({ x: -12 })
-      tremer.start({ x: 0, transition: elastico })
+      // Transform em texto (27/11/2026): x solto tremia a tela toda na linha principal.
+      tremer.set({ transform: 'translateX(-12px)' })
+      tremer.start({ transform: 'translateX(0px)', transitionEnd: { transform: 'none' }, transition: elastico })
     }
   }
 

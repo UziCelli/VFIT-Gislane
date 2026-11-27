@@ -71,10 +71,11 @@ const Grupo = ({ titulo, n, cor, children }: { titulo: string; n: number; cor: s
   </AnimatePresence>
 )
 
-// Item que some com animação ao ser arquivado.
+// Item que some com animação ao ser arquivado. Duas camadas (27/11/2026): o `layout` reescreve o transform
+// da própria camada enquanto os outros sobem; a saída fica na de dentro, só com transform e opacidade (GPU).
 const Saindo = ({ children }: { children: ReactNode }) => (
-  <m.div layout="position" exit={{ opacity: 0, x: -40 }} transition={{ ...suave, opacity: saida }}>
-    {children}
+  <m.div layout="position" transition={suave}>
+    <m.div exit={{ opacity: 0, ...mexe('translateX(-40px)'), transition: saida }}>{children}</m.div>
   </m.div>
 )
 

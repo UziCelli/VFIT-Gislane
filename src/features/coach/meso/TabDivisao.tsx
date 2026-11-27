@@ -78,31 +78,61 @@ export default function TabDivisao({
   // Arrastar pela alça (dedo ou mouse): o item segue o dedo, os outros abrem espaço; solta = muda a ordem.
   // Medidas na página (não na tela): `meios` = meio de cada item no começo, para a rolagem e os deslocamentos
   // não confundirem a conta. Perto da borda (em cima, ou embaixo sobre a barra de abas) a tela rola sozinha.
-  const [arrasto, setArrasto] = useState<{ t: number; de: number; para: number; y0: number; dy: number; h: number; meios: number[] } | null>(null)
+  // Só o início e o fim do arrasto passam pelo estado (1 render cada); durante o movimento o `transform` vai
+  // direto nos <li> (ref), sem redesenhar a lista inteira. Ao soltar, a ordem nova e o fim do `transform` saem
+  // no mesmo render (sem salto).
+  const [arrasto, setArrasto] = useState<{ t: number; de: number } | null>(null)
+  const medidas = useRef<{ t: number; de: number; para: number; y0: number; dy: number; h: number; meios: number[] } | null>(null)
   const dedoY = useRef(0)
   const itens = (t: number) => [...document.querySelectorAll<HTMLElement>(`[data-testid="treino-${t}"] li[data-slot]`)]
+
+  // Quanto um item que não está sendo arrastado desce (+) ou sobe (−) para abrir espaço.
+  function desloc(p: number) {
+    const a = medidas.current
+    if (!a || p === a.de) return 0
+    const { de, para, h } = a
+    if (de < para && p > de && p <= para) return -h
+    if (para < de && p >= para && p < de) return h
+    return 0
+  }
+
+  function aplicar() {
+    const a = medidas.current
+    if (!a) return
+    itens(a.t).forEach((li, i) => {
+      li.style.transform = `translateY(${i + 1 === a.de ? a.dy : desloc(i + 1)}px)`
+    })
+  }
+
+  function limparTransform(t: number) {
+    itens(t).forEach((li) => (li.style.transform = ''))
+  }
 
   function iniciarArrasto(e: PointerEvent<HTMLButtonElement>, t: number, p: number) {
     if (e.button !== 0) return
     e.currentTarget.setPointerCapture(e.pointerId)
     dedoY.current = e.clientY
-    const meios = itens(t).map((li) => {
-      const r = li.getBoundingClientRect()
-      return r.top + scrollY + r.height / 2
-    })
-    setArrasto({ t, de: p, para: p, y0: e.clientY + scrollY, dy: 0, h: e.currentTarget.closest('li')!.offsetHeight, meios })
+    const lis = itens(t)
+    const rects = lis.map((li) => li.getBoundingClientRect())
+    const meios = rects.map((r) => r.top + scrollY + r.height / 2)
+    // Passo até o vizinho (altura + linha divisória): é o quanto os outros andam de verdade.
+    const h = rects[p] ? rects[p].top - rects[p - 1].top : rects[p - 1].height + (rects[p - 2] ? rects[p - 1].top - rects[p - 2].bottom : 0)
+    medidas.current = { t, de: p, para: p, y0: e.clientY + scrollY, dy: 0, h, meios }
+    setArrasto({ t, de: p })
   }
 
   // Posição nova = 1 + quantos outros itens têm o meio acima do dedo.
-  const seguirDedo = () =>
-    setArrasto((a) => {
-      if (!a) return a
-      const y = dedoY.current + scrollY
-      return { ...a, dy: y - a.y0, para: 1 + a.meios.filter((m, i) => i !== a.de - 1 && m < y).length }
-    })
+  const seguirDedo = () => {
+    const a = medidas.current
+    if (!a) return
+    const y = dedoY.current + scrollY
+    a.dy = y - a.y0
+    a.para = 1 + a.meios.filter((m, i) => i !== a.de - 1 && m < y).length
+    aplicar()
+  }
 
   function moverArrasto(e: PointerEvent) {
-    if (!arrasto) return
+    if (!medidas.current) return
     dedoY.current = e.clientY
     seguirDedo()
   }
@@ -126,17 +156,17 @@ export default function TabDivisao({
   }, [arrastando])
 
   function soltarArrasto() {
-    if (arrasto && arrasto.para !== arrasto.de) onAtualizar(moverExercicio(meso, arrasto.t, arrasto.de, arrasto.para))
-    setArrasto(null)
+    const a = medidas.current
+    medidas.current = null
+    if (a && a.para !== a.de) onAtualizar(moverExercicio(meso, a.t, a.de, a.para))
+    setArrasto(null) // mesmo lote do onAtualizar: ordem nova e `transform` limpo no mesmo render
   }
 
-  // Quanto um item que não está sendo arrastado desce (+) ou sobe (−) para abrir espaço.
-  function desloc(t: number, p: number) {
-    if (!arrasto || arrasto.t !== t || p === arrasto.de) return 0
-    const { de, para, h } = arrasto
-    if (de < para && p > de && p <= para) return -h
-    if (para < de && p >= para && p < de) return h
-    return 0
+  function cancelarArrasto() {
+    const a = medidas.current
+    medidas.current = null
+    if (a) limparTransform(a.t)
+    setArrasto(null)
   }
 
   // Teclado: seta para cima/baixo na alça move uma casa e mantém o foco nela.
@@ -210,7 +240,7 @@ export default function TabDivisao({
               <li
                 key={slot?.slotId ?? `novo-${p}`}
                 data-slot={slot ? '' : undefined}
-                style={slot && arrasto?.t === t ? { transform: `translateY(${esteArrastado ? arrasto.dy : desloc(t, p)}px)` } : undefined}
+                style={slot && arrasto?.t === t ? { transform: 'translateY(0px)' } : undefined}
                 className={`flex flex-wrap items-center gap-2 px-3 py-2 ${esteArrastado ? 'relative z-10 rounded-lg bg-slate-800 shadow-lg ring-1 ring-marca-500' : arrasto?.t === t ? 'transition-transform' : ''}`}
               >
                 {slot ? (
@@ -222,7 +252,7 @@ export default function TabDivisao({
                     onPointerDown={(e) => iniciarArrasto(e, t, p)}
                     onPointerMove={moverArrasto}
                     onPointerUp={soltarArrasto}
-                    onPointerCancel={() => setArrasto(null)}
+                    onPointerCancel={cancelarArrasto}
                     onKeyDown={(e) => teclaAlca(e, t, p)}
                     className="-ml-2 grid h-11 w-8 shrink-0 cursor-grab touch-none place-items-center text-lg text-slate-500 hover:text-slate-200 active:cursor-grabbing"
                   >

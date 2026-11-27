@@ -1068,10 +1068,11 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
     setExplicar,
     setFisioId,
   }
-  if (verResumo)
-    return (
-      <VozTreino.Provider value={voz}>
-      <FimTreino
+  // O resumo entra por cima e a tela do treino fica montada e escondida (`hidden`): trocar a árvore inteira
+  // (return antecipado) desmontava todos os cartões ao concluir e os remontava em "Ver treino".
+  return (
+    <VozTreino.Provider value={voz}>
+    {verResumo && <FimTreino
         nome={perfil?.nome?.trim().split(/\s+/)[0]}
         duracaoMs={duracaoTreino(inicioMs, fimMs)}
         resumo={resumoTreino(historicoResumo ?? {}, { mesoId, semana, treino })}
@@ -1083,13 +1084,8 @@ export default function Treino({ uid, mesoId, semana, treino, base = '', coach }
         verTreino={() => setVerResumo(false)}
         // Check-in só para treino concluído há pouco (até 12 h): resumo de treino antigo não pergunta (a hora gravada seria a de agora).
         checkin={fimMs == null || Date.now() - fimMs > 12 * 3600_000 ? undefined : { uid, sessao: { mesoId, semana, treino }, exercicios: [...new Set(sessao.exercicios.map((e) => e.slot.nome.trim()))], slots: Object.fromEntries(sessao.exercicios.map((e) => [e.slot.nome.trim(), e.slot.slotId])) }}
-      />
-      </VozTreino.Provider>
-    )
-
-  return (
-    <VozTreino.Provider value={voz}>
-    <div className="treino-pagina min-h-lvh">
+      />}
+    <div className="treino-pagina min-h-lvh" hidden={verResumo} inert={verResumo}>
     <main className="mx-auto max-w-md px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] pt-4">
       <AvisoNotificacoes />
       {meso.historicoIncerto?.includes(chave) && <p role="status" className="p-3 text-sm text-amber-200">Este registro antigo chegou sem versão da prescrição. A prescrição anterior é uma referência; confira as cargas e repetições registradas.</p>}

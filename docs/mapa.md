@@ -334,7 +334,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 
 ### `mesos/{mesoId}`
 - `alunoId`, `nome`, `frequencia`, `semanas`
-- `divisao`: `{ s1: [slots], s2: … }` (slotId → exercício, método, série/rep)
+- `divisao`: `{ s1: [slots], s2: … }` (slotId → exercício, método, série/rep). Slot pode ter `maquina` (#261): cópia da escala da máquina (`Aparelho`, sem `obs`), escolhida na montagem (`SeletorMaquina`) ou só no dia (presencial, `trocarMaquina`). O aluno lê só essa cópia.
 - `progressao`: `{ principais, auxiliares, padrao? }` (linhas por semana); `progressaoExercicio`: `{ [slotId]: linhas }`; `adaptadoEm` (marcarAdaptado)
 - `criadoEm`, `atualizadoEm`
 
@@ -344,6 +344,7 @@ Consulta detalhada, não leitura inicial. Para localizar código, prefira busca 
 - `cargas`: `{ slotId: { s1: 100, s2: 95, … } }` (peso ou reps absolutas)
 - `reps`: idem (reps feitas, opcional)
 - `realizado`: bool, `realizadoEm`, `atualizadoEm`
+- `prescricaoRegistrada`: cópia do treino gravada ao iniciar; inclui `slot.maquina` = a máquina usada naquele dia (#261). `maquinaUsada()` (`src/lib/maquinas.ts`): sem cópia = "legado" (nunca se infere a máquina pelo plano atual).
 
 ### `notas/{alunoId}`
 - `alunoId`, `exercicios`: `{ [nome do exercício]: texto (até 300) }`, `datas`: `{ [nome]: Timestamp }` (opcional; nota antiga = "sem data"), `atualizadoEm`

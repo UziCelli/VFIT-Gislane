@@ -1,9 +1,19 @@
 // Contrato comum ao editor e ao conector: não inclui registros ou sessões presenciais.
 import { z } from 'zod'
+import { problemasAparelho, type Aparelho } from '../engine/aparelho'
 export const idSchema = z.string().regex(/^[A-Za-z0-9_-]{1,128}$/)
 export const nomeSchema = z.string().trim().min(1).max(120)
 const inteiro = (min: number, max: number) => z.number().int().min(min).max(max)
-const slot = z.object({ slotId: idSchema, nome: nomeSchema, pausaS: z.number().min(0).max(3600).optional(), doisLados: z.boolean().optional() }).strict()
+// Cópia da máquina no exercício (#261): mesmos limites de firestore.rules (maquinas) e conferida pelo motor.
+const kg = z.number().positive().max(500)
+export const maquinaSlotSchema = z.object({
+  id: z.string().regex(/^m-[a-z0-9-]{1,78}$/), nome: z.string().min(1).max(60), local: z.string().min(1).max(60),
+  tipo: z.enum(['maquina', 'articulada', 'polia', 'duasPolias']), fabricante: z.string().max(40).optional(), modelo: z.string().max(40).optional(),
+  unidade: z.enum(['kg', 'nivel']), incremento: z.number().positive().max(50).optional(), minimo: kg.optional(), maximo: kg.optional(),
+  complementos: z.array(kg).max(4).optional(), niveis: z.number().int().min(1).max(40).optional(), kgNivel: z.array(kg.nullable()).max(40).optional(),
+  polia: z.enum(['1:1', '2:1']).optional(), porLado: z.boolean().optional(),
+}).strict().refine((m) => problemasAparelho(m).length === 0, 'Máquina inválida.').transform((m) => m as Aparelho)
+const slot = z.object({ slotId: idSchema, nome: nomeSchema, pausaS: z.number().min(0).max(3600).optional(), doisLados: z.boolean().optional(), maquina: maquinaSlotSchema.optional() }).strict()
 export const repsSchema = z.array(inteiro(1, 600).nullable()).max(6).superRefine((l, c) => { const vazio = l.indexOf(null); if (vazio >= 0 && l.slice(vazio).some((v) => v !== null)) c.addIssue({ code: 'custom', message: 'Séries vazias devem ficar no fim da linha.' }) })
 const linha = z.array(repsSchema).min(1).max(12)
 export const metodoSchema = z.object({ ativo: z.boolean(), semana: inteiro(1, 12), treino: inteiro(1, 7), exercicio: inteiro(1, 10), metodo: z.enum(['Dropset', 'Biset', 'Triset', 'Superset', 'Circuito', 'Rest-pause', 'Clusterset']), escopo: z.enum(['Todas as séries', 'Série específica', 'Primeiras 2 séries', 'Últimas 2 séries', 'Primeiras 3 séries', 'Últimas 3 séries', 'Primeiras 4 séries', 'Últimas 4 séries']), serie: inteiro(1, 6).optional(), grupo: inteiro(1, Number.MAX_SAFE_INTEGER).optional(), reducaoCarga: z.number().min(0).max(100).optional(), pausaInternaS: z.number().min(0).max(3600).optional(), blocos: inteiro(1, 20).optional(), repsPorBloco: inteiro(1, 600).optional(), adicional: inteiro(0, 600).optional(), etapas: inteiro(1, 6).optional(), cargaEtapa: z.array(z.number().min(0).max(10000).nullable()).max(6).optional(), repsPadrao: inteiro(1, 600).optional(), repsEtapa: z.array(inteiro(1, 600).nullable()).max(6).optional() }).strict()

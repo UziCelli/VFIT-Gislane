@@ -7,6 +7,7 @@
 // `exercicios` guarda ids do catálogo base (ex.: 'cadeira-extensora') ou de exerciciosProprios ('p-...').
 import { exercicioPorId, resolverExercicio } from '../data/catalogo'
 import { kgDaPilha, problemasAparelho, type Aparelho, type RazaoPolia, type TipoAparelho, type Unidade } from '../engine/aparelho'
+import type { Meso } from '../engine/tipos'
 import { proprioPorNome, proprios } from './catalogoProprio'
 
 export type TipoMaquina = Extract<TipoAparelho, 'maquina' | 'articulada' | 'polia' | 'duasPolias'>
@@ -182,4 +183,34 @@ export function locais(lista: readonly Maquina[]): string[] {
   const n = new Map<string, number>()
   for (const m of lista) n.set(m.local, (n.get(m.local) ?? 0) + 1)
   return [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR')).map(([l]) => l)
+}
+
+// ---- Máquina no treino (#261) ----
+
+// Cópia que vai para o exercício do treino: a escala daquele momento, sem observação nem lista de exercícios.
+// O aluno lê só esta cópia (não lê `maquinas`); editar a máquina depois não muda o que já está no treino.
+export function paraSlot(m: Maquina): Aparelho {
+  const { exercicios: _e, obs: _o, ...escala } = m
+  return escala as Aparelho
+}
+
+// A cópia do exercício ainda é igual à máquina do catálogo? (false = a escala mudou depois; escolher de novo atualiza.)
+export const mesmaEscala = (copia: Aparelho, atual: Maquina) => JSON.stringify(ordenar(copia)) === JSON.stringify(ordenar(paraSlot(atual)))
+const ordenar = (o: object) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b)))
+
+// Máquina usada num treino já registrado, só pela cópia gravada no registro ao iniciar (prescricaoRegistrada).
+// - { maquina }: a escala daquele dia; null = treino registrado sem máquina nesse exercício.
+// - 'legado': sem cópia gravada (treino antigo, de antes desta etapa, ou cópia reconstruída): NÃO se atribui
+//   máquina por inferência (nem pela máquina atual do plano).
+export function maquinaUsada(meso: Pick<Meso, 'prescricoesRegistradas'>, semana: number, treino: number, slotId: string): { maquina: Aparelho | null } | 'legado' {
+  const p = meso.prescricoesRegistradas?.[`${semana}-${treino}`]
+  if (!p || p.referenciaHistorica) return 'legado'
+  const e = p.sessao.exercicios.find((x) => x.slot.slotId === slotId)
+  return e ? { maquina: e.slot.maquina ?? null } : 'legado'
+}
+
+// Linha curta para o aluno e o coach: "Cadeira Extensora · Academia Centro · anote o nível (1 a 12)".
+export function textoMaquina(m: Aparelho): string {
+  // Em kg o aluno já anota como sempre; em nível o número do campo é o nível, não kg.
+  return [m.nome, m.local, ...(m.unidade === 'nivel' ? [`anote o nível (1 a ${m.niveis})`] : [])].join(' · ')
 }

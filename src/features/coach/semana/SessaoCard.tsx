@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { isometrico, metricasSessao, type Cargas, type Sessao } from '../../../engine'
 import { registrarCarga, registrarCargaLados, salvarNota } from '../../../lib/acoes'
 import { confirmarExclusao, dataDaNota, notaDoExercicio } from '../../../lib/notas'
-import PilulasExercicio from '../../catalogo/PilulasExercicio'
+import PilulasExercicio, { LinhaMaquina } from '../../catalogo/PilulasExercicio'
 import { doc } from 'firebase/firestore'
 import { db } from '../../../lib/firebase'
 import { useDoc } from '../../../lib/hooks'
@@ -155,6 +155,7 @@ export default function SessaoCard({
                 <td className="p-2">
                   {e.slot.nome}
                   <PilulasExercicio nome={e.slot.nome} className="mt-1" />
+                  <LinhaMaquina maquina={e.slot.maquina} className="mt-1" />
                   {notaDoExercicio(notas, e.slot.nome).texto && (() => {
                     const nome = e.slot.nome.trim()
                     const { texto, em, outras } = notaDoExercicio(notas, nome)

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { IcCheck } from '../../../icones'
 import { cargaSuspeita } from '../../../lib/conferirCarga'
 import { fmt } from './format'
+import { mexe } from '../../../ui'
 
 // Input de carga (kg): grava no blur/Enter, sem esperar confirmação do servidor (offline-first).
 export default function LoadInput({
@@ -108,8 +109,8 @@ export default function LoadInput({
           aria-label="Salvo"
           role="status"
           className="pointer-events-none absolute -right-1 -top-2 text-xs font-bold text-emerald-400"
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, ...mexe('scale(0.5)') }}
+          animate={{ opacity: 1, transform: 'scale(1)', transitionEnd: { transform: 'none' } }}
           exit={{ opacity: 0, transition: saida }}
           transition={agil}
         >

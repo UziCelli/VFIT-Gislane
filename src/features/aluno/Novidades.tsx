@@ -4,6 +4,7 @@ import marca from '@marca/marca.json'
 import { IcBalao, IcCartao, IcEstrela, IcFisio, IcHaltere, IcNota, IcPlay, IcPrancheta, IcRelogio, IcSino, IcSubir, type Icone } from '../../icones'
 import { PIX } from './PagarPix'
 import Onboarding, { naoVisto, Palco, type Atalho, type Passo } from '../onboarding/Onboarding'
+import { mexe, sobe } from '../../ui'
 
 // Novidades de novembro/2026 para quem já usa o app. Abre 1x por aparelho.
 // Na próxima leva de novidades: troque os passos e a CHAVE (ex.: 'forca-novidades-2026-12').
@@ -12,8 +13,8 @@ export const novidadesNaoVistas = () => naoVisto(CHAVE_NOVIDADES)
 
 const Chip = ({ Icone, texto, n }: { Icone: Icone; texto: string; n: number }) => (
   <m.span
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
+    initial={{ opacity: 0, ...mexe('translateY(10px)') }}
+    animate={sobe}
     transition={{ delay: 0.1 + n * 0.07 }}
     className="flex items-center gap-2 rounded-xl bg-slate-800/80 px-3 py-2.5 text-sm font-semibold text-white"
   >
@@ -27,8 +28,8 @@ const Campo = ({ children, destaque }: { children: ReactNode; destaque?: boolean
 
 const Cartao = ({ parte, valor, n }: { parte: string; valor: string; n: number }) => (
   <m.div
-    initial={{ opacity: 0, scale: 0.9 }}
-    animate={{ opacity: 1, scale: 1 }}
+    initial={{ opacity: 0, ...mexe('scale(0.9)') }}
+    animate={{ opacity: 1, transform: 'scale(1)', transitionEnd: { transform: 'none' } }}
     transition={{ delay: 0.15 + n * 0.1 }}
     className="rounded-xl bg-slate-800/80 p-3 text-left"
   >

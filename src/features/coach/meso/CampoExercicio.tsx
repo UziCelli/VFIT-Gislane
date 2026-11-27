@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { buscarExercicios } from '../../../lib/busca'
 import PilulasExercicio from '../../catalogo/PilulasExercicio'
 import { campoBase } from '../../../ui'
@@ -23,7 +23,8 @@ export default function CampoExercicio({
   const [texto, setTexto] = useState(inicial)
   const [aberto, setAberto] = useState(false)
   const [ativo, setAtivo] = useState(-1)
-  const sugestoes = aberto ? buscarExercicios(texto, 8) : []
+  // Só refaz a busca quando o texto muda (27/11/2026): setas e foco redesenham o campo e repetiam a busca no catálogo.
+  const sugestoes = useMemo(() => (aberto ? buscarExercicios(texto, 8) : []), [aberto, texto])
 
   const escolher = (nome: string) => {
     setTexto(nome)

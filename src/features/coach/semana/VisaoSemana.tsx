@@ -77,7 +77,7 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
       }
     >
       {!!meso.historicoIncerto?.length && <p role="status" className="mb-3 text-sm text-amber-200">Há registros antigos sem versão da prescrição. As prescrições anteriores são referências; confira as cargas registradas.</p>}
-      <div className="mb-4 flex flex-wrap items-center justify-center gap-3">
+      <div className="relative mb-4 flex flex-wrap items-center justify-center gap-3">
         <Botao disabled={semanaAtual <= 1} onClick={() => ir(`/meso/${id}/semana/${semanaAtual - 1}`)}>
           ← Semana
         </Botao>
@@ -87,7 +87,8 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
         <Botao disabled={semanaAtual >= meso.semanas} onClick={() => ir(`/meso/${id}/semana/${semanaAtual + 1}`)}>
           Semana →
         </Botao>
-        <Msg className="ml-2">{pendente && <span className="text-xs text-amber-400">sincronizando…</span>}</Msg>
+        {/* Fora do fluxo (27/11/2026): ao aparecer, não recentra a linha nem empurra os botões de semana. */}
+        <Msg className="pointer-events-none absolute inset-x-0 top-full text-center">{pendente && <span className="text-xs text-amber-400">sincronizando…</span>}</Msg>
       </div>
 
       <Deslizar chave={semanaAtual}>

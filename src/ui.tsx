@@ -250,11 +250,14 @@ const camada: Variants = {
 const reduzida: Variants = { entra: { opacity: 0 }, fica: { opacity: 1, transition: saida }, sai: { opacity: 0, transition: saida } }
 
 // A tela que está saindo fica `inert` e escondida dos leitores de tela.
+// `Saindo` leva isso aos `Fixo` dela, que vivem no <body> (portal), fora desta camada; telas aninhadas herdam do pai.
+const Saindo = createContext(false)
 const Camada = ({ children, ...p }: { children: ReactNode; custom?: number; variants: Variants; initial: string; animate: string; exit: string }) => {
   const presente = useIsPresent()
+  const saindo = useContext(Saindo) || !presente
   return (
     <m.div {...p} inert={!presente} aria-hidden={presente ? undefined : true}>
-      {children}
+      <Saindo.Provider value={saindo}>{children}</Saindo.Provider>
     </m.div>
   )
 }
@@ -284,7 +287,17 @@ export const Tela = ({ chave, abrir = false, lado, dentro = false, children }: {
 
 // Elemento `fixed` que já existe quando a tela entra: vai para o <body>, fora da Camada (que anima `transform`).
 // Dentro dela, o `fixed` usa a Camada como referência e desliza junto com a tela, pulando quando o transform vira `none`.
-export const Fixo = ({ children }: { children: ReactNode }) => createPortal(children, document.body)
+// Na saída da tela, o portal recebe o mesmo `inert` da camada: sem foco nem toque já no primeiro quadro da saída.
+// `contents`: o invólucro não gera caixa, então o `fixed` de dentro fica onde estava.
+export const Fixo = ({ children }: { children: ReactNode }) => {
+  const saindo = useContext(Saindo)
+  return createPortal(
+    <div className="contents" data-fixo="" inert={saindo} aria-hidden={saindo || undefined} style={saindo ? { pointerEvents: 'none' } : undefined}>
+      {children}
+    </div>,
+    document.body,
+  )
+}
 
 // Painel que abre com opacidade + deslize e fecha na hora (use no lugar de `{aberto && <X/>}`).
 // Sem animar altura: altura recalcula a página a cada quadro e, sob o vidro (backdrop-filter), travava no iPhone.

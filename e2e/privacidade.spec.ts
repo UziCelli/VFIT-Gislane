@@ -250,7 +250,8 @@ test('aceite no iPhone: pop-up na tela inteira e, ao aceitar, a saída não guar
   await page.getByRole('button', { name: 'Aceitar e continuar' }).tap()
   await expect.poll(() => page.evaluate(() => (window as unknown as { __saida?: unknown }).__saida ?? null), { timeout: 3000 })
     .toEqual({ focoDentro: false, toqueNoPopup: false, escondido: 'true' })
-  await expect(popup).toBeAttached() // ainda na transição
+  // Ainda na transição. Por papel não dá: o pop-up já está aria-hidden e getByRole o ignora.
+  await expect(page.locator('[data-fixo] [role=dialog]')).toBeAttached()
   await page.touchscreen.tap(ponto.x, ponto.y) // segundo toque onde estava "Não aceito, sair"
 
   await cdp.send('Animation.setPlaybackRate', { playbackRate: 1 })

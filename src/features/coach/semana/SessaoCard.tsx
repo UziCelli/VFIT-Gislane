@@ -3,9 +3,6 @@ import { isometrico, metricasSessao, type Cargas, type Sessao } from '../../../e
 import { registrarCarga, registrarCargaLados, salvarNota } from '../../../lib/acoes'
 import { confirmarExclusao, dataDaNota, notaDoExercicio } from '../../../lib/notas'
 import PilulasExercicio, { LinhaMaquina } from '../../catalogo/PilulasExercicio'
-import { doc } from 'firebase/firestore'
-import { db } from '../../../lib/firebase'
-import { useDoc } from '../../../lib/hooks'
 import { duracaoTreino } from '../../../lib/resumo'
 import { acimaDoLimite, fmtMin } from '../../../lib/tempo'
 import { Cartao } from '../../../ui'
@@ -55,6 +52,7 @@ function RepsFeitas({ alvo, feita, iso = false }: { alvo: number; feita: number 
 export default function SessaoCard({
   mesoId,
   alunoId,
+  notas,
   sessao,
   cargas,
   reps = {},
@@ -70,6 +68,7 @@ export default function SessaoCard({
 }: {
   mesoId: string
   alunoId: string
+  notas: NotasDoc | null // lida uma vez pelo pai (VisaoSemana): evita uma assinatura por cartão
   sessao: Sessao
   cargas: Cargas
   reps?: Cargas
@@ -84,7 +83,6 @@ export default function SessaoCard({
   maquinaOculta?: boolean // treino registrado sem cópia: a máquina daquele dia é desconhecida (#261)
 }) {
   const [edAberto, setEdAberto] = useState<Record<string, boolean>>({}) // "lados diferentes" aberto, por exercício
-  const { dados: notas } = useDoc<NotasDoc>(doc(db, 'notas', alunoId))
   const m = metricasSessao(sessao, cargas, reps)
   const pausaPrincipais = sessao.exercicios.find((e) => e.pos <= 2 && e.slot.pausaS == null)?.pausaS // sem pausa própria do slot
   const nEtapas = Math.max(0, ...sessao.exercicios.map((e) => e.reps.length - e.n))

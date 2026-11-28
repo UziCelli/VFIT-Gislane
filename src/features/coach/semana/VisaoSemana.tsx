@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { collection, doc, query, where, type Timestamp } from 'firebase/firestore'
 import { prescreverSessao } from '../../../engine'
 import { marcarRealizado } from '../../../lib/acoes'
-import { docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type RegistroDoc } from '../../../lib/conversores'
+import { docParaMeso, docsParaLados, docsParaRegistros, docsParaRegistrosReps, lerPc, type MesoSalvo, type NotasDoc, type RegistroDoc } from '../../../lib/conversores'
 import { diaSP } from '../../../lib/acesso'
 import { msSessao } from '../../../lib/resumo'
 import { comPrescricoesRegistradas } from '../../../lib/prescricaoRegistrada'
@@ -22,6 +22,7 @@ type RegistroDocCompleto = RegistroDoc & { realizado?: boolean; pc?: Record<stri
 
 export default function VisaoSemana({ id, semana }: { id: string; semana: number }) {
   const { dados, carregando } = useDoc<MesoSalvo>(doc(db, 'mesos', id))
+  const { dados: notas } = useDoc<NotasDoc>(dados?.alunoId ? doc(db, 'notas', dados.alunoId) : null) // uma assinatura para todos os cartões
   const semInternet = useSemInternet()
   const { dados: docsRegistros, pendente } = useLista<RegistroDocCompleto>(
     query(collection(db, 'registros'), where('mesoId', '==', id)),
@@ -102,6 +103,7 @@ export default function VisaoSemana({ id, semana }: { id: string; semana: number
             <SessaoCard
               mesoId={id}
               alunoId={dados.alunoId}
+              notas={notas}
               sessao={sessao}
               cargas={registros[chave] ?? {}}
               reps={reps[chave] ?? {}}

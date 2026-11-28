@@ -4,6 +4,8 @@ import { criarAluno, limparEmuladores, lerDoc } from './seed'
 
 const marca = JSON.parse(readFileSync(`marcas/${process.env.MARCA ?? 'vfit'}/marca.json`, 'utf8'))
 const ALUNO = { nome: 'Bia Aluna', email: 'bia.privacidade-e2e@teste.com', senha: 'senha123' }
+const UA_IPHONE =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
 
 test.use({ ...devices['Pixel 7'] })
 test.beforeAll(limparEmuladores)
@@ -194,4 +196,69 @@ test('sem internet na confirmação da senha: quem já aceitou a versão antiga 
   await adiar.click()
   await expect(page.getByText('Olá, Lia')).toBeVisible()
   await context.setOffline(false)
+})
+
+// O pop-up vive num portal no <body> (fora da camada animada da tela). Na saída ele tem de ficar inerte já no começo:
+// sem foco dentro e sem aceitar um segundo toque (ex.: "Não aceito, sair" logo depois de aceitar).
+test('aceite no iPhone: pop-up na tela inteira e, ao aceitar, a saída não guarda foco nem aceita segundo toque', async ({ browser }) => {
+  const u = { nome: 'Lia Transicao', email: 'lia.transicao-e2e@teste.com', senha: 'senha123' }
+  const uid = await criarAluno(u.nome, u.email, u.senha, undefined, false)
+  const vp = { width: 390, height: 844 }
+  const ctx = await browser.newContext({ viewport: vp, userAgent: UA_IPHONE, hasTouch: true, isMobile: true, deviceScaleFactor: 3 })
+  const page = await ctx.newPage()
+  await entrar(page, u.email, u.senha)
+  const popup = page.getByRole('dialog', { name: 'Termos de uso e privacidade' })
+  await expect(popup).toBeVisible()
+
+  // Disposição no iPhone: o fundo cobre a tela toda e o cartão cabe nela, sem rolagem lateral.
+  const disp = await page.evaluate(() => {
+    const fundo = document.querySelector('[data-fixo] > *')!.getBoundingClientRect()
+    const cartao = document.querySelector('[role=dialog]')!.getBoundingClientRect()
+    return { fundo: [fundo.left, fundo.top, fundo.width, fundo.height], cartao: [cartao.left, cartao.right], sw: document.documentElement.scrollWidth, iw: innerWidth }
+  })
+  expect(disp.fundo).toEqual([0, 0, vp.width, vp.height])
+  expect(disp.cartao[0]).toBeGreaterThanOrEqual(0)
+  expect(disp.cartao[1]).toBeLessThanOrEqual(vp.width)
+  expect(disp.sw).toBeLessThanOrEqual(disp.iw)
+
+  const sair = (await page.getByRole('button', { name: 'Não aceito, sair' }).boundingBox())!
+  const ponto = { x: sair.x + sair.width / 2, y: sair.y + sair.height / 2 }
+  await page.getByLabel(/Li e aceito/).check()
+
+  // Saída em câmera lenta (animações a 5%), para o segundo toque cair com certeza no meio da transição.
+  const cdp = await ctx.newCDPSession(page)
+  await cdp.send('Animation.enable')
+  await cdp.send('Animation.setPlaybackRate', { playbackRate: 0.05 })
+  await page.evaluate((p) => {
+    const w = window as unknown as { __saida?: unknown }
+    const fixo = document.querySelector('[data-fixo]')!
+    new MutationObserver((_, obs) => {
+      if (!fixo.hasAttribute('inert')) return
+      obs.disconnect()
+      const dialogo = fixo.querySelector('[role=dialog]')!
+      // Dois quadros: o navegador tira o foco do que ficou inerte na atualização seguinte da tela.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        w.__saida = {
+          focoDentro: dialogo.contains(document.activeElement),
+          toqueNoPopup: !!document.elementFromPoint(p.x, p.y)?.closest('[data-fixo]'),
+          escondido: fixo.getAttribute('aria-hidden'),
+        }
+      }))
+    }).observe(fixo, { attributes: true, attributeFilter: ['inert'] })
+  }, ponto)
+
+  await page.getByRole('button', { name: 'Aceitar e continuar' }).tap()
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __saida?: unknown }).__saida ?? null), { timeout: 3000 })
+    .toEqual({ focoDentro: false, toqueNoPopup: false, escondido: 'true' })
+  // Ainda na transição. Por papel não dá: o pop-up já está aria-hidden e getByRole o ignora.
+  await expect(page.locator('[data-fixo] [role=dialog]')).toBeAttached()
+  await page.touchscreen.tap(ponto.x, ponto.y) // segundo toque onde estava "Não aceito, sair"
+
+  await cdp.send('Animation.setPlaybackRate', { playbackRate: 1 })
+  await expect(page.getByText('Olá, Lia')).toBeVisible()
+  await expect(page.locator('[data-fixo]')).toHaveCount(0) // a tela nova não herda nada do portal
+  await expect.poll(async () => JSON.stringify(await lerDoc(`usuarios/${uid}`))).toContain('privacidadeVersao')
+  await page.reload()
+  await expect(page.getByText('Olá, Lia')).toBeVisible() // o segundo toque não saiu da conta
+  await ctx.close()
 })

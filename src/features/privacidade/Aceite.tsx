@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { aceitarPrivacidade, sair } from '../../lib/acoes'
-import { Aviso, Botao, Msg } from '../../ui'
+import { Aviso, Botao, Fixo, Msg } from '../../ui'
 import { Brilho } from '../../vidro'
 import { CaixaAceite } from './Politica'
 
@@ -27,7 +27,7 @@ export default function Aceite({ uid, atualizou }: { uid: string; atualizou: boo
   return (
     <div className="min-h-dvh">
       <Brilho />
-      <div className="fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-black/60 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-topo">
+      <Fixo><div className="fixed inset-0 z-40 grid place-items-center overflow-y-auto bg-black/60 px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] pt-topo">
         <div role="dialog" aria-modal="true" aria-labelledby="titulo-aceite" className="w-full max-w-md space-y-4 rounded-3xl bg-slate-900 p-5 text-left shadow-2xl">
           <h1 id="titulo-aceite" ref={titulo} tabIndex={-1} className="text-xl font-bold outline-none">{atualizou ? 'Atualizamos os termos' : 'Termos de uso e privacidade'}</h1>
           <p className="text-sm text-slate-300">{atualizou ? 'Leia o resumo e aceite para continuar usando o app.' : 'Para usar o app, leia o resumo e aceite.'}</p>
@@ -54,7 +54,7 @@ export default function Aceite({ uid, atualizou }: { uid: string; atualizou: boo
             {saindo ? 'Saindo…' : 'Não aceito, sair'}
           </Botao>
         </div>
-      </div>
+      </div></Fixo>
     </div>
   )
 }

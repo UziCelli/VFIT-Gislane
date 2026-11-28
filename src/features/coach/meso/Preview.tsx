@@ -1,8 +1,10 @@
+import { m } from 'motion/react'
 import { useSyncExternalStore } from 'react'
 import type { Meso } from '../../../engine'
 import { acimaDoLimite, fmtMin } from '../../../lib/tempo'
 import { IcSeta } from '../../../icones'
-import { campoBase, Cartao } from '../../../ui'
+import { campoBase, Cartao, mexe, sobe } from '../../../ui'
+import { suave } from '../../../movimento'
 import PreviaAluno, { sessaoSegura } from './PreviaAluno'
 
 // Faixa fixa no topo do editor: tempo estimado de cada treino da semana, sempre à vista em qualquer aba.
@@ -72,19 +74,25 @@ export default function Preview({ meso, semana, treino, aberta, onAlternar }: {
 }) {
   const larga = useTelaLarga()
   return (
-    <Cartao className="space-y-3 !p-2 2xl:!p-3">
+    <Cartao className="relative !p-2 2xl:!p-3 2xl:space-y-3">
       <button type="button" aria-expanded={aberta} onClick={onAlternar} className="flex min-h-11 w-full items-center gap-2 text-left font-semibold 2xl:pointer-events-none">
         <IcSeta className={`size-4 transition-transform 2xl:hidden ${aberta ? 'rotate-90' : ''}`} />
         Prévia do aluno
         <span className="ml-auto text-xs font-normal text-slate-400">Treino {treino} · semana {semana}</span>
       </button>
       {(aberta || larga) && (
-      <div>
+      // Celular/tablet: folha sobreposta logo abaixo do botão (absolute), então abrir não empurra o editor; 2xl: no fluxo.
+      <m.div
+        initial={larga ? false : { opacity: 0, ...mexe('translateY(-8px)') }}
+        animate={sobe}
+        transition={suave}
+        className="absolute inset-x-0 top-full z-30 mt-1 rounded-xl border border-slate-800 bg-slate-900 p-2 shadow-2xl 2xl:static 2xl:mt-0 2xl:border-0 2xl:bg-transparent 2xl:p-0 2xl:shadow-none"
+      >
         <div className="mx-auto max-h-[70dvh] max-w-[390px] overflow-y-auto overscroll-contain rounded-xl border border-slate-800 2xl:rounded-[28px] 2xl:border-4 2xl:max-h-[calc(100dvh-12rem)]">
           <PreviaAluno meso={meso} semana={semana} treino={treino} />
         </div>
         <p className="mt-2 text-center text-xs text-slate-500">Só para ver: os botões não funcionam aqui.</p>
-      </div>
+      </m.div>
       )}
     </Cartao>
   )

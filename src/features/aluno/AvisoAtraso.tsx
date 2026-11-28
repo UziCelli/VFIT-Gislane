@@ -7,7 +7,7 @@ import type { MesoSalvo } from '../../lib/conversores'
 import { db } from '../../lib/firebase'
 import { useHoje, useLista } from '../../lib/hooks'
 import { ir } from '../../rota'
-import { Botao } from '../../ui'
+import { Botao, Fixo } from '../../ui'
 import { Quadro } from '../../vidro'
 import { dataSP, mesoAtual } from './mesoAtual'
 import PagarPix, { contaDoDia, PIX, reais } from './PagarPix'
@@ -42,7 +42,7 @@ export default function AvisoAtraso({ uid, perfil, dias }: { uid: string; perfil
   }
 
   return (
-    <div role="dialog" aria-label="Mensalidade vencida" className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-slate-950">
+    <Fixo><div role="dialog" aria-label="Mensalidade vencida" className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-slate-950">
       <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pb-4 pt-topo">
         <h1 className="text-[28px] leading-tight">Mensalidade vencida há {dias} {dias === 1 ? 'dia' : 'dias'}</h1>
         <p className="rounded-2xl bg-amber-900/30 p-3 text-amber-200">{faltam <= 0 ? 'Seu acesso pausa hoje à meia-noite.' : `Seu acesso pausa em ${faltam} ${faltam === 1 ? 'dia' : 'dias'}.`}</p>
@@ -57,6 +57,6 @@ export default function AvisoAtraso({ uid, perfil, dias }: { uid: string; perfil
       <div className="mx-auto w-full max-w-md px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-2">
         <Botao type="button" tipo="primario" tamanho="lg" className="w-full" disabled={carregando || carregandoReg} onClick={entendi}>{rota === '/' ? 'Ciente, ir para o app' : 'Ciente, ir para o treino'}</Botao>
       </div>
-    </div>
+    </div></Fixo>
   )
 }

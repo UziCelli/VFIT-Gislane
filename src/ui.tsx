@@ -1,5 +1,6 @@
 import { AnimatePresence, m, useIsPresent, useReducedMotion, type Variants } from 'motion/react'
 import { createContext, useContext, useEffect, useRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import Logo from '@marca/Logo'
 import { agil, ESPERA_ENTRADA_MS, saida, suave } from './movimento'
 
@@ -280,6 +281,10 @@ export const Tela = ({ chave, abrir = false, lado, dentro = false, children }: {
     </div>
   )
 }
+
+// Elemento `fixed` que já existe quando a tela entra: vai para o <body>, fora da Camada (que anima `transform`).
+// Dentro dela, o `fixed` usa a Camada como referência e desliza junto com a tela, pulando quando o transform vira `none`.
+export const Fixo = ({ children }: { children: ReactNode }) => createPortal(children, document.body)
 
 // Painel que abre com opacidade + deslize e fecha na hora (use no lugar de `{aberto && <X/>}`).
 // Sem animar altura: altura recalcula a página a cada quadro e, sob o vidro (backdrop-filter), travava no iPhone.
